@@ -1,0 +1,2 @@
+#Add for oplus audio extends driver
+obj-y += asoc/ asoc/codecs/tfa98xx-v6/

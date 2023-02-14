@@ -1,0 +1,75 @@
+/**********************************************************************************
+* Copyright (c)  2008-2021  Guangdong oplus Mobile Comm Corp., Ltd
+* Description: oplus sensor dtsi
+*
+* Version: 1.0
+* Date: 2021-07-12
+*
+* ------------------------------ Revision History: --------------------------------
+* <version>           <date>                <author>                            <desc>
+***********************************************************************************/
+#include <dt-bindings/regulator/qcom,rpmh-regulator-levels.h>
+&soc {
+	//#ifdef OPLUS_FEATURE_SENSOR_SMEM
+	/*enum sensor_id { OPLUS_ACCEL,OPLUS_GYRO,OPLUS_MAG,OPLUS_LIGHT,OPLUS_PROXIMITY,OPLUS_SAR,OPLUS_CT,OPLUS_BAROMETER,SENSORS_NUM};*/
+	sensor_fb: sensor_fb {
+		compatible = "oplus,sensor-feedback";
+		master-id  = <3>;
+		smem-id    = <608>;
+	};
+	ssc_interactive: ssc_interactive{
+		sup-power-fb;
+		need_lb_algo = <1>;
+
+		primary_lb_brl_info {
+			brl_thrd_num = <2>;
+			brl_thrd = <500 850>;
+			brl_l2h_thrd = <850>;
+		};
+	};
+	oplus_sensor {
+		compatible = "oplus,sensor-devinfo";
+	};
+	consumer_ir_core: consumer_ir_core {
+		compatible = "oplus,kookong_ir_core";
+		status = "okay";
+		vdd-type = <0>; /*0: internal LDO , 1: external LOD*/
+		vdd-supply = <&pm_humu_l9>;
+		vdd-min-vol = <3160000>;
+		vdd-max-vol = <3160000>;
+	};
+	//#endif /*OPLUS_FEATURE_SENSOR_SMEM*/
+};
+
+&qupv3_se11_spi{
+	status = "ok";
+	consumerIr@0 {
+		compatible = "oplus,kookong_ir_spi";
+		reg = <0>;
+		status = "ok";
+
+		spi-max-frequency = <5000000>;    /*4800000,9600000,15000000,19200000*/
+		ir-spi-mode = <0>;
+	};
+};
+
+&apps_rsc_drv2 {
+	rpmh-regulator-ldob9 {
+		compatible = "qcom,rpmh-vrm-regulator";
+		qcom,resource-name = "ldob9";
+		qcom,regulator-type = "pmic5-ldo";
+		qcom,supported-modes =
+			<RPMH_REGULATOR_MODE_LPM
+			 RPMH_REGULATOR_MODE_HPM>;
+		qcom,mode-threshold-currents = <0 10000>;
+
+		L9B: pm_humu_l9: regulator-pm-humu-l9 {
+			regulator-name = "pm_humu_l9";
+			qcom,set = <RPMH_REGULATOR_SET_ALL>;
+			regulator-min-microvolt = <3160000>;
+			regulator-max-microvolt = <3160000>;
+			qcom,init-voltage = <3160000>;
+			qcom,init-mode = <RPMH_REGULATOR_MODE_HPM>;
+		};
+	};
+};

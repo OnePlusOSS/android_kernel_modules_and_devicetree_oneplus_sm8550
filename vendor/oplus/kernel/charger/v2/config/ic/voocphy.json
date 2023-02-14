@@ -1,0 +1,89 @@
+{
+    "type": "ic_cfg",
+    "name": "voocphy",
+    "max": 100,
+    "list": [
+        {
+            "lable": "OPLUS_IC_FUNC_VOOCPHY_ENABLE",
+            "desc": {
+                "zh": "voocphy使能"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["bool"],
+            "parameter_desc": [
+                {
+                    "range": "0-1",
+                    "type": "in",
+                    "desc": {
+                        "zh": "1: 使能, 0: 关闭"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_VOOCPHY_RESET_AGAIN",
+            "desc": {
+                "zh": "voocphy复位"
+            },
+            "auto_debug_code": true,
+            "parameter_list": [],
+            "parameter_desc": [],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_VOOCPHY_SET_CURR_LEVEL",
+            "desc": {
+                "zh": "voocphy设置快充电流等级"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["int"],
+            "parameter_desc": [
+                {
+                    "range": "0-*",
+                    "type": "in",
+                    "desc": {
+                        "zh": "参考cool down电流挡位对照表"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_VOOCPHY_SET_MATCH_TEMP",
+            "desc": {
+                "zh": "voocphy设置壳温"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["int"],
+            "parameter_desc": [
+                {
+                    "range": "0-*",
+                    "type": "in",
+                    "desc": {
+                        "zh": "壳温, 单位:0.1℃"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        }
+    ],
+
+    "version": "V1.0:4:f0cd4447285d13ab254bfd46109b0a982746b54f154062f8142b6f7ba3b57878"
+}

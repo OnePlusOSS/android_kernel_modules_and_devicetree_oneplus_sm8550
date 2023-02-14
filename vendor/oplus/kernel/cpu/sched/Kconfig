@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2020 Oplus. All rights reserved.
+
+config OPLUS_FEATURE_PERFORMANCE_SCHED
+	bool "config oplus kernel sched feature"
+	default y
+	help
+	  define this config to add oplus kernel sched feature
+
+config OPLUS_FEATURE_SCHED_ASSIST
+	tristate "sched assist"
+	default n
+	help
+	  turning sched for ui, render and so on to improve UX
+
+config OPLUS_FEATURE_SF_BOOST
+	tristate "sf boost"
+	default n
+	help
+	  When the util of surfaceflinger is greater than 90,
+	  prefer to use big core.
+
+config OPLUS_FEATURE_HEALTHINFO
+	tristate "config healthinfo"
+	default n
+	depends on OPLUS_FEATURE_PERFORMANCE_SCHED
+	help
+	  define this config to init  healthinfo.
+
+config OPLUS_FEATURE_TASK_CPUSTATS
+	tristate "task_cpustats"
+	default n
+	help
+	  record cpu status
+
+config OPLUS_FEATURE_SCHED_SPREAD
+	bool "sched spread"
+	default n
+	depends on OPLUS_FEATURE_SCHED_ASSIST
+	depends on CGROUP_SCHED
+	help
+	  This is the uifirst 5.0 feature, which will spread tasks,
+	  kick runnable time from task demand.
+
+config OPLUS_FEATURE_TASK_SCHED
+	tristate "task_sched"
+	default n
+	depends on OPLUS_FEATURE_SCHED_ASSIST
+	help
+	  record task sched info
+
+config OPLUS_FEATURE_TASK_LOAD
+	tristate "task_load"
+	default n
+	depends on OPLUS_FEATURE_SCHED_ASSIST
+	help
+	  record cpu and task load
+
+config OPLUS_SCHED_MT6895
+	bool "mt6895 specific sched feature"
+	default n
+	help
+	  the difference between the mainline currently is whether to
+	  skip the CPU where the ux task is located when the RT task
+	  selects a new cpu core.
+	  rt tasks have "affinity with" prev running cpu, this only
+	  takes effect when a new core is selected.
+
+config OPLUS_FEATURE_CPU_JANKINFO
+	tristate "config cpu_jankinfo"
+	default n
+	depends on OPLUS_FEATURE_PERFORMANCE_SCHED
+	help
+	  define this config to enable cpu jankinfo.
+
+config OPLUS_FEATURE_FRAME_BOOST
+	tristate "frame boost"
+	default n
+	depends on OPLUS_FEATURE_PERFORMANCE_SCHED
+	help
+	  This moduler is used to improve frame missing by aggregating key-threads in one group,
+	  then adjust cpu frequence and placement.
+
+config OPLUS_FEATURE_BAN_APP_SET_AFFINITY
+	bool "config ban app set affinity"
+	default n
+	help
+	  ban app set affinity

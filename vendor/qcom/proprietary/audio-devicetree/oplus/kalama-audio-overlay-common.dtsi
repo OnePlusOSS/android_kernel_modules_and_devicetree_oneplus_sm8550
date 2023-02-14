@@ -1,0 +1,107 @@
+&i2s1_sd1_active {
+	mux {
+		function = "i2s1_data1";
+	};
+};
+
+&tdm1_dout_active {
+	mux {
+		function = "i2s1_data1";
+	};
+};
+
+&aliases {
+	i2c4 = "/soc/qcom,qupv3_1_geni_se@ac0000/i2c@a98000";
+};
+
+&lpass_cdc {
+	qcom,num-macros = <3>;
+	lpass-cdc-clk-rsc-mngr {
+		clock-names = "tx_core_clk", "rx_core_clk", "rx_tx_core_clk", "va_core_clk";
+		clocks = <&clock_audio_tx_1 0>, <&clock_audio_rx_1 0>,
+			<&clock_audio_rx_tx 0>, <&clock_audio_va_1 0>;
+	};
+};
+
+&wsa_macro {
+	status = "disabled";
+};
+
+&wsa2_macro {
+	status = "disabled";
+};
+
+&wsa884x_0220 {
+	status = "disabled";
+};
+
+&wsa884x_0221 {
+	status = "disabled";
+};
+
+&wsa884x_2_0220 {
+	status = "disabled";
+};
+
+&wsa884x_2_0221 {
+	status = "disabled";
+};
+
+&wcd938x_codec {
+	qcom,cdc-micbias1-mv = <2700>;
+	qcom,cdc-micbias2-mv = <2700>;
+	qcom,cdc-micbias3-mv = <2700>;
+	qcom,cdc-micbias4-mv = <2700>;
+};
+
+&fm_i2s1_gpios {
+	status = "disabled";
+};
+
+&wsa_swr_gpios {
+	status = "disabled";
+};
+
+&wsa2_swr_gpios {
+	status = "disabled";
+};
+
+&cdc_dmic01_gpios {
+	status = "disabled";
+};
+
+&cdc_dmic23_gpios {
+	status = "disabled";
+};
+
+&cdc_dmic45_gpios {
+	status = "disabled";
+};
+
+&cdc_dmic67_gpios {
+	status = "disabled";
+};
+
+&wsa_spkr_en02 {
+	status = "disabled";
+};
+
+&wsa_spkr_en13 {
+	status = "disabled";
+};
+
+&clock_audio_wsa_1 {
+	status = "disabled";
+};
+
+&clock_audio_wsa_2 {
+	status = "disabled";
+};
+
+&clock_audio_wsa_tx {
+	status = "disabled";
+};
+
+&clock_audio_wsa2_tx {
+	status = "disabled";
+};

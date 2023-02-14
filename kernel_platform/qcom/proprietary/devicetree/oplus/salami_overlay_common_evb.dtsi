@@ -1,0 +1,266 @@
+&tlmm {
+//#ifdef OPLUS_FEATURE_TP_BASIC
+	pmx_ts_int_active {
+		ts_int_active: ts_int_active {
+			mux {
+				pins = "gpio25";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio25";
+				drive-strength = <8>;
+				bias-pull-up;
+				input-enable;
+			};
+		};
+	};
+
+	pmx_ts_reset_active {
+		ts_reset_active: ts_reset_active {
+			mux {
+				pins = "gpio24";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio24";
+				drive-strength = <8>;
+				output-low;
+				bias-disable;
+			};
+		};
+	};
+
+	uphall_tri_state_key_active: uphall_tri_state_key_active {
+		mux {
+			pins = "gpio14";
+			function = "gpio";
+		};
+		config {
+			pins = "gpio14";
+			drive-strength = <2>;
+			bias-pull-up;
+		};
+	};
+
+	downhall_tri_state_key_active: downhall_tri_state_key_active {
+		mux {
+			pins = "gpio17";
+			function = "gpio";
+		};
+		config {
+			pins = "gpio17";
+			drive-strength = <2>;
+			bias-pull-up;
+		};
+	};
+};
+
+&qupv3_se9_i2c {
+	status = "ok";
+	qcom,clk-freq-out = <400000>;
+	ist8801@19 {
+		compatible = "oplus,hall-ist8801,up";
+		reg = <0x19>;
+		dhall,id = <1>;
+		vdd-supply = <&L2B>;
+		vio-supply = <&L1B>;
+		magnachip,init-interval = <200>;
+		interrupt-parent = <&tlmm>;
+		interrups = <14 0x02>;
+		dhall,irq-gpio = <&tlmm 14 0x2008>;
+		pinctrl-names = "uphall_tri_state_key_active";
+		pinctrl-0 = <&uphall_tri_state_key_active>;
+	};
+	ist8801@18 {
+		compatible = "oplus,hall-ist8801,down";
+		reg = <0x18>;
+		dhall,id = <2>;
+		vdd-supply = <&L2B>;
+		vio-supply = <&L1B>;
+		magnachip,init-interval = <200>;
+		interrupt-parent = <&tlmm>;
+		interrups = <17 0x02>;
+		dhall,irq-gpio = <&tlmm 17 0x2008>;
+		pinctrl-names = "downhall_tri_state_key_active";
+		pinctrl-0 = <&downhall_tri_state_key_active>;
+	};
+
+	magnachip@0D {
+		compatible = "oplus,hall-mxm1120,up";
+		reg = <0x0D>;
+		vdd-supply = <&L2B>;
+		vio-supply = <&L1B>;
+		magnachip,init-interval = <200>;
+		interrupt-parent = <&tlmm>;
+		interrups = <14 0x02>;
+		dhall,irq-gpio = <&tlmm 14 0x2008>;
+		pinctrl-names = "uphall_tri_state_key_active";
+		pinctrl-0 = <&uphall_tri_state_key_active>;
+	};
+	magnachip@0C {
+		compatible = "oplus,hall-mxm1120,down";
+		reg = <0x0C>;
+		vdd-supply = <&L2B>;
+		vio-supply = <&L1B>;
+		magnachip,init-interval = <200>;
+		interrupt-parent = <&tlmm>;
+		interrups = <17 0x02>;
+		dhall,irq-gpio = <&tlmm 17 0x2008>;
+		pinctrl-names = "downhall_tri_state_key_active";
+		pinctrl-0 = <&downhall_tri_state_key_active>;
+	};
+};
+
+&L14B {
+	regulator-min-microvolt = <2800000>;
+	qcom,init-voltage = <3008000>;
+};
+
+&qupv3_se4_i2c {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "ok";
+	qcom,i2c-touch-active = "synaptics-s3908";
+
+	goodix-berlin@5d {
+		status = "disabled";
+	};
+
+	mtp_21001:synaptics20031@4B {
+		compatible = "synaptics-s3908";
+		reg = <0x4B>;
+		chip-name = "S3908";
+
+		/* Interrupt && Irq-gpio */
+		interrupt-parent = <&tlmm>;
+		interrupts = <25 0x2008>;
+
+		/* Power Config */
+		//enable2v8_gpio = <&tlmm 10 0x1>;
+		//enable1v8_gpio = <&tlmm 97 0x1>;
+		vdd_2v8-supply = <&L14B>;
+		vcc_1v8-supply = <&L4B>;
+		vdd_2v8_volt = <3008000>;
+
+		/* Other HW Resource */
+		irq-gpio = <&tlmm 25 0x2008>;
+		reset-gpio = <&tlmm 24 0x1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+
+		touchpanel,max-num-support = <10>;
+		touchpanel,tx-rx-num = <17 38>;
+		earsense,tx-rx-num = <17 18>;
+		touchpanel,panel-coords = <5760 12864>;
+		touchpanel,display-coords = <1440 3216>;
+		touchpanel,touchmajor-limit = <256 256>;
+		touchpanel,int-mode = <1>; /*0: interrupt and disable, 1:interrupt and not disable*/
+		touchpanel,curved-size = <45>;
+
+		prevention,curved_screen_V2;
+		prevention,grip_disable_level = <6>;
+		prevention,updelay_time_ms = <30>;
+		prevention,makeup_cnt_weight = <4 1 2 2 2>;
+		prevention,large_corner_range = <600 1400>;
+		prevention,large_corner_judge_condition = <500 100 600 4 4>;
+		prevention,trx_reject_condition = <8 7 7>;
+		prevention,trx_strict_reject_condition = <8 5 5>;
+		prevention,large_judge_time_ms = <500 50 40>;
+		prevention,large_exit_condition = <8 8 2>;
+		prevention,single_channel_width = <160 160>;
+		prevention,normal_tap_condition = <10 300>;
+		prevention,long_edge_condition = <230 90 180 80>;
+		prevention,long_strict_edge_condition = <160 60>;
+		prevention,long_fingerhold_condition = <50 6 4 4>;
+		prevention,short_edge_condition = <200 90 180 80>;
+		prevention,short_strict_edge_condition = <160 60>;
+		prevention,large_strict_exit_condition = <2 2>;
+		prevention,top_corner_config = <280 800 240>;
+		prevention,edge_swipe_config = <150 400>;
+
+		touchpanel,smooth-level = <0 1 2 4 7 9>;
+		touchpanel,smooth-level-charging = <0 2 4 7 8 9>;
+		touchpanel,sensitive-level = <0 70 55 40 25 10>;
+		touchpanel,single-optimized-time = <8>;
+		touchpanel,high-frame-rate-time = <60>;
+
+		end_stretch_value = <480 250 16 16>;
+
+		touchpanel,tp_ic_type = <2>;
+		panel_type = <8 8 8>;
+		// type of tp_dev ,TP-SAMSUNG = 8;
+		firmware_name = "SS";
+		platform_support_project = <22811 22861 22862 22863 22864>;
+		platform_support_project_dir = <22811 22811 22811 22811 22811>;
+		platform_support_project_commandline = "mdss_dsi_panel_samsung_amb670yf07_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_fs_1440_3216_dsc_cmd";
+
+		/* SW Support Feature Control */
+		black_gesture_support;
+		//fw_edge_limit_support;
+		pressure_report_support;
+		charger_pump_support;
+		game_switch_support;
+		smart_gesture_support;
+		fw_update_app_support;
+		fingerprint_underscreen_support;
+		freq_hop_simulate_support;
+		report_flow_unlock_support;
+		screenoff_fingerprint_info_support;
+		irq_need_dev_resume_ok;
+		enable_point_auto_change;
+		report_rate_white_list_support;
+		kernel_grip_support;
+		//grip_no_driver_support;
+		health_monitor_support;
+		black_gesture_indep_support;
+		algorithm_support;
+		snr_read_support;
+		exception_upload_support;
+		sportify_aod_gesture_support;
+
+		/*
+		 *Virtual Key Config:
+		 *1:touchpanel,button-type: <virtualkey_type  supportted_button-map>
+		 *virtualkey_type:
+		 *Type 1: using board_properties
+		 *Type 2: using same IC (button zone&& touch zone are seprate)
+		 *Type 3: using diffrent IC (button zone&& touch zone are seprate)
+		 *Type 4: No need of virtual key process
+		 *supportted_button-map:select|menu|home|back
+		 *
+		 *2:touchpanel,button-map
+		 *type (X1,Y1)(X2,Y2)(X3,Y3)(Width_X,Hight_Y)--Only when button-type is 0
+		 */
+		touchpanel,button-type = <4>;
+		touchpanel.button-TRx = <0 0>;
+
+		S3908 {
+			report_rate_default = <60>;
+			report_rate_game_value = <2>;
+			default_gesture_mask = <8191>;
+			fwupdate_bootloader = <1>;
+		};
+	};
+};
+//#endif /*OPLUS_FEATURE_TP_BASIC*/
+
+//#ifdef OPLUS_FEATURE_DISPLAY
+&pmk8550_gpios {
+	/delete-property/ pinctrl-0;
+	pinctrl-0 = <&alt_sleep_clk_default &pxlw_clk_default>;
+	pinctrl-names = "default";
+
+	pxlw_clk {
+		pxlw_clk_default: pxlw_clk_default {
+			pins = "gpio5";
+			function = "func2";
+			input-disable;
+			output-enable;
+			bias-disable;
+			power-source = <0>;
+		};
+	};
+};
+//#endif /* OPLUS_FEATURE_DISPLAY */

@@ -1,0 +1,2 @@
+mm_osvelte: kernel-5.15: fix symols error & remove vh_vh_meminfo_proc_show temporary
+Change-Id: I6ff12521553184c1ed04539d53962a079efdcae9

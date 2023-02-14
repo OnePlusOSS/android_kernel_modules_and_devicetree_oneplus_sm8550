@@ -1,0 +1,5 @@
+config SSC_INTERACTIVE
+	tristate "for oplus customization"
+	default n
+	help
+	  It support ssc_interact.

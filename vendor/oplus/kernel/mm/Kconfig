@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2020 Oplus. All rights reserved.
+
+config OPLUS_FEATURE_PERFORMANCE_MM
+	bool "config oplus kernel mm feature"
+	default y
+	help
+	  define this config to add oplus kernel mm feature
+
+config OPLUS_FEATURE_ZRAM_OPT
+	tristate "zram optimization"
+	default n
+	help
+	  define this config to add oplus zram optimization feature
+
+config KSHRINK_SLABD
+	tristate "memload optimization"
+	default n
+	help
+	  define this config to add oplus memload optimization feature
+
+config KSHRINK_LRUVECD
+	tristate "shrink lruvecd"
+	default n
+	help
+	  define this config to add shrink lruvecd
+
+config PCPPAGES_OPT
+	tristate "pcppages_opt"
+	default n
+	help
+	  pcppages_opt
+
+config MAPPED_PROTECT
+	tristate "mapped_protect"
+	default n
+	help
+	  mapped_protect
+
+config MAPPED_PROTECT_ALL
+	bool "mapped_protect shirnk_inactive_lru"
+	depends on MAPPED_PROTECT
+	default n
+	help
+	  mapped_protect_all
+
+config PROCESS_RECLAIM_ENHANCE
+	tristate "Enable process reclaim enchance"
+	depends on PROC_FS
+	default n
+	help
+	  It allows to reclaim different type pages.
+	  Call ioctl of /proc/prpocess_reclaim to get memory range,
+	  such as struct iovec.
+	  Then call process_madvise() to reclaim or read-ahead memory.
+
+config DUMP_TASKS_MEM
+	tristate "dump all userspace process meminfo"
+	default n
+	help
+	  dump all userspace process meminfo
+
+config DYNAMIC_TUNING_SWAPPINESS
+	bool "tuning swappiess depends on file_pages size"
+	default y
+	help
+	  Tuning swappiess depends on file_pages size.
+	  If the file pages too much, kswapd will reclaim more file pages,
+	  and support two levels.
+	  Say N if you not sure.
+
+config OPLUS_BALANCE_ANON_FILE_RECLAIM
+	bool "During reclaim treat anon and file backed pages equally"
+	depends on SWAP
+	help
+	  When performing memory reclaim treat anonymous and file backed pages
+	  equally.
+	  Swapping anonymous pages out to memory can be efficient enough to justify
+	  treating anonymous and file backed pages equally.
+
+source "mm/oplus_mm/hybridswap_zram/Kconfig"
+
+source "mm/oplus_mm/mm_osvelte/Kconfig"
