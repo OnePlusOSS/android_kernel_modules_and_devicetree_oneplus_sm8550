@@ -13,9 +13,11 @@
 #include <linux/workqueue.h>
 #include <linux/rtc.h>
 #include <linux/sched/debug.h>
+#include <linux/version.h>
 #if IS_MODULE(CONFIG_OPLUS_FEATURE_QCOM_WATCHDOG)
 #include "../../../../kernel/irq/internals.h"
 #endif
+
 
 #define MASK_SIZE	32
 #define MAX_IRQ_NO	1200
@@ -74,7 +76,11 @@ static unsigned int oplus_kstat_irqs(unsigned int irq)
 
 static int oplus_task_curr(const struct task_struct *p)
 {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+	return p->__state & TASK_RUNNING;
+#else
 	return p->state & TASK_RUNNING;
+#endif
 }
 #endif
 
@@ -250,19 +256,32 @@ EXPORT_SYMBOL(oplus_dump_wdog_cpu);
  */
 void oplus_show_utc_time(void)
 {
+	long nsec_val = 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	struct timespec ts;
 	struct rtc_time tm;
+	getnstimeofday(&ts);
+	rtc_time_to_tm(ts.tv_sec, &tm);
+	nsec_val = ts.tv_nsec;
+#else
+	struct timespec64 ts64;
+	struct rtc_time tm;
+	ktime_get_real_ts64(&ts64);
+	rtc_time64_to_tm(ts64.tv_sec, &tm);
+	nsec_val = ts64.tv_nsec;
+#endif
+
 	if(oplus_print_utc_cnt > 2)
 		oplus_print_utc_cnt = 0;
 	else {
 		oplus_print_utc_cnt ++;
 		return;
 	}
-	getnstimeofday(&ts);
-	rtc_time_to_tm(ts.tv_sec, &tm);
+
 	OPLUS_WD_KLOG_WARNING("!@WatchDog: %d-%02d-%02d %02d:%02d:%02d.%09lu UTC\n",
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-		tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
+		tm.tm_hour, tm.tm_min, tm.tm_sec, nsec_val);
 }
 EXPORT_SYMBOL(oplus_show_utc_time);
 

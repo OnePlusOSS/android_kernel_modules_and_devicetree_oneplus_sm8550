@@ -336,6 +336,7 @@
 	qcom,warm_vfloat_over_sw_limit = <4140>;
 
 	qcom,smart_chg_soh_support;
+	oplus,aging_ffc_version = <1>;
 
 	oplus,smooth_switch_v2;
 	oplus,reserve_chg_soc = <3>;

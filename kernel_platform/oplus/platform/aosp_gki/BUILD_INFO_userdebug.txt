@@ -1,6 +1,6 @@
 {
     "best_target_priority": 1,
-    "bid": "9439604",
+    "bid": "9478255",
     "branch": "aosp_kernel-common-android13-5.15-2022-08",
     "branch_priority": 1,
     "build_configs": {},
@@ -12,7 +12,7 @@
     "enable_docker": true,
     "git-pull": null,
     "git-server": "https://android.googlesource.com",
-    "hostname": "abfarm-2004-0325",
+    "hostname": "abfarm-2004-4109",
     "inc-build": false,
     "java-version": null,
     "last_logfile": null,
@@ -102,7 +102,7 @@
                     "name": "aosp",
                     "review": "https://android.googlesource.com/"
                 },
-                "revision": "de2a4c25826bde1ec685714694511e6aeff35017",
+                "revision": "7bf0e80200db4949dd710964bc1a2e079e8bb4ee",
                 "upstream": "android13-5.15-2022-08"
             },
             {
@@ -335,7 +335,7 @@
     "proof_build": false,
     "repo-dict": {
         "kernel/build": "4b777b2d4233d958a4d782c2e6887a6a443502c9",
-        "kernel/common": "de2a4c25826bde1ec685714694511e6aeff35017",
+        "kernel/common": "7bf0e80200db4949dd710964bc1a2e079e8bb4ee",
         "kernel/common-modules/virtual-device": "e870c88447a837e1c6433eb55c677edf823ff6d6",
         "kernel/configs": "b3cc2bc03dab303c54a9ce1f709f8ee315eb311d",
         "kernel/manifest": "ffe691d021faf2673bb4545f408dee615f089299",
@@ -360,8 +360,8 @@
     "reset_image_build": false,
     "rollout": [],
     "src_ctrl": "repo",
-    "sync_finish_time": 1672166684.951442,
-    "sync_start_time": 1672166564.68274,
+    "sync_finish_time": 1673449600.0650663,
+    "sync_start_time": 1673449504.8407412,
     "sync_succeed": 1,
     "target": {
         "apiary_target": "kernel_debug_aarch64",
@@ -371,7 +371,6 @@
             "gki-info.txt",
             "abi.prop",
             "repo.prop",
-            "manifest_9439604.xml",
             "abi.report.small",
             "abi.report.viz",
             "vmlinux.symvers",
@@ -403,6 +402,7 @@
             "Image.lz4",
             "Image",
             "abi-generated.xml",
+            "manifest_9478255.xml",
             "abi.report.short",
             "system_dlkm.img",
             "logs/git.log",
@@ -417,22 +417,19 @@
             "logs/build.log",
             "BUILD_INFO"
         ],
-        "dist-dir": "/buildbot/dist_dirs/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9439604",
+        "dist-dir": "/buildbot/dist_dirs/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9478255",
         "name": "kernel_debug_aarch64",
         "rules": [
             [
-                "DIST_DIR=/buildbot/dist_dirs/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9439604 BUILD_CONFIG=common/build.config.gki-debug.aarch64 ABI_OUT_TAG=generated build/build_abi.sh --print-report -j80",
+                "DIST_DIR=/buildbot/dist_dirs/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9478255 BUILD_CONFIG=common/build.config.gki-debug.aarch64 ABI_OUT_TAG=generated build/build_abi.sh --print-report -j80",
                 "build.log",
                 true,
                 false
             ]
         ],
-        "storage_path": "/bigstore/android-build/builds/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9439604/00e7f2bf7c5d1be839a1574cdd1ca5fc9c615e9261d32ea8c33bf7cf23938291",
-        "system_img_limit": "0",
-        "system_img_reserve": "0",
-        "system_img_size": "0",
-        "target_finish_time": 1672168061.1212587,
-        "target_start_time": 1672166686.9399111,
+        "storage_path": "/bigstore/android-build/builds/aosp_kernel-common-android13-5.15-2022-08-linux-kernel_debug_aarch64/9478255/813c7be2f6801fa7a4cd37be351f0c102b26e9b9153e4835a05d8461bef35cc2",
+        "target_finish_time": 1673450891.6267502,
+        "target_start_time": 1673449601.3487916,
         "target_status": 1
     },
     "trident_usage": {
@@ -441,34 +438,34 @@
     },
     "use_goma": false,
     "worknode": {
-        "containerId": "L45100000957927721",
-        "creationTimeMillis": "1672166524928",
+        "containerId": "L58200000958118217",
+        "creationTimeMillis": "1673438201049",
         "currentAttempt": {
-            "attemptId": "PY+iK8CrswYqQAceaFOewg==",
+            "attemptId": "dYPsjau9urH+B4UJZRi32A==",
             "progressMessages": [
                 {
-                    "displayMessage": "Build 9439604 for node L45100000957927721:N21300001323733784 has been inserted",
-                    "messageString": "Build 9439604 for node L45100000957927721:N21300001323733784 has been inserted",
-                    "timeMillis": "1672166529473"
+                    "displayMessage": "Build 9478255 for node L58200000958118217:N11300001327339285 has been inserted",
+                    "messageString": "Build 9478255 for node L58200000958118217:N11300001327339285 has been inserted",
+                    "timeMillis": "1673438206470"
                 }
             ],
-            "startTimeMillis": "1672166526793"
+            "startTimeMillis": "1673438203356"
         },
         "heartbeatTimeMillis": "86400000",
-        "id": "L45100000957927721:N21300001323733784",
+        "id": "L58200000958118217:N11300001327339285",
         "inputEdges": [
             {
-                "neighborId": "L45100000957927721:N46700001323733782"
+                "neighborId": "L58200000958118217:N17000001327339283"
             }
         ],
         "isFinal": false,
-        "lastUpdatedMillis": "1672166529536",
+        "lastUpdatedMillis": "1673438206532",
         "nodeClass": "postsubmit",
         "retryStatus": {
             "maximumRetries": 4,
             "retryCount": 0
         },
-        "revision": "cC/TOLyMucgB2atedbiExg==",
+        "revision": "3hdS7DduDrtQjICXqrMUHg==",
         "status": "scheduled",
         "workExecutorType": "submittedBuild",
         "workParameters": {
@@ -477,8 +474,8 @@
                 "branchConfig": {
                     "sloTier": "bestEffort"
                 },
-                "buildId": "9439604",
-                "gerritPollerTimestamp": "1672166505304",
+                "buildId": "9478255",
+                "gerritPollerTimestamp": "1673438186887",
                 "manuallyTriggered": false,
                 "syncTimeoutSecond": 2700,
                 "target": {

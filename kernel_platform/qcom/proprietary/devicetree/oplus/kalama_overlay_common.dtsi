@@ -64,7 +64,7 @@
         oplus-omrg0 {
                 oplus,divider-cells = <2>;
                 oplus,omrg-master = <&CPU3 1536000 1920000>;
-                oplus,omrg-slave = <&CPU0 1459200 2016000>;
+                oplus,omrg-slave = <&CPU0 1459200 1785600>;
                 up_limit_enable;
                 /* down_limit_enable; */
                 /* thermal_enable; */

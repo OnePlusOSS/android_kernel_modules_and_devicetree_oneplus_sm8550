@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2017-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  *
  * Permission to use, copy, modify, and/or distribute this software for
@@ -112,12 +112,13 @@ qdf_export_symbol(wlan_reg_get_pwrmode_chan_list);
 #ifdef CONFIG_REG_CLIENT
 QDF_STATUS
 wlan_reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
+				    struct wlan_objmgr_pdev *pdev,
 				    uint8_t *ap_ctry, uint8_t *sta_ctry,
 				    enum reg_6g_ap_type *pwr_type_6g,
 				    bool *ctry_code_match,
 				    enum reg_6g_ap_type ap_pwr_type)
 {
-	return reg_get_6g_power_type_for_ctry(psoc, ap_ctry, sta_ctry,
+	return reg_get_6g_power_type_for_ctry(psoc, pdev, ap_ctry, sta_ctry,
 					      pwr_type_6g, ctry_code_match,
 					      ap_pwr_type);
 }

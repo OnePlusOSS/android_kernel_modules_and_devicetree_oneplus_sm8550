@@ -46,7 +46,7 @@ extern unsigned int oplus_dsi_log_type;
 #define LCD_INFO_ONCE(X, ...) pr_info_once("[%s] %s: "X, LOG_KEYWORD, __func__, ## __VA_ARGS__)
 #define LCD_DEBUG_BACKLIGHT(X, ...)	\
 		do {	\
-			if (oplus_dsi_log_type & OPLUS_DEBUG_LOG_BACKLIGHT)	\
+			if ((oplus_dsi_log_type & OPLUS_DEBUG_LOG_BACKLIGHT) || (oplus_bl_print_window > 0))	\
 				pr_info("[%s] %s: "X, LOG_KEYWORD, __func__, ## __VA_ARGS__);\
 			else	\
 				pr_debug("[%s] %s: "X, LOG_KEYWORD, __func__, ## __VA_ARGS__);\

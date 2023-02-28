@@ -16,6 +16,7 @@
 #include "dsi_defs.h"
 #include "oplus_display_private_api.h"
 
+#define OPLUS_BACKLIGHT_WINDOW_SIZE 5
 
 /**
  * oplus_print_cmd_desc() - display cmd printf

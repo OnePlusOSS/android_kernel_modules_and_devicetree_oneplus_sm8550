@@ -20,6 +20,9 @@
 /* A hardware display blank early change occurred */
 #define OPLUS_DISPLAY_EARLY_EVENT_BLANK		0x02
 
+/* debug log config */
+extern unsigned int oplus_bl_print_window;
+
 
 enum oplus_display_support_list {
 	OPLUS_SAMSUNG_ANA6706_DISPLAY_FHD_DSC_CMD_PANEL = 0,

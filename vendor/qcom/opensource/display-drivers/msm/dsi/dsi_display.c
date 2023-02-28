@@ -258,6 +258,9 @@ void dsi_rect_intersect(const struct dsi_rect *r1,
 	}
 }
 
+#ifdef OPLUS_FEATURE_DISPLAY
+unsigned int oplus_bl_print_window = OPLUS_BACKLIGHT_WINDOW_SIZE;
+#endif /* OPLUS_FEATURE_DISPLAY */
 int dsi_display_set_backlight(struct drm_connector *connector,
 		void *display, u32 bl_lvl)
 {
@@ -283,10 +286,11 @@ int dsi_display_set_backlight(struct drm_connector *connector,
 	}
 
 #ifdef OPLUS_FEATURE_DISPLAY
-	oplus_panel_post_on_backlight(dsi_display, panel, bl_lvl);
-#endif /* OPLUS_FEATURE_DISPLAY */
+	if ((bl_lvl == 0) || (panel->bl_config.bl_level == 0))
+		oplus_bl_print_window = OPLUS_BACKLIGHT_WINDOW_SIZE;
 
-#ifdef OPLUS_FEATURE_DISPLAY
+	oplus_panel_post_on_backlight(dsi_display, panel, bl_lvl);
+
 	bl_lvl = oplus_panel_silence_backlight(panel, bl_lvl);
 #endif /* OPLUS_FEATURE_DISPLAY */
 
@@ -324,6 +328,9 @@ error:
 	mutex_unlock(&panel->panel_lock);
 
 #ifdef OPLUS_FEATURE_DISPLAY
+	if (oplus_bl_print_window > 0)
+		oplus_bl_print_window--;
+
 	SDE_ATRACE_END("dsi_display_set_backlight");
 #endif /* OPLUS_FEATURE_DISPLAY */
 	return rc;

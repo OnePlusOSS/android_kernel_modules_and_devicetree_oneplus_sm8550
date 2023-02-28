@@ -17,9 +17,6 @@
 
 static int g_direct_swappiness = 60;
 static int g_swappiness = 160;
-#if IS_ENABLED(CONFIG_OPLUS_BALANCE_ANON_FILE_RECLAIM)
-static unsigned long free_pages_threshold = 0;
-#endif /* CONFIG_OPLUS_BALANCE_ANON_FILE_RECLAIM */
 
 #ifdef CONFIG_DYNAMIC_TUNING_SWAPPINESS
 static int threshold1_vm_swappiness;
@@ -102,15 +99,14 @@ static void balance_reclaim(void *unused, bool *balance_anon_file_reclaim)
 {
 	pg_data_t *pgdat;
 	struct zone *zone;
+	unsigned long free_pages_threshold = 0;
 	unsigned long normal_zone_free_pages = 0;
 
 	pgdat = NODE_DATA(0);
 	zone = &pgdat->node_zones[ZONE_NORMAL];
-	if(unlikely(!free_pages_threshold)) {
-		free_pages_threshold = min_wmark_pages(zone) + (low_wmark_pages(zone)-min_wmark_pages(zone))/2;
-	}
+	free_pages_threshold = low_wmark_pages(zone) + ((high_wmark_pages(zone) - low_wmark_pages(zone)) >> 1);
 
-	/*we do not balancing reclaim anon and page cache files for reclaim when free < min + (low - min)/2;*/
+	/* We do not balance reclaim anon and page cache files when free < low + (high - low)/2; */
 	normal_zone_free_pages = zone_page_state(zone, NR_FREE_PAGES);
 	if(normal_zone_free_pages <  free_pages_threshold) {
 		*balance_anon_file_reclaim = false;
