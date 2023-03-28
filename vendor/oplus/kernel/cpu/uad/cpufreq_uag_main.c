@@ -2348,7 +2348,14 @@ static void uag_gov_limits(struct cpufreq_policy *policy)
 	} else {
 		raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
 		freq = policy->cur;
-		now = ktime_get_ns();
+		/*
+		 * we have serval resources to update freq
+		 * (1) scheduler to run callback
+		 * (2) cpufreq_set_policy to call governor->limtis here
+		 * so we have serveral times here and we must to keep them same
+		 * here we using walt_sched_clock() to keep same with walt scheduler
+		 */
+		now = walt_sched_clock();
 
 		/*
 		 * cpufreq_driver_resolve_freq() has a clamp, so we do not need

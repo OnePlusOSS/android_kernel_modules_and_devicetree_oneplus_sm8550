@@ -619,7 +619,7 @@ int dsi_panel_tx_cmd_set(struct dsi_panel *panel,
 		}
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 		if (oplus_ofp_is_supported() && oplus_ofp_optical_new_solution_is_enabled()) {
-			oplus_ofp_cmd_post_wait(cmds, type);
+			oplus_ofp_cmd_post_wait(mode, cmds, type);
 		} else {
 			if (cmds->post_wait_ms)
 				usleep_range(cmds->post_wait_ms*1000,

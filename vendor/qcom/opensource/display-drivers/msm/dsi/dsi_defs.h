@@ -785,6 +785,8 @@ struct dsi_display_mode_priv_info {
 #endif /* OPLUS_FEATURE_DISPLAY */
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	bool oplus_ofp_need_to_separate_backlight;
+	bool oplus_ofp_need_to_sync_data_in_aod_unlocking;
+	unsigned int oplus_ofp_backlight_on_period;
 	unsigned int oplus_ofp_hbm_on_period;
 	unsigned int oplus_ofp_aod_off_insert_black_frame;
 	unsigned int oplus_ofp_aod_off_black_frame_total_time;

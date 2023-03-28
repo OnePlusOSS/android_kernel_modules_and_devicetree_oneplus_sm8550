@@ -12,9 +12,8 @@
 				qcom,mdss-dsi-v-top-border = <0>;
 				qcom,mdss-dsi-v-bottom-border = <0>;
 				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
-				oplus,fod-on-vblank = <0>;
-				oplus,fod-off-vblank = <0>;
 
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
 				/* ofp config */
 				oplus,ofp-need-to-separate-backlight;
 				oplus,ofp-hbm-on-period = <2>;
@@ -49,6 +48,13 @@
 					39 00 00 00 00 00 03 F0 A5 A5
 				];
 				qcom,mdss-dsi-nolp-command = [
+					05 00 00 00 09 00 01 28
+					/* AOD Mode OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 53 28
+					39 00 00 40 00 00 03 51 00 00
+					39 00 00 00 09 00 03 F0 A5 A5
+					05 00 00 00 00 00 01 29
 					/* Force Increasing OFF */
 					39 00 00 40 00 00 03 F0 5A 5A
 					39 00 00 40 00 00 04 B0 00 06 BD
@@ -59,13 +65,6 @@
 					39 00 00 40 00 00 05 BD 00 00 00 00
 					15 00 00 40 00 00 02 F7 0F
 					39 00 00 00 00 00 03 F0 A5 A5
-					05 00 00 00 09 00 01 28
-					/* AOD Mode OFF */
-					39 00 00 40 00 00 03 F0 5A 5A
-					15 00 00 40 00 00 02 53 28
-					39 00 00 40 00 00 03 51 00 00
-					39 00 00 00 09 00 03 F0 A5 A5
-					05 00 00 00 00 00 01 29
 				];
 				qcom,mdss-dsi-aod-high-mode-command = [
 					/* AOD High Mode 50nit */

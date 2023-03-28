@@ -13,7 +13,7 @@
     model = "Qualcomm Technologies, Inc. Kalama MTP,salami";
 
     oplus,project-id = <22811 22861 22862 22863 22864>;
-    oplus,hw-id = <OPLUS_EVT1 OPLUS_EVT2 OPLUS_DVT1 OPLUS_DVT2 OPLUS_PVT1>;
+    oplus,hw-id = <OPLUS_EVT1 OPLUS_EVT2 OPLUS_DVT1 OPLUS_DVT2 OPLUS_PVT1 OPLUS_MP1>;
 };
 
 &tlmm {

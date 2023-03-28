@@ -6114,7 +6114,9 @@ static int dsi_display_bind(struct device *dev,
 #endif
 	msm_register_vm_event(master, dev, &vm_event_ops, (void *)display);
 #ifdef OPLUS_FEATURE_DISPLAY
-	oplus_display_private_api_init();
+	if (!strcmp(display->display_type, "primary")) {
+		oplus_display_private_api_init();
+	}
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 	goto error;

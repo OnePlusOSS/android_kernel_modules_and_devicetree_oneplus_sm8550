@@ -35,14 +35,17 @@ enum oplus_ofp_property_value {
 
 enum oplus_ofp_irq_type {
 	OPLUS_OFP_RD_PTR = 0,
-	OPLUS_OFP_PP_DONE = 1,
+	OPLUS_OFP_WD_PTR = 1,
+	OPLUS_OFP_PP_DONE = 2,
 };
 
 enum oplus_ofp_pressed_icon_status {
-	OPLUS_OFP_PRESSED_ICON_OFF_PP_DONE = 0,			/* pressed icon has not been flush to DDIC ram */
-	OPLUS_OFP_PRESSED_ICON_OFF = 1,					/* pressed icon has not been displayed in panel */
-	OPLUS_OFP_PRESSED_ICON_ON_PP_DONE = 2,			/* pressed icon has been flush to DDIC ram */
-	OPLUS_OFP_PRESSED_ICON_ON = 3,					/* pressed icon has been displayed in panel */
+	OPLUS_OFP_PRESSED_ICON_OFF_WR_PTR = 0,			/* the data scanning without pressed icon has started */
+	OPLUS_OFP_PRESSED_ICON_OFF_PP_DONE = 1,			/* the data without pressed icon has been flush to DDIC ram */
+	OPLUS_OFP_PRESSED_ICON_OFF = 2,					/* the data without pressed icon has been displayed in panel */
+	OPLUS_OFP_PRESSED_ICON_ON_WR_PTR = 3,			/* pressed icon scanning has started */
+	OPLUS_OFP_PRESSED_ICON_ON_PP_DONE = 4,			/* pressed icon has been flush to DDIC ram */
+	OPLUS_OFP_PRESSED_ICON_ON = 5,					/* pressed icon has been displayed in panel */
 };
 
 enum oplus_ofp_ui_status {
@@ -162,7 +165,7 @@ int oplus_ofp_property_update(void *sde_connector, void *sde_connector_state, in
 /* -------------------- fod -------------------- */
 int oplus_ofp_parse_dtsi_config(void *dsi_display_mode, void *dsi_parser_utils);
 int oplus_ofp_hbm_handle(void *sde_encoder_virt);
-int oplus_ofp_cmd_post_wait(void *dsi_cmd_desc, enum dsi_cmd_set_type type);
+int oplus_ofp_cmd_post_wait(void *dsi_display_mode, void *dsi_cmd_desc, enum dsi_cmd_set_type type);
 int oplus_ofp_panel_hbm_status_update(void *sde_encoder_phys);
 int oplus_ofp_pressed_icon_status_update(void *sde_encoder_phys, unsigned int irq_type);
 void oplus_ofp_uiready_event_work_handler(struct work_struct *work_item);

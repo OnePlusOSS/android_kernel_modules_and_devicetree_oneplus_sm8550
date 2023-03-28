@@ -2137,7 +2137,7 @@
 	oplus,color_dual_brightness_status;
 
 	/* oplus features config */
-	oplus,dp-enabled;
+	//oplus,dp-enabled;
 	//oplus,dsi-cabc-enabled;
 	//oplus,dsi-dre-enabled;
 	oplus,dsi-serial-number-enabled;

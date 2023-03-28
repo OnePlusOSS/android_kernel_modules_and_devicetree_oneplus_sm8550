@@ -16,6 +16,7 @@
 #include "sde_trace.h"
 #include <linux/msm_drm_notify.h>
 #include "../../../oplus/kernel/touchpanel/oplus_touchscreen_v2/touchpanel_notify/touchpanel_event_notify.h"
+
 #if defined(CONFIG_PXLW_IRIS)
 #include "dsi_iris_api.h"
 #endif
@@ -116,17 +117,17 @@ int oplus_ofp_init(void *dsi_panel)
 
 	OFP_DEBUG("start\n");
 
-#if defined(CONFIG_PXLW_IRIS)
-	if (iris_is_chip_supported() && (!strcmp(panel->type, "secondary"))) {
-		pr_info("%s: iris secondary panel no need config!\n", __func__);
-		return 0;
-	}
-#endif
-
 	if (!panel || !p_oplus_ofp_params) {
 		OFP_ERR("Invalid params\n");
 		return -EINVAL;
 	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(panel->type, "secondary"))) {
+		OFP_INFO("no need to init secondary panel for iris chip\n");
+		return 0;
+	}
+#endif
 
 	utils = &panel->utils;
 	if (!utils) {
@@ -514,6 +515,23 @@ int oplus_ofp_parse_dtsi_config(void *dsi_display_mode, void *dsi_parser_utils)
 	priv_info->oplus_ofp_need_to_separate_backlight = utils->read_bool(utils->data, "oplus,ofp-need-to-separate-backlight");
 	OFP_DEBUG("oplus_ofp_need_to_separate_backlight:%d\n", priv_info->oplus_ofp_need_to_separate_backlight);
 
+	/*
+	 indicates whether need to sync data(dim layer or fingerpress layer) in aod unlocking or not
+	 ps: it will remove all the delay to speed up aod unlocking by default
+	*/
+	priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking = utils->read_bool(utils->data, "oplus,ofp-need-to-sync-data-in-aod-unlocking");
+	OFP_DEBUG("oplus_ofp_need_to_sync_data_in_aod_unlocking:%d\n", priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking);
+
+	/* indicates how many frames does backlight on cmd take effect */
+	rc = utils->read_u32(utils->data, "oplus,ofp-backlight-on-period", &data);
+	if (rc) {
+		OFP_DEBUG("failed to parse oplus,ofp-backlight-on-period\n");
+		priv_info->oplus_ofp_backlight_on_period = 1;
+	} else {
+		priv_info->oplus_ofp_backlight_on_period = data;
+	}
+	OFP_DEBUG("oplus_ofp_backlight_on_period:%u\n", priv_info->oplus_ofp_backlight_on_period);
+
 	/* indicates how many frames does hbm on cmds take effect */
 	rc = utils->read_u32(utils->data, "oplus,ofp-hbm-on-period", &data);
 	if (rc) {
@@ -559,6 +577,9 @@ static int oplus_ofp_panel_cmd_set_nolock(void *dsi_panel, enum dsi_cmd_set_type
 {
 	int rc = 0;
 	int seed_mode = 0;
+	unsigned int refresh_rate = 0;
+	unsigned int us_per_frame = 0;
+	unsigned int delay_us = 0;
 	struct dsi_panel *panel = dsi_panel;
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
@@ -618,6 +639,21 @@ static int oplus_ofp_panel_cmd_set_nolock(void *dsi_panel, enum dsi_cmd_set_type
 		if (rc) {
 			OFP_ERR("unable to set backlight\n");
 			goto error;
+		}
+
+		/*
+		 the normal backlight of some panel takes effect for more than one frame,
+		 so increase the corresponding delay to ensure that the dim layer can match the brightness
+		*/
+		if (panel->cur_mode->priv_info->oplus_ofp_backlight_on_period > 1) {
+			refresh_rate = panel->cur_mode->timing.refresh_rate;
+			us_per_frame = 1000000/refresh_rate;
+			delay_us = (panel->cur_mode->priv_info->oplus_ofp_backlight_on_period - 1) * us_per_frame;
+
+			OPLUS_OFP_TRACE_BEGIN("usleep_range");
+			usleep_range(delay_us, (delay_us + 10));
+			OFP_INFO("usleep_range %u done\n", delay_us);
+			OPLUS_OFP_TRACE_END("usleep_range");
 		}
 
 		/* recovery loading effect mode */
@@ -828,16 +864,17 @@ static int oplus_ofp_hbm_wait_handle(void *sde_connector, bool hbm_en)
 		return 0;
 	}
 
-	if (p_oplus_ofp_params->aod_unlocking && hbm_en && !p_oplus_ofp_params->aod_off_hbm_on_delay) {
-		OFP_DEBUG("no need to delay in aod unlocking\n");
-		return 0;
-	}
-
 	display = c_conn->display;
 
 	if (!display || !display->panel || !display->panel->cur_mode) {
 		OFP_ERR("Invalid display params\n");
 		return -EINVAL;
+	}
+
+	if (p_oplus_ofp_params->aod_unlocking && hbm_en && !p_oplus_ofp_params->aod_off_hbm_on_delay
+			&& !display->panel->cur_mode->priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking) {
+		OFP_DEBUG("no need to delay in aod unlocking\n");
+		return 0;
 	}
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_hbm_wait_handle");
@@ -848,7 +885,7 @@ static int oplus_ofp_hbm_wait_handle(void *sde_connector, bool hbm_en)
 	if (hbm_en) {
 		if (p_oplus_ofp_params->aod_unlocking) {
 			if (display->panel->cur_mode->priv_info->oplus_ofp_aod_off_insert_black_frame) {
-				bool need_aod_off_hbm_on_delay = true;
+				bool need_aod_off_hbm_on_delay = (bool)p_oplus_ofp_params->aod_off_hbm_on_delay;
 
 				if (display->panel->cur_mode->priv_info->oplus_ofp_aod_off_black_frame_total_time) {
 					if (ktime_sub(ktime_get(), p_oplus_ofp_params->aod_off_cmd_timestamp)
@@ -869,7 +906,15 @@ static int oplus_ofp_hbm_wait_handle(void *sde_connector, bool hbm_en)
 
 					p_oplus_ofp_params->aod_off_hbm_on_delay = 0;
 					OPLUS_OFP_TRACE_INT("oplus_ofp_aod_off_hbm_on_delay", p_oplus_ofp_params->aod_off_hbm_on_delay);
+				} else if (display->panel->cur_mode->priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking) {
+					/* wait 1 te ,then send hbm on cmds in the second half of the frame */
+					te_count = 1;
+					delay_us = (us_per_frame >> 1) + 700;
 				}
+			} else if (display->panel->cur_mode->priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking) {
+				/* wait 1 te ,then send hbm on cmds in the second half of the frame */
+				te_count = 1;
+				delay_us = (us_per_frame >> 1) + 700;
 			}
 		} else {
 			/* backlight will affect hbm on time in some panel, need to separate the 51 cmd for stable hbm on time */
@@ -1058,14 +1103,15 @@ int oplus_ofp_hbm_handle(void *sde_encoder_virt)
 	return rc;
 }
 
-int oplus_ofp_cmd_post_wait(void *dsi_cmd_desc, enum dsi_cmd_set_type type)
+int oplus_ofp_cmd_post_wait(void *dsi_display_mode, void *dsi_cmd_desc, enum dsi_cmd_set_type type)
 {
+	struct dsi_display_mode *mode = dsi_display_mode;
 	struct dsi_cmd_desc *cmds = dsi_cmd_desc;
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
 	OFP_DEBUG("start\n");
 
-	if (!cmds || !p_oplus_ofp_params) {
+	if (!mode || !cmds || !p_oplus_ofp_params) {
 		OFP_ERR("Invalid params\n");
 		return -EINVAL;
 	}
@@ -1078,7 +1124,8 @@ int oplus_ofp_cmd_post_wait(void *dsi_cmd_desc, enum dsi_cmd_set_type type)
 		 therefore, delete the delay of hbm on cmds, then using te counting to check whether hbm on is taking
 		 effect or not to shorten the ui ready time
 		*/
-		if (p_oplus_ofp_params->aod_unlocking && (type == DSI_CMD_HBM_ON)) {
+		if (p_oplus_ofp_params->aod_unlocking && (type == DSI_CMD_HBM_ON)
+				&& !mode->priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking) {
 			OFP_DEBUG("no need to wait when cmds are DSI_CMD_HBM_ON in aod unlocking\n");
 		} else {
 				usleep_range(cmds->post_wait_ms*1000,
@@ -1134,7 +1181,8 @@ int oplus_ofp_panel_hbm_status_update(void *sde_encoder_phys)
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_panel_hbm_status_update");
 
-	if (p_oplus_ofp_params->aod_unlocking && oplus_ofp_get_hbm_state()) {
+	if (p_oplus_ofp_params->aod_unlocking && oplus_ofp_get_hbm_state()
+			&& !display->panel->cur_mode->priv_info->oplus_ofp_need_to_sync_data_in_aod_unlocking) {
 		/*
 		 since the delay of hbm on cmds is removed in aod unlocking, it is necessary to count te irq
 		 to confirm whether the hbm cmds are taking effect or not
@@ -1209,26 +1257,36 @@ int oplus_ofp_pressed_icon_status_update(void *sde_encoder_phys, unsigned int ir
 
 	hbm_enable = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HBM_ENABLE);
 
-	if (irq_type == OPLUS_OFP_PP_DONE) {
+	if (irq_type == OPLUS_OFP_WD_PTR) {
 		if ((!(last_hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER))
 				&& (hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER)) {
+			/* pressed icon scanning has started */
+			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_ON_WR_PTR;
+			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_ON_WR_PTR\n");
+		} else if ((last_hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER)
+						&& (!(hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER))) {
+			/* the data scanning without pressed icon has started */
+			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_OFF_WR_PTR;
+			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_OFF_WR_PTR\n");
+		}
+		last_hbm_enable = hbm_enable;
+	} else if (irq_type == OPLUS_OFP_PP_DONE) {
+		if (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON_WR_PTR) {
 			/* pressed icon has been flush to DDIC ram */
 			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_ON_PP_DONE;
 			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_ON_PP_DONE\n");
-		} else if ((last_hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER)
-						&& (!(hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER))) {
-			/* pressed icon has not been flush to DDIC ram */
+		} else if (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF_WR_PTR) {
+			/* the data without pressed icon has been flush to DDIC ram */
 			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_OFF_PP_DONE;
 			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_OFF_PP_DONE\n");
 		}
-		last_hbm_enable = hbm_enable;
 	} else if (irq_type == OPLUS_OFP_RD_PTR) {
 		if (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON_PP_DONE) {
 			/* pressed icon has been displayed in panel */
 			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_ON;
 			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_ON\n");
 		} else if (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF_PP_DONE) {
-			/* pressed icon has not been displayed in panel */
+			/* the data without pressed icon has been displayed in panel */
 			p_oplus_ofp_params->pressed_icon_status = OPLUS_OFP_PRESSED_ICON_OFF;
 			OFP_INFO("oplus_ofp_pressed_icon_status:OPLUS_OFP_PRESSED_ICON_OFF\n");
 		}
@@ -1350,23 +1408,18 @@ int oplus_ofp_notify_uiready(void *sde_encoder_phys)
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_notify_uiready");
 
-	if (p_oplus_ofp_params->aod_unlocking) {
-		if ((p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON) && p_oplus_ofp_params->panel_hbm_status) {
-			/* pressed icon has been displayed in panel and hbm cmds are also taking effect */
-			p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_READY;
-		} else if ((p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF) || (!(p_oplus_ofp_params->panel_hbm_status))) {
-			/* finger is not pressed down */
-			p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_DISAPPEAR;
-		}
-	} else {
-		if ((p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON) && p_oplus_ofp_params->panel_hbm_status) {
-			/* pressed icon has been displayed in panel and hbm cmds are also taking effect */
-			p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_READY;
-		} else if (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF) {
-			/* hbm is on but pressed icon has not been displayed */
-			p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_DISAPPEAR;
-		}
+	if (((p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON_WR_PTR)
+			|| (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_ON))
+				&& p_oplus_ofp_params->panel_hbm_status) {
+		/* pressed icon scanning has started and hbm on cmds are also taking effect */
+		p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_READY;
+	} else if (((p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF_WR_PTR)
+				|| (p_oplus_ofp_params->pressed_icon_status == OPLUS_OFP_PRESSED_ICON_OFF))
+					|| !p_oplus_ofp_params->panel_hbm_status) {
+		/* the data scanning without pressed icon has started or hbm off cmds are taking effect */
+		p_oplus_ofp_params->notifier_chain_value = OPLUS_OFP_UI_DISAPPEAR;
 	}
+
 
 	if (last_notifier_chain_value != p_oplus_ofp_params->notifier_chain_value) {
 		OFP_INFO("queue uiready event work\n");
@@ -1418,7 +1471,8 @@ bool oplus_ofp_backlight_filter(void *dsi_panel, unsigned int bl_level)
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_backlight_filter");
 
-	hbm_enable = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HBM_ENABLE);
+	hbm_enable = p_oplus_ofp_params->hbm_enable;
+	OFP_INFO("hbm_enable = %u or %u\n", hbm_enable, sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HBM_ENABLE));
 
 	if (oplus_ofp_get_hbm_state()) {
 		if (!bl_level) {
@@ -1731,6 +1785,15 @@ int oplus_ofp_aod_off_handle(void *dsi_display)
 		}
 	}
 
+#ifdef OPLUS_BUG_STABILITY
+	/* switch to tp vsync when exit aod */
+	if (oplus_adfr_is_support()) {
+		if (oplus_adfr_get_vsync_mode() == OPLUS_EXTERNAL_TE_TP_VSYNC) {
+			oplus_adfr_aod_fod_vsync_switch(display->panel, OPLUS_VSYNC_SWITCH_TP);
+		}
+	}
+#endif /* OPLUS_BUG_STABILITY */
+
 	rc = dsi_panel_set_nolp(display->panel);
 	if (rc) {
 		OFP_ERR("[%s] failed to send DSI_CMD_SET_NOLP cmds, rc=%d\n", display->name, rc);
@@ -1781,6 +1844,7 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 			p_oplus_ofp_params->doze_active = true;
 			OFP_INFO("oplus_ofp_doze_active:%d\n", p_oplus_ofp_params->doze_active);
 			OPLUS_OFP_TRACE_INT("oplus_ofp_doze_active", p_oplus_ofp_params->doze_active);
+
 			if (!oplus_ofp_oled_capacitive_is_enabled() && !oplus_ofp_ultrasonic_is_enabled()) {
 				/* hbm mode -> normal mode -> aod mode */
 				if (oplus_ofp_get_hbm_state()) {
@@ -1804,7 +1868,7 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 				if (oplus_adfr_get_vsync_mode() == OPLUS_DOUBLE_TE_VSYNC) {
 					sde_encoder_adfr_aod_fod_source_switch(display, OPLUS_TE_SOURCE_TE);
 				} else if (oplus_adfr_get_vsync_mode() == OPLUS_EXTERNAL_TE_TP_VSYNC) {
-					oplus_adfr_aod_fod_vsync_switch(display->panel, true);
+					oplus_adfr_aod_fod_vsync_switch(display->panel, OPLUS_VSYNC_SWITCH_TE);
 				}
 			}
 #endif /* OPLUS_FEATURE_DISPLAY */
@@ -1855,8 +1919,6 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 		if (oplus_adfr_is_support()) {
 			if (oplus_adfr_get_vsync_mode() == OPLUS_DOUBLE_TE_VSYNC) {
 				sde_encoder_adfr_aod_fod_source_switch(display, OPLUS_TE_SOURCE_TP);
-			} else if (oplus_adfr_get_vsync_mode() == OPLUS_EXTERNAL_TE_TP_VSYNC) {
-				oplus_adfr_aod_fod_vsync_switch(display->panel, false);
 			}
 		}
 #endif /* OPLUS_BUG_STABILITY */
@@ -2732,6 +2794,7 @@ int oplus_ofp_set_aod_light_mode(void *buf)
 {
 	int rc = 0;
 	unsigned int *aod_light_mode = buf;
+	static unsigned int last_aod_light_mode = 0;
 	struct dsi_display *display = oplus_display_get_current_display();
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
@@ -2742,7 +2805,10 @@ int oplus_ofp_set_aod_light_mode(void *buf)
 		return -EINVAL;
 	}
 
-	OFP_INFO("set aod brightness to %s nit\n", (*aod_light_mode == 0)? "50" : "10");
+	last_aod_light_mode = p_oplus_ofp_params->aod_light_mode;
+	p_oplus_ofp_params->aod_light_mode = (*aod_light_mode);
+	OFP_INFO("aod_light_mode:%u\n", p_oplus_ofp_params->aod_light_mode);
+	OPLUS_OFP_TRACE_INT("oplus_ofp_aod_light_mode", p_oplus_ofp_params->aod_light_mode);
 
 	if (!oplus_ofp_is_supported()) {
 		OFP_DEBUG("aod is not supported\n");
@@ -2757,8 +2823,8 @@ int oplus_ofp_set_aod_light_mode(void *buf)
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_set_aod_light_mode");
 
-	if (*aod_light_mode != p_oplus_ofp_params->aod_light_mode) {
-		if (*aod_light_mode) {
+	if (last_aod_light_mode != p_oplus_ofp_params->aod_light_mode) {
+		if (p_oplus_ofp_params->aod_light_mode) {
 			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_AOD_LOW_LIGHT_MODE);
 			if (rc) {
 				OFP_ERR("[%s] failed to send DSI_CMD_AOD_LOW_LIGHT_MODE cmds, rc=%d\n", display->name, rc);
@@ -2769,10 +2835,6 @@ int oplus_ofp_set_aod_light_mode(void *buf)
 				OFP_ERR("[%s] failed to send DSI_CMD_AOD_HIGH_LIGHT_MODE cmds, rc=%d\n", display->name, rc);
 			}
 		}
-
-		p_oplus_ofp_params->aod_light_mode = (*aod_light_mode);
-		OFP_INFO("aod_light_mode:%u\n", p_oplus_ofp_params->aod_light_mode);
-		OPLUS_OFP_TRACE_INT("oplus_ofp_aod_light_mode", p_oplus_ofp_params->aod_light_mode);
 	}
 
 	OPLUS_OFP_TRACE_END("oplus_ofp_set_aod_light_mode");
@@ -2811,6 +2873,7 @@ ssize_t oplus_ofp_set_aod_light_mode_attr(struct kobject *obj,
 {
 	int rc = 0;
 	unsigned int aod_light_mode = 0;
+	static unsigned int last_aod_light_mode = 0;
 	struct dsi_display *display = oplus_display_get_current_display();
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
@@ -2822,7 +2885,11 @@ ssize_t oplus_ofp_set_aod_light_mode_attr(struct kobject *obj,
 	}
 
 	sscanf(buf, "%u", &aod_light_mode);
-	OFP_INFO("set aod brightness to %s nit\n", (aod_light_mode == 0)? "50" : "10");
+
+	last_aod_light_mode = p_oplus_ofp_params->aod_light_mode;
+	p_oplus_ofp_params->aod_light_mode = aod_light_mode;
+	OFP_INFO("aod_light_mode:%u\n", p_oplus_ofp_params->aod_light_mode);
+	OPLUS_OFP_TRACE_INT("oplus_ofp_aod_light_mode", p_oplus_ofp_params->aod_light_mode);
 
 	if (!oplus_ofp_is_supported()) {
 		OFP_DEBUG("aod is not supported\n");
@@ -2837,8 +2904,8 @@ ssize_t oplus_ofp_set_aod_light_mode_attr(struct kobject *obj,
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_set_aod_light_mode_attr");
 
-	if (aod_light_mode != p_oplus_ofp_params->aod_light_mode) {
-		if (aod_light_mode) {
+	if (last_aod_light_mode != p_oplus_ofp_params->aod_light_mode) {
+		if (p_oplus_ofp_params->aod_light_mode) {
 			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_AOD_LOW_LIGHT_MODE);
 			if (rc) {
 				OFP_ERR("[%s] failed to send DSI_CMD_AOD_LOW_LIGHT_MODE cmds, rc=%d\n", display->name, rc);
@@ -2849,10 +2916,6 @@ ssize_t oplus_ofp_set_aod_light_mode_attr(struct kobject *obj,
 				OFP_ERR("[%s] failed to send DSI_CMD_AOD_HIGH_LIGHT_MODE cmds, rc=%d\n", display->name, rc);
 			}
 		}
-
-		p_oplus_ofp_params->aod_light_mode = aod_light_mode;
-		OFP_INFO("aod_light_mode:%u\n", p_oplus_ofp_params->aod_light_mode);
-		OPLUS_OFP_TRACE_INT("oplus_ofp_aod_light_mode", p_oplus_ofp_params->aod_light_mode);
 	}
 
 	OPLUS_OFP_TRACE_END("oplus_ofp_set_aod_light_mode_attr");

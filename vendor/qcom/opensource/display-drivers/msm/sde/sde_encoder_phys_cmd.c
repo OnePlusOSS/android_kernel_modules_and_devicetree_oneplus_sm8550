@@ -507,6 +507,13 @@ static void sde_encoder_phys_cmd_wr_ptr_irq(void *arg, int irq_idx)
 
 	/* Signal any waiting wr_ptr start interrupt */
 	wake_up_all(&phys_enc->pending_kickoff_wq);
+
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+	if (oplus_ofp_is_supported()) {
+		oplus_ofp_pressed_icon_status_update(phys_enc, OPLUS_OFP_WD_PTR);
+	}
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
+
 	SDE_ATRACE_END("wr_ptr_irq");
 }
 

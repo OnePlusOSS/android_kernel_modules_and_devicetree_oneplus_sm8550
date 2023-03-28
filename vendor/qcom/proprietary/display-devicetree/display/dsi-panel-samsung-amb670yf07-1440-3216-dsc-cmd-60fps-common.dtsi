@@ -12,6 +12,7 @@
 
 				/* ofp config */
 				oplus,ofp-hbm-on-period = <2>;
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
 
 				qcom,mdss-dsi-adfr-pre-switch-command = [
 					39 00 00 40 00 00 03 F0 5A 5A					/* Level2 key Access Enable */
