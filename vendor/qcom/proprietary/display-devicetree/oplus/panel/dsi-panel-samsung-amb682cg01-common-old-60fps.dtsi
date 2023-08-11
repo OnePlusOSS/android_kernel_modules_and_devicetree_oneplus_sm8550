@@ -1,0 +1,485 @@
+/***************************************************************
+** Copyright (C), 2022, OPLUS Mobile Comm Corp., Ltd
+**
+** Description : 60fps common config
+** Version : NA
+** Date : 2022/09/06
+** Author : Oplus Display
+******************************************************************/
+
+				qcom,mdss-dsi-h-left-border = <0>;
+				qcom,mdss-dsi-h-right-border = <0>;
+				qcom,mdss-dsi-v-top-border = <0>;
+				qcom,mdss-dsi-v-bottom-border = <0>;
+				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
+				/* ofp config */
+				oplus,ofp-hbm-on-period = <2>;
+
+				qcom,mdss-dsi-post-on-backlight = [
+					/* Display On */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-off-command = [
+					/* Display Off(28h) */
+					05 00 00 00 14 00 01 28
+					/* Sleep In(10h) */
+					05 00 00 00 64 00 01 10
+				];
+				qcom,mdss-dsi-adfr-pre-switch-command = [
+					39 00 00 40 00 00 03 F0 5A 5A					/* Level2 key Access Enable */
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00						/* SDC auto mode min == max */
+					15 00 00 40 00 00 02 BD 23						/* 21 : Manual On  23 Auto On */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5					/* Level2 key Access Disable */
+				];
+				qcom,mdss-dsi-lp1-command = [
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 C0
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 00 1F
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 17 4C
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 22 22 22 22
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Panel OFF */
+					05 00 00 00 09 00 01 28
+					/* AOD Switch to DIC power supply */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 BB 09
+					39 00 00 40 00 00 04 B0 00 69 F4
+					15 00 00 40 00 00 02 F4 24
+					/* AOD Mode ON */
+					15 00 00 40 00 00 02 53 24
+					/* AOD backlight 75nit */
+					39 00 00 40 00 00 03 51 02 45
+					/* AOD Switch to 4cycle */
+					39 00 00 40 00 00 04 B0 01 2E 94
+					15 00 00 40 00 00 02 94 05
+					39 00 00 40 00 00 04 B0 00 05 BD
+					15 00 00 40 00 00 02 BD 03
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 09 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-nolp-command = [
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 C0
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					05 00 00 00 09 00 01 28
+					39 00 00 40 00 00 03 F0 5A 5A
+					/* AOD Switch to DCDC power supply */
+					15 00 00 40 00 00 02 BB 0B
+					/* AOD Mode OFF */
+					15 00 00 40 00 00 02 53 28
+					39 00 00 40 00 00 03 51 00 00
+					39 00 00 00 09 00 03 F0 A5 A5
+					05 00 00 00 00 00 01 29
+					/* Force Increasing OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-aod-high-mode-command = [
+					/* AOD High Mode 50nit */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 51 02 45
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-aod-low-mode-command = [
+					/* AOD Low Mode 10nit */
+					05 00 00 00 09 00 01 00
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 51 01 18
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-ultra-low-power-aod-on-command = [
+					39 00 00 00 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 60
+					15 00 00 40 00 00 02 60 05
+					15 00 00 00 00 00 02 F7 0F
+					39 00 00 00 24 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-ultra-low-power-aod-off-command = [
+					39 00 00 00 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 60
+					15 00 00 40 00 00 02 60 00
+					15 00 00 00 00 00 02 F7 0F
+					39 00 00 00 24 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-hbm-on-command = [
+					/* HOP Manual Mode: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HBM Mode ON */
+					15 00 00 40 00 00 02 53 20
+					39 00 00 00 00 00 03 51 07 88
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 00 AD 00 AD 00 AD
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-hbm-off-command = [
+					/* HBM Mode OFF */
+					15 00 00 40 00 00 02 53 20
+					39 00 00 00 00 00 03 51 06 9F
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 01 8C 01 8C 01 8C
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-pwm-turbo-hbm-on-command = [
+					/* HOP Manual Mode: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HBM Mode ON */
+					15 00 00 40 00 00 02 53 20
+					39 00 00 00 00 00 03 51 07 88
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 00 AD 00 AD 00 AD
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-pwm-turbo-hbm-off-command = [
+					/* HBM Mode OFF */
+					15 00 00 40 00 00 02 53 20
+					39 00 00 00 00 00 03 51 06 9F
+					/* Transition 120/90Hz: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 0B
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* AID Cycle + AOR Change Setting (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 0B
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 01 8C 01 8C 01 8C
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 0C
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 94
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-dly-on-command = [
+				];
+				qcom,mdss-dsi-dly-off-command = [
+				];
+				qcom,mdss-dsi-aor-on-command = [
+					/* HOP Manual Mode: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 00 AD 00 AD 00 AD
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 08 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-aor-off-command = [
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 01 8C 01 8C 01 8C
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-pwm-turbo-aor-on-command = [
+					/* HOP Manual Mode: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* AID Cycle + AOR Change Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 00 AD 00 AD 00 AD
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 08 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-pwm-turbo-aor-off-command = [
+					/* Transition 120/90Hz: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 0B
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* AID Cycle + AOR Change Setting (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 0B
+					39 00 00 40 00 00 04 B0 00 A4 94
+					39 00 00 40 00 00 07 94 01 8C 01 8C 01 8C
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 0C
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 94
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-panel-read-register-open-command = [
+					39 00 00 00 00 00 03 F0 5A 5A
+				];
+				qcom,mdss-dsi-panel-id1-command = [
+					06 00 00 00 00 00 01 E9
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-panel-init-command = [
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-pwm-turbo-on-command = [
+					/* HOP Manual Mode: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 10 00 03 F0 A5 A5
+					/* Transition 120/90Hz: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 0B
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 94
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 05
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-pwm-turbo-off-command = [
+					/* HOP Manual Mode: 120Hz (12CYC) */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 60 10
+					15 00 00 40 00 00 02 BD 21
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 10 00 03 F0 A5 A5
+					/* Transition 120/90Hz: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-pre-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-lp1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-nolp-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-aod-high-mode-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-aod-low-mode-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-ultra-low-power-aod-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-ultra-low-power-aod-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-hbm-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-hbm-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-dly-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-dly-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-aor-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-aor-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-aor-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-aor-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-panel-init-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-on-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-turbo-off-command-state = "dsi_hs_mode";
+
+				qcom,compression-mode = "dsc";
+				qcom,mdss-dsc-encoders = <2>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
+				qcom,mdss-dsc-bit-per-component = <10>;
+				qcom,mdss-dsc-bit-per-pixel = <8>;
+				qcom,mdss-dsc-version = <0x12>;
+				//qcom,mdss-dsc-scr-version = <1>;
+				qcom,mdss-dsc-block-prediction-enable;

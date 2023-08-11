@@ -1,0 +1,314 @@
+#include <dt-bindings/interconnect/qcom,kalama.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/regulator/qcom,rpmh-regulator-levels.h>
+
+&L1C {
+    regulator-min-microvolt = <600000>;
+    regulator-max-microvolt = <600000>;
+    qcom,init-voltage = <600000>;
+};
+
+&L2G {
+    regulator-min-microvolt = <750000>;
+    regulator-max-microvolt = <750000>;
+    qcom,init-voltage = <750000>;
+};
+
+&apps_rsc_drv2 {
+    rpmh-regulator-ldod3 {
+        compatible = "qcom,rpmh-vrm-regulator";
+        qcom,resource-name = "ldod3";
+        qcom,regulator-type = "pmic5-ldo";
+        qcom,supported-modes =
+            <RPMH_REGULATOR_MODE_LPM
+             RPMH_REGULATOR_MODE_HPM>;
+        qcom,mode-threshold-currents = <0 30000>;
+
+        L3D: pm_v6d_l3: regulator-pm-v6d-l3 {
+            regulator-name = "pm_v6d_l3";
+            qcom,set = <RPMH_REGULATOR_SET_ALL>;
+            regulator-min-microvolt = <900000>;
+            regulator-max-microvolt = <900000>;
+            qcom,init-voltage = <900000>;
+            qcom,init-mode = <RPMH_REGULATOR_MODE_HPM>;
+        };
+    };
+};
+
+
+&pm8550vs_e_gpios {
+    ear_dvdd_enable: ear_dvdd_enable {
+        pins = "gpio4"; //GPIO 4
+        function = "normal";
+        bias-disable;
+        power-source = <1>;
+        output-high;
+    };
+
+    ear_dvdd_disable: ear_dvdd_disable {
+        pins = "gpio4"; //GPIO 4
+        function = "normal";
+        bias-disable;
+        power-source = <1>;
+        output-low;
+    };
+};
+
+&pm8550vs_d_gpios {
+    ear_avdd_enable: ear_avdd_enable {
+        pins = "gpio6"; //GPIO 6
+        function = "normal";
+        bias-disable;
+        power-source = <1>;
+        output-high;
+    };
+
+    ear_avdd_disable: ear_avdd_disable {
+        pins = "gpio6"; //GPIO 6
+        function = "normal";
+        bias-disable;
+        power-source = <1>;
+        output-low;
+    };
+};
+
+&tlmm {
+    ear_porst {
+        ear_porst_high: ear_porst_high {
+          mux {
+            pins = "gpio178";
+            function = "gpio";
+          };
+          config {
+            pins = "gpio178";
+            drive-strength = <2>;
+            output-high;
+            bias-pull-up;
+          };
+        };
+        ear_porst_low: ear_porst_low {
+          mux {
+            pins = "gpio178";
+            function = "gpio";
+          };
+          config {
+            pins = "gpio178";
+            drive-strength = <2>;
+            output-low;
+            bias-pull-down;
+          };
+        };
+    };
+};
+
+&soc {
+    oplus_ear {
+        compatible = "zeku,b3";
+        zeku,dvdd_0p6-supply = <&L1C>;
+        zeku,dvdd_0p75-supply = <&L2G>;
+        zeku,avdd_0p9-supply = <&L3D>;
+        zeku,avdd_1p8_parent-supply = <&BOB2>;
+        zeku,dvdd_1p8_parent-supply = <&BOB2>;
+        zeku,spdt-supply =<&L16B>;
+        pinctrl-names = "ear_porst_low", "ear_porst_high", "ear_dvdd_disable", "ear_dvdd_enable", "ear_avdd_disable", "ear_avdd_enable";
+        pinctrl-0 = <&ear_porst_low>;
+        pinctrl-1 = <&ear_porst_high>;
+        pinctrl-2 = <&ear_dvdd_disable>;
+        pinctrl-3 = <&ear_dvdd_enable>;
+        pinctrl-4 = <&ear_avdd_disable>;
+        pinctrl-5 = <&ear_avdd_enable>;
+    };
+};
+
+&soc {
+    ear_control {
+        compatible = "zeku,ear_control";
+        status = "ok";
+        ear_wake-gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+        host_wake-gpios = <&tlmm 176 GPIO_ACTIVE_HIGH>;
+        ear_rst-gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
+    };
+};
+
+// reduce drive strength
+&qupv3_se12_spi_mosi_active {
+    config {
+        drive-strength = <4>;
+    };
+};
+
+&qupv3_se12_spi_clk_active {
+    config {
+        drive-strength = <4>;
+    };
+};
+
+&qupv3_se12_spi_cs_active {
+    config {
+        drive-strength = <4>;
+    };
+};
+
+&qupv3_se12_spi_sleep {
+    config {
+        pins = "gpio3",
+            "gpio118", "gpio119";
+        drive-strength = <4>;
+    };
+};
+
+//spi instance
+&qupv3_se12_spi {
+       status = "ok";
+       oplus_ear_spi@0 {
+           compatible = "zeku,zeku_ear_spi";
+       reg = <0>;
+       spi-cpha;
+       spi-max-frequency = <48000000>;
+       };
+};
+
+//uart
+&tlmm {
+    // HS UART Pinctrl for oplus ear by zhangbo1
+    qupv3_se15_4uart_pins: qupv3_se15_4uart_pins {
+        qupv3_se15_default_cts: qupv3_se15_default_cts {
+            mux {
+                pins = "gpio72";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio72";
+                drive-strength = <2>;
+                bias-disable;
+            };
+        };
+
+        qupv3_se15_default_rts: qupv3_se15_default_rts {
+            mux {
+                pins = "gpio106";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio106";
+                drive-strength = <2>;
+                bias-pull-down;
+            };
+        };
+
+        qupv3_se15_default_tx: qupv3_se15_default_tx {
+            mux {
+                pins = "gpio74";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio74";
+                drive-strength = <2>;
+                bias-disable;
+            };
+        };
+
+        qupv3_se15_default_rx: qupv3_se15_default_rx {
+            mux {
+                pins = "gpio75";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio75";
+                drive-strength = <2>;
+                bias-pull-down;
+            };
+        };
+
+        qupv3_se15_cts: qupv3_se15_cts {
+            mux {
+                pins = "gpio72";
+                function = "qup2_se7_l0";
+            };
+
+            config {
+                pins = "gpio72";
+                drive-strength = <2>;
+                bias-disable;
+            };
+        };
+
+        qupv3_se15_rts: qupv3_se15_rts {
+            mux {
+                pins = "gpio106";
+                function = "qup2_se7_l1";
+            };
+
+            config {
+                pins = "gpio106";
+                drive-strength = <2>;
+                bias-pull-down;
+            };
+        };
+
+        qupv3_se15_tx: qupv3_se15_tx {
+            mux {
+                pins = "gpio74";
+                function = "qup2_se7_l2";
+            };
+
+            config {
+                pins = "gpio74";
+                drive-strength = <2>;
+                bias-pull-up;
+            };
+        };
+
+        qupv3_se15_rx: qupv3_se15_rx {
+            mux {
+                pins = "gpio75";
+                function = "qup2_se7_l3";
+            };
+
+            config {
+                pins = "gpio75";
+                drive-strength = <2>;
+                bias-disable;
+            };
+        };
+    };
+
+};
+
+
+&qupv3_2 {
+    // HS UART Instance for oplus ear by zhangbo1
+    qupv3_se15_4uart: qcom,qup_uart@89c000 {
+        compatible = "qcom,msm-geni-serial-hs";
+        reg = <0x89c000 0x4000>;
+        reg-names = "se_phys";
+        interrupts-extended = <&intc GIC_SPI 462 IRQ_TYPE_LEVEL_HIGH>;
+        clock-names = "se-clk";
+        clocks = <&gcc GCC_QUPV3_WRAP2_S7_CLK>;
+        interconnect-names = "qup-core", "qup-config", "qup-memory";
+        interconnects =
+        <&clk_virt MASTER_QUP_CORE_2 &clk_virt SLAVE_QUP_CORE_2>,
+        <&gem_noc MASTER_APPSS_PROC &config_noc SLAVE_QUP_2>,
+        <&aggre2_noc MASTER_QUP_2 &mc_virt  SLAVE_EBI1>;
+        pinctrl-names = "default", "active", "sleep", "shutdown";
+        pinctrl-0 = <&qupv3_se15_default_cts>, <&qupv3_se15_default_rts>,
+        <&qupv3_se15_default_tx>, <&qupv3_se15_default_rx>;
+        pinctrl-1 = <&qupv3_se15_cts>, <&qupv3_se15_rts>,
+        <&qupv3_se15_tx>, <&qupv3_se15_rx>;
+        pinctrl-2 = <&qupv3_se15_cts>, <&qupv3_se15_rts>,
+        <&qupv3_se15_default_tx>, <&qupv3_se15_default_rx>;
+        pinctrl-3 = <&qupv3_se15_default_cts>, <&qupv3_se15_default_rts>,
+        <&qupv3_se15_default_tx>, <&qupv3_se15_default_rx>;
+        qcom,wrapper-core = <&qupv3_2>;
+        qcom,wakeup-byte = <0xFD>;
+        status = "ok";
+    };
+};
+
+&aliases{
+    hsuart1 = &qupv3_se15_4uart;
+};

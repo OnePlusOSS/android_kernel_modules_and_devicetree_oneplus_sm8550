@@ -1,0 +1,94 @@
+/***************************************************************
+** Copyright (C), 2022, OPLUS Mobile Comm Corp., Ltd
+**
+** Description : Display effect common config
+** Version : T0
+** Date : 2022/09/06
+** Author : Oplus Display
+******************************************************************/
+
+				qcom,mdss-dsi-hbm-enter-switch-command = [
+					/* HBM Mode ON */
+					15 00 00 40 00 00 02 53 E0
+					39 00 00 00 00 00 03 51 08 00
+				];
+				qcom,mdss-dsi-hbm-exit-switch-command = [
+					/* HBM Mode OFF */
+					15 00 00 40 00 00 02 53 20
+					39 00 00 00 00 00 03 51 07 FF
+				];
+				qcom,mdss-dsi-loading-effect-1-command = [
+					/* Laoding On 100% */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 01 9B 92
+					15 00 00 40 00 00 02 92 21
+					39 00 00 40 00 00 04 B0 01 9C 92
+					39 00 00 40 00 00 1E 92 FC 0B 95 80 01 FF 00 4D FF 00 FF 64 8A E6 08 09 07 23 24 1F 2F 30 2A 38 39 32 3B 3D 35
+					39 00 00 40 00 00 04 B0 01 F6 92
+					39 00 00 40 00 00 09 92 82 01 01 01 96 FD 06 80
+					39 00 00 40 00 00 04 B0 01 FE 92
+					39 00 00 40 00 00 07 92 00 00 00 00 FF 90
+					39 00 00 40 00 00 04 B0 02 04 92
+					39 00 00 40 00 00 19 92 00 00 49 00 10 00 00 05 FF 10 00 00 00 00 00 00 00 00 03 FF 21 3C 00 00
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-loading-effect-2-command = [
+					/* Laoding On 110% */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 01 9B 92
+					15 00 00 40 00 00 02 92 21
+					39 00 00 40 00 00 04 B0 01 9C 92
+					39 00 00 40 00 00 1E 92 FC 0B 95 80 01 FF 00 4D FF 00 FF 64 8A E6 08 09 07 23 24 1F 2F 30 2A 38 39 32 3B 3D 35
+					39 00 00 40 00 00 04 B0 01 F6 92
+					39 00 00 40 00 00 09 92 82 01 01 01 96 FD 06 80
+					39 00 00 40 00 00 04 B0 01 FE 92
+					39 00 00 40 00 00 07 92 6E 58 50 40 FF 90
+					39 00 00 40 00 00 04 B0 02 04 92
+					39 00 00 40 00 00 19 92 00 00 49 00 10 00 00 05 FF 10 00 00 00 00 00 00 00 00 03 FF 21 3C 00 00
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-loading-effect-3-command = [
+					/* Laoding On 120% */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 01 9B 92
+					15 00 00 40 00 00 02 92 21
+					39 00 00 40 00 00 04 B0 01 9C 92
+					39 00 00 40 00 00 1E 92 FC 0B 95 80 01 FF 00 4D FF 00 FF 64 8A E6 08 09 07 23 24 1F 2F 30 2A 38 39 32 3B 3D 35
+					39 00 00 40 00 00 04 B0 01 F6 92
+					39 00 00 40 00 00 09 92 82 01 01 01 96 FD 06 80
+					39 00 00 40 00 00 04 B0 01 FE 92
+					39 00 00 40 00 00 07 92 C7 9F A0 80 FF 90
+					39 00 00 40 00 00 04 B0 02 04 92
+					39 00 00 40 00 00 19 92 00 00 49 00 10 00 00 05 FF 10 00 00 00 00 00 00 00 00 03 FF 21 3C 00 00
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-loading-effect-4-command = [
+					/* Laoding On 130% */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 01 9B 92
+					15 00 00 40 00 00 02 92 21
+					39 00 00 40 00 00 04 B0 01 9C 92
+					39 00 00 40 00 00 1E 92 FC 0B 95 80 01 FF 00 4D FF 00 FF 64 8A E6 08 09 07 23 24 1F 2F 30 2A 38 39 32 3B 3D 35
+					39 00 00 40 00 00 04 B0 01 F6 92
+					39 00 00 40 00 00 09 92 82 01 01 01 96 FD 06 80
+					39 00 00 40 00 00 04 B0 01 FE 92
+					39 00 00 40 00 00 07 92 21 E6 F0 C0 FF 91
+					39 00 00 40 00 00 04 B0 02 04 92
+					39 00 00 40 00 00 19 92 00 00 49 00 10 00 00 05 FF 10 00 00 00 00 00 00 00 00 03 FF 21 3C 00 00
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-loading-effect-off-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 01 9B 92
+					15 00 00 40 00 00 02 92 01
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-hbm-enter-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-3-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-4-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-off-command-state = "dsi_hs_mode";
+

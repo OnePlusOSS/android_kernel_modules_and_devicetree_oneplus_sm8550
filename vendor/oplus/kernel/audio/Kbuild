@@ -1,0 +1,8 @@
+obj-$(CONFIG_ARCH_QCOM) += qcom/ codecs/
+obj-$(CONFIG_ARCH_QCOM) += codecs/tfa98xx-v6/
+
+obj-$(CONFIG_OPLUS_MTK_AUDIO_EXT) += mtk/
+obj-$(CONFIG_SND_SOC_TFA9874) += codecs/tfa98xx/
+obj-$(CONFIG_SND_SOC_FSA) += codecs/fsa44xx/
+obj-$(CONFIG_SND_SOC_TFA_HAPTIC) += codecs/tfa_haptic/
+obj-$(CONFIG_SND_SOC_SIA81XX) += codecs/sia81xx/

@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2020 Oplus. All rights reserved.
+LINUXINCLUDE += -I$(srctree)/
+
+ccflags-y += -DCONFIG_OPLUS_FEATURE_HEALTHINFO=1
+
+obj-$(CONFIG_VIRTUAL_RESERVE_MEMORY) += oplus_bsp_gloom.o
+
+oplus_bsp_gloom-y := gloom_common.o mmap_util.o reserve_area.o va_feature_hash.o va_feature_node.o

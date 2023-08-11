@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0
+
+ifneq ($(filter y m,$(CONFIG_OPLUS_SENSOR_DEBUG_KIT)),)
+CFLAGS_pseudo_sensor.o += -DOPLUS_FEATURE_SENSOR_DEBUG_KIT
+endif
+
+ifneq ($(filter y m,$(CONFIG_MTK_TINYSYS_SCP_SUPPORT)),)
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/scp/include
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sensor/2.0/core
+endif
+
+obj-$(CONFIG_PSEUDO_SENSOR) += pseudo_sensor.o

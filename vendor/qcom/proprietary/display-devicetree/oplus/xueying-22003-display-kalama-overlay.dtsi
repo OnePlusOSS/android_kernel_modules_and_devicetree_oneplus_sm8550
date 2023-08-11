@@ -1,0 +1,144 @@
+#include "panel/dsi-panel-boe-nt37705-1116-2484-dsc-cmd.dtsi"
+#include "panel/dsi-panel-boe-nt37900-2440-2268-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amf782ec01-2440-2268-dsc-cmd.dtsi"
+
+&soc {
+	oplus_display_dev: oplus,dsi-display-dev {
+		oplus,dsi-panel-primary = <
+			&dsi_vtdr6130_amoled_video
+			&dsi_panel_boe_nt37900_2440_2268_dsc_cmd
+			&dsi_panel_samsung_amf782ec01_2440_2268_dsc_cmd
+		>;
+		oplus,dsi-panel-secondary = <
+			&dsi_vtdr6130_amoled_video
+			&dsi_panel_boe_nt37705_1116_2484_dsc_cmd
+		>;
+		oplus,dsi-panel-extended = <>;
+	};
+
+	oplus_xueying_dsi_panel_pwr_supply: oplus_xueying_dsi_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <200000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <2>;
+			qcom,supply-pre-off-sleep = <15>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <1>;
+			qcom,supply-name = "vci";
+			qcom,supply-min-voltage = <3000000>;
+			qcom,supply-max-voltage = <3000000>;
+			qcom,supply-enable-load = <10000>;
+			qcom,supply-disable-load = <0>;
+			qcom,supply-pre-on-sleep = <2>;
+			qcom,supply-post-on-sleep = <0>;
+			qcom,supply-pre-off-sleep = <5>;
+		};
+	};
+
+	oplus_xueying_sec_dsi_panel_pwr_supply: oplus_xueying_sec_dsi_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <200000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+			qcom,supply-pre-off-sleep = <10>;
+		};
+	};
+};
+
+&sde_dsi {
+	qcom,platform-te-gpio-1 = <&tlmm 73 0>;
+
+	pinctrl-names = "panel_active", "panel_suspend",
+			"te1_active", "te1_suspend";
+	pinctrl-0 = <&sde_dsi_active &sde_te_active>;
+	pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
+	pinctrl-2 = <&sde_te1_active>;
+	pinctrl-3 = <&sde_te1_suspend>;
+};
+
+&sde_dsi1 {
+	qcom,platform-te-gpio-1 = <&tlmm 88 0>;
+
+	pinctrl-names = "panel_active", "panel_suspend",
+			"oplus_panel_active", "oplus_panel_suspend";
+	pinctrl-0 = <&sde_te1_active>;
+	pinctrl-1 = <&sde_te1_suspend>;
+	pinctrl-2 = <&dsi_reset_active &dsi_vci_en_active &dsi_vddr_en_active>;
+	pinctrl-3 = <&dsi_reset_suspend &dsi_vci_en_suspend &dsi_vddr_en_suspend>;
+};
+
+&L13B {
+	regulator-max-microvolt = <3200000>;
+	qcom,init-voltage = <3000000>;
+};
+
+&pm8550vs_e_gpios{
+	oled_pmic_reset_active: oled_pmic_reset_active {
+		pins = "gpio6";
+		function = "gpio";
+		power-source = <2>; /* 1.8V */
+	};
+
+	oled_pmic__reset_suspend: oled_pmic_reset_suspend {
+		pins = "gpio6";
+		function = "gpio";
+		power-source = <2>; /* 1.8V */
+	};
+};
+
+
+&pm8550ve_f_gpios{
+	dsi_reset_active: dsi_reset_active {
+		pins = "gpio8";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+
+	dsi_reset_suspend: dsi_reset_suspend {
+		pins = "gpio8";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+};
+
+&pm8550b_gpios{
+	dsi_vci_en_active: dsi_vci_en_active {
+		pins = "gpio7";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+
+	dsi_vci_en_suspend: dsi_vci_en_suspend {
+		pins = "gpio7";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+
+	dsi_vddr_en_active: dsi_vddr_en_active {
+		pins = "gpio8";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+
+	dsi_vddr_en_suspend: dsi_vddr_en_suspend {
+		pins = "gpio8";
+		function = "gpio";
+		power-source = <1>; /* 1.8V */
+	};
+};

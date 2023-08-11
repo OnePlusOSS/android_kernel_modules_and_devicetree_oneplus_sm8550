@@ -1,0 +1,75 @@
+{
+    "type": "ic_cfg",
+    "name": "parallel",
+    "max": 100,
+    "list": [
+        {
+            "lable": "OPLUS_IC_FUNC_SET_HW_ENABLE",
+            "desc": {
+                "zh": "mos开关控制"
+            },
+            "auto_debug_code": false,
+            "parameter_list": ["bool"],
+            "parameter_desc": [
+                {
+                    "range": "0-1",
+                    "type": "in",
+                    "desc": {
+                        "zh": "1: 使能, 0: 关闭"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_GET_HW_ENABLE",
+            "desc": {
+                "zh": "获取mos开关状态"
+            },
+            "auto_debug_code": false,
+            "parameter_list": ["bool *"],
+            "parameter_desc": [
+                {
+                    "range": "0-1",
+                    "type": "out",
+                    "desc": {
+                        "zh": "1: 使能, 0: 关闭"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_GET_DEVICE_TYPE",
+            "desc": {
+                "zh": "获取器件类型"
+            },
+            "auto_debug_code": false,
+            "parameter_list": ["int *"],
+            "parameter_desc": [
+                {
+                    "range": "0-*",
+                    "type": "out",
+                    "desc": {
+                        "zh": "0: NO_PARALLEL_TYPE, 1: PARALLEL_SWITCH_IC, 2: PARALLEL_MOS_CTRL"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": false,
+                "overwrite": false
+            }
+        }
+    ],
+
+    "version": "V1.0:3:22f790ce96d516b41c1841ca011b1e2b541b7ce430951c21f94f2e79dbba0a0b"
+}

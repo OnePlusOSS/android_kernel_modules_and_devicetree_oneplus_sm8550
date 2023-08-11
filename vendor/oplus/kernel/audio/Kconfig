@@ -1,0 +1,32 @@
+#
+# oplus extend audio codec configuration
+#
+config SND_SOC_SIA81XX
+	tristate "SoC Audio for  SIA81XX PA"
+	default n
+	help
+	  This option enables support for SIA81XX  K PA.
+
+config SND_SOC_OPLUS_PA_MANAGER
+	tristate "SoC Audio for PA MANAGER"
+	default n
+	help
+	  This option enables support for PA MANAGER.
+
+config SIA_PA_ALGO
+	tristate "Use SIA PA ALGO"
+	default n
+
+config HSKEY_BLOCK
+	tristate "Block hskey for 1s"
+	default n
+
+config OPLUS_MTK_AUDIO_EXT
+	tristate "Support oplus audio drv ext"
+	default n
+	help
+	  This adds sipa driver for Mediatek boards
+	  that can be used with other platforms
+	  Select m if you have such device.
+	  If unsure select "N".
+

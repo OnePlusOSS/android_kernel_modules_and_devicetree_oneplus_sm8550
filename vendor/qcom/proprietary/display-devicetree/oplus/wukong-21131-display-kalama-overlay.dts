@@ -1,0 +1,12 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../display/kalama-sde-display-mtp-overlay.dts"
+#include "kalama-display-overlay-common.dtsi"
+#include "wukong-21131-display-kalama-overlay.dtsi"
+
+/ {
+	model = "Qualcomm Technologies, Inc. Kalama MTP,wukong";
+
+	oplus,project-id = <21131 21321>;
+};

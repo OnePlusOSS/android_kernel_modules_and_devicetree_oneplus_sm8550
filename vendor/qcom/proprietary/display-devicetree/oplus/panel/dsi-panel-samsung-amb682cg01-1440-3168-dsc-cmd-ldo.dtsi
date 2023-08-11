@@ -1,0 +1,2793 @@
+&mdss_mdp {
+	dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_ldo: qcom,mdss_dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_ldo {
+		qcom,mdss-dsi-panel-name = "samsung s6e3hc4 amb682cg01 dsc cmd mode panel";
+		qcom,mdss-dsi-panel-type = "dsi_cmd_mode";
+		qcom,mdss-dsi-virtual-channel-id = <0>;
+		qcom,mdss-dsi-stream = <0>;
+		qcom,mdss-dsi-bpp = <30>;
+		qcom,mdss-dsi-color-order = "rgb_swap_rgb";
+		qcom,mdss-dsi-underflow-color = <0xff>;
+		qcom,mdss-dsi-border-color = <0>;
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,mdss-dsi-traffic-mode = "burst_mode";
+		qcom,mdss-dsi-lane-map = "lane_map_0123";
+		qcom,mdss-dsi-bllp-eof-power-mode;
+		qcom,mdss-dsi-bllp-power-mode;
+		qcom,mdss-dsi-lane-0-state;
+		qcom,mdss-dsi-lane-1-state;
+		qcom,mdss-dsi-lane-2-state;
+		qcom,mdss-dsi-lane-3-state;
+		qcom,mdss-dsi-dma-trigger = "trigger_sw";
+		qcom,mdss-dsi-mdp-trigger = "none";
+		qcom,mdss-dsi-reset-sequence = <1 10>, <0 5>, <1 10>;
+		qcom,mdss-pan-physical-width-dimension = <69>;
+		qcom,mdss-pan-physical-height-dimension = <159>;
+		qcom,mdss-dsi-te-check-enable;
+		qcom,mdss-dsi-te-using-te-pin;
+		qcom,mdss-dsi-te-pin-select = <1>;
+		qcom,mdss-dsi-te-dcs-command = <1>;
+		qcom,mdss-dsi-wr-mem-start = <0x2C>;
+		qcom,mdss-dsi-wr-mem-continue = <0x3C>;
+		//qcom,mdss-dsi-lp11-init;
+		qcom,mdss-dsi-init-delay-us = <1000>;
+		qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+		qcom,dynamic-mode-switch-enabled;
+		qcom,dynamic-mode-switch-type = "dynamic-resolution-switch-immediate";
+		/* HDR Setting */
+		qcom,mdss-dsi-panel-hdr-enabled;
+		qcom,mdss-dsi-panel-hdr-color-primaries = <15635 16450 34000 16000 13250 34500 7500 3000>;
+		qcom,mdss-dsi-panel-peak-brightness = <14000000>;
+		qcom,mdss-dsi-panel-average-brightness = <2000000>;
+		qcom,mdss-dsi-panel-blackness-level = <2000>;
+
+		qcom,mdss-dsi-display-timings {
+			timing@fhd_sdc_120 {
+				cell-index = <0>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				//qcom,mdss-mdp-transfer-time-us = <6000>;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <825600000>;
+				qcom,mdss-dsi-panel-width = <1080>;
+				qcom,mdss-dsi-panel-height = <2376>;
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <50>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <6>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 04 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit FHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 09 48
+						04 38 00 2C 02 1C 02 1C
+						02 00 02 52 00 20 03 CA
+						00 07 00 0F 02 CB 02 50
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					/* SDC Auto Off */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					/* SDC Auto On */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1080 44 1080 44 1080 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <540 540>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <540>;
+			};
+
+			timing@fhd_sdc_90 {
+				cell-index = <1>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-90fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				//qcom,mdss-mdp-transfer-time-us = <6000>;
+				qcom,mdss-dsi-panel-framerate = <90>;
+				qcom,mdss-dsi-panel-clockrate = <825600000>;
+				qcom,mdss-dsi-panel-width = <1080>;
+				qcom,mdss-dsi-panel-height = <2376>;
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <51>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <8>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 90Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 07
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 04 38
+					15 00 00 40 00 00 02 60 08
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 06 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit FHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 09 48
+						04 38 00 2C 02 1C 02 1C
+						02 00 02 52 00 20 03 CA
+						00 07 00 0F 02 CB 02 50
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 90Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 07
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 04 38
+					15 00 00 40 00 00 02 60 08
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1080 44 1080 44 1080 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <540 540>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <540>;
+			};
+
+			timing@fhd_sdc_60 {
+				cell-index = <2>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-60fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				//qcom,mdss-mdp-transfer-time-us = <6000>;
+				qcom,mdss-dsi-panel-framerate = <60>;
+				qcom,mdss-dsi-panel-clockrate = <825600000>;
+				qcom,mdss-dsi-panel-width = <1080>;
+				qcom,mdss-dsi-panel-height = <2376>;
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <52>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <1>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <6>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit FHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 09 48
+						04 38 00 2C 02 1C 02 1C
+						02 00 02 52 00 20 03 CA
+						00 07 00 0F 02 CB 02 50
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-fakeframe-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-on-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-off-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1080 44 1080 44 1080 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <540 540>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <540>;
+			};
+
+			timing@fhd_oplus_120 {
+				cell-index = <3>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				//qcom,mdss-mdp-transfer-time-us = <6000>;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <825600000>;
+				qcom,mdss-dsi-panel-width = <1080>;
+				qcom,mdss-dsi-panel-height = <2376>;
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <53>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+
+				/* OPLUS ADFR */
+				qcom,mdss-dsi-h-sync-skew = <2>;
+				qcom,mdss-dsi-qsync-min-fps-0 = <6>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <8>;
+				qcom,mdss-dsi-qsync-min-fps-2 = <10>;
+				qcom,mdss-dsi-qsync-min-fps-3 = <12>;
+				qcom,mdss-dsi-qsync-min-fps-4 = <15>;
+				qcom,mdss-dsi-qsync-min-fps-5 = <20>;
+				qcom,mdss-dsi-qsync-min-fps-6 = <24>;
+				qcom,mdss-dsi-qsync-min-fps-7 = <30>;
+				qcom,mdss-dsi-qsync-min-fps-8 = <40>;
+				qcom,mdss-dsi-qsync-min-fps-9 = <60>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 04 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit FHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 09 48
+						04 38 00 2C 02 1C 02 1C
+						02 00 02 52 00 20 03 CA
+						00 07 00 0F 02 CB 02 50
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 825.6Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 84 CA
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit FHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 89
+					39 00 00 40 00 00 04 B0 00 1F C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 FD FD FD FD FD FD FD FD FD  //original
+					39 00 00 40 00 00 04 B0 00 2D C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 B0 B0 B0 B0 B0 B0 B0 B0 B0  //original
+					39 00 00 40 00 00 04 B0 00 3B C3
+					39 00 00 40 00 00 0F C3 00 00 00 00 00 43 43 43 43 43 43 43 43 43  //original
+					39 00 00 40 00 00 04 B0 00 49 C3
+					39 00 00 40 00 00 0F C3 CC CC CC CC C0 FE FE FE FE FE FE FE FE FE  //original
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-on-commands = [
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 72
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 54
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-2-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 42
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-3-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 36
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-4-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 2A
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-5-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 1E
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-6-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 18
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-7-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-8-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 0C
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-9-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-qsync-on-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-off-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-3-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-4-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-5-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-6-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-7-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-8-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-9-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1080 44 1080 44 1080 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <540 540>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <540>;
+			};
+
+			timing@wqhd_sdc_120 {
+				cell-index = <4>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				qcom,mdss-mdp-transfer-time-us = <7700>;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <1372000000>;
+				qcom,mdss-dsi-panel-width = <1440>;
+				qcom,mdss-dsi-panel-height = <3168>;
+				qcom,mdss-dsi-h-front-porch = <88>;
+				qcom,mdss-dsi-h-back-porch = <60>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <8>;
+				qcom,mdss-dsi-v-pulse-width = <8>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <6>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 04 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit WQHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 0C 60
+						05 A0 00 2C 02 D0 02 D0
+						02 00 02 C2 00 20 04 46
+						00 0A 00 0F 02 CB 01 BC
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1440 44 1440 44 1440 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <720 720>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <720>;
+			};
+
+			timing@wqhd_sdc_90 {
+				cell-index = <5>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-90fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				qcom,mdss-mdp-transfer-time-us = <7700>;
+				qcom,mdss-dsi-panel-framerate = <90>;
+				qcom,mdss-dsi-panel-clockrate = <1372000000>;
+				qcom,mdss-dsi-panel-width = <1440>;
+				qcom,mdss-dsi-panel-height = <3168>;
+				qcom,mdss-dsi-h-front-porch = <88>;
+				qcom,mdss-dsi-h-back-porch = <61>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <8>;
+				qcom,mdss-dsi-v-pulse-width = <8>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <6>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 90Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 07
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 04 38
+					15 00 00 40 00 00 02 60 08
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 06 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit WQHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 0C 60
+						05 A0 00 2C 02 D0 02 D0
+						02 00 02 C2 00 20 04 46
+						00 0A 00 0F 02 CB 01 BC
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 90Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 07
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 04 38
+					15 00 00 40 00 00 02 60 08
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1440 44 1440 44 1440 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <720 720>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <720>;
+			};
+
+			timing@wqhd_sdc_60 {
+				cell-index = <6>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-60fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				qcom,mdss-mdp-transfer-time-us = <7700>;
+				qcom,mdss-dsi-panel-framerate = <60>;
+				qcom,mdss-dsi-panel-clockrate = <1372000000>;
+				qcom,mdss-dsi-panel-width = <1440>;
+				qcom,mdss-dsi-panel-height = <3168>;
+				qcom,mdss-dsi-h-front-porch = <88>;
+				qcom,mdss-dsi-h-back-porch = <62>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <8>;
+				qcom,mdss-dsi-v-pulse-width = <8>;
+
+				/* SDC ADFR */
+				qcom,mdss-dsi-h-sync-skew = <1>;
+				oplus,adfr-fakeframe-config = <3>;
+				oplus,adfr-fakeframe-deferred-time = <6>;		/* period*0.7 */
+				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <1314>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit WQHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 0C 60
+						05 A0 00 2C 02 D0 02 D0
+						02 00 02 C2 00 20 04 46
+						00 0A 00 0F 02 CB 01 BC
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 51
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 01					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					39 00 00 40 00 00 04 B0 00 0C B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD CA
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 02
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1440 44 1440 44 1440 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <720 720>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <720>;
+			};
+
+			timing@wqhd_oplus_120 {
+				cell-index = <7>;
+				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
+				#include "dsi-panel-samsung-amb682cg01-common-effect-evt2.dtsi"
+				qcom,mdss-mdp-transfer-time-us = <7700>;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <1372000000>;
+				qcom,mdss-dsi-panel-width = <1440>;
+				qcom,mdss-dsi-panel-height = <3168>;
+				qcom,mdss-dsi-h-front-porch = <88>;
+				qcom,mdss-dsi-h-back-porch = <63>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <8>;
+				qcom,mdss-dsi-v-pulse-width = <8>;
+
+				/* OPLUS ADFR */
+				qcom,mdss-dsi-h-sync-skew = <2>;
+				qcom,mdss-dsi-qsync-min-fps-0 = <6>;
+				qcom,mdss-dsi-qsync-min-fps-1 = <8>;
+				qcom,mdss-dsi-qsync-min-fps-2 = <10>;
+				qcom,mdss-dsi-qsync-min-fps-3 = <12>;
+				qcom,mdss-dsi-qsync-min-fps-4 = <15>;
+				qcom,mdss-dsi-qsync-min-fps-5 = <20>;
+				qcom,mdss-dsi-qsync-min-fps-6 = <24>;
+				qcom,mdss-dsi-qsync-min-fps-7 = <30>;
+				qcom,mdss-dsi-qsync-min-fps-8 = <40>;
+				qcom,mdss-dsi-qsync-min-fps-9 = <60>;
+
+				qcom,mdss-dsi-timing-switch-command = [
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 04 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-on-command = [
+					/* DSC Setting: v1.2 10bit WQHD+ */
+					39 00 00 40 00 00 59 9E
+						12 00 00 AB 30 80 0C 60
+						05 A0 00 2C 02 D0 02 D0
+						02 00 02 C2 00 20 04 46
+						00 0A 00 0F 02 CB 01 BC
+						18 00 10 F0 07 10 20 00
+						06 0F 0F 33 0E 1C 2A 38
+						46 54 62 69 70 77 79 7B
+						7D 7E 02 02 22 00 2A 40
+						2A BE 3A FC 3A FA 3A F8
+						3B 38 3B 78 3B B6 4B B6
+						4B F4 4B F4 6C 34 84 74
+					15 00 00 00 00 00 02 9D 01
+					/* ELVDD Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 29 48
+					39 00 00 40 00 00 03 48 01 22
+					39 00 00 40 00 00 04 B0 00 47 48
+					39 00 00 40 00 00 03 48 BE 0A
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Sleep Out(11h) */
+					05 00 00 00 64 00 01 11
+
+					/* Common Setting */
+					/* FQ_CON Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 F2 00 81				/* 0x00 0x01: 8bit Image Data, 0x00 0x81: 10bit Image Data */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* DCDC Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 48
+					15 00 00 40 00 00 02 48 21
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* FFC Setting: OSC 171.3Mhz, MIPI 1372Mbps */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 36 C5
+					39 00 00 40 00 00 09 C5 11 10 50 05 40 00 4F E8
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TE(Vsync) ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 35 00
+					15 00 00 40 00 00 02 B9 02					/* Multiple TE - OFF */
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* CASET/PASET Setting */
+					39 00 00 00 00 00 05 2A 00 00 05 9F
+					39 00 00 00 00 00 05 2B 00 00 0C 5F
+					/* Scaler Setting: 10bit WQHD+ */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 C3 00
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC1 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 40 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC2 Setting: Fixed TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 41 B9
+					39 00 00 40 00 00 03 B9 33 33
+					39 00 00 40 00 00 04 B0 00 05 F2
+					15 00 00 40 00 00 02 F2 C9
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC3 Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 F2
+					15 00 00 40 00 00 02 F2 40
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09
+					39 00 00 40 00 00 04 B0 00 42 B9
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 46 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Sync_TE Setting: Dynamic Single TE */
+					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 B9 00
+					39 00 00 40 00 00 04 B0 00 02 B9
+					15 00 00 40 00 00 02 B9 00					/* 0x00: 120Hz, 0x01: 60Hz */
+					39 00 00 40 00 00 04 B0 00 08 B9
+					39 00 00 40 00 00 05 B9 0C 78 00 18
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* TSP_SYNC ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 3C B9
+					15 00 00 40 00 00 02 B9 19					/* TSP_SYNC1 ON */
+					39 00 00 40 00 00 04 B0 00 3D B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC2 ON */
+					39 00 00 40 00 00 04 B0 00 3E B9
+					15 00 00 40 00 00 02 B9 09					/* TSP_SYNC3 ON */
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Brightness Control */
+					/* Dimming Setting */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 10 94
+					15 00 00 40 00 00 02 94 01					/* Dimming: 1Frame */
+					39 00 00 40 00 00 04 B0 00 0F 94
+					15 00 00 40 00 00 02 94 D0					/* ELVSS DIM OFF */
+					39 00 00 40 00 00 03 F0 A5 A5
+					15 00 00 40 00 00 02 53 28
+					15 00 00 00 00 00 02 F7 0F
+					/* Transition 1: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 01 BD
+					15 00 00 40 00 00 02 BD 05
+					39 00 00 40 00 00 04 B0 00 08 F2
+					39 00 00 40 00 00 04 F2 18 00 0C
+					15 00 00 40 00 00 02 60 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Transition 2: 120Hz */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 17 F2
+					39 00 00 40 00 00 03 F2 01 BA
+					39 00 00 40 00 00 03 BD 21 05
+					15 00 00 40 00 00 02 60 00
+					39 00 00 40 00 00 04 B0 01 2F 94
+					39 00 00 40 00 00 03 94 00 AC
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* HOP Auto Mode */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 10 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 12 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 16 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 15 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 17 BD
+					15 00 00 40 00 00 02 BD 01
+					15 00 00 40 00 00 02 BD 23
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* Force Increasing Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 06 BD
+					39 00 00 40 00 00 03 BD 01 FF
+					39 00 00 40 00 00 04 B0 00 80 BD
+					39 00 00 40 00 00 03 BD 16 00
+					39 00 00 40 00 00 04 B0 00 82 BD
+					39 00 00 40 00 00 05 BD 00 00 00 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* OPEC Setting: ON */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 1D 63
+					15 00 00 40 00 00 02 63 02
+					39 00 00 00 00 00 03 F0 A5 A5
+					/* SP Setting: OFF */
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 58 69
+					15 00 00 40 00 00 02 69 00
+					39 00 00 00 00 00 03 F0 A5 A5
+
+					/* Display On(29h) */
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-qsync-on-commands = [
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 00
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-0-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 72
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-1-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 54
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-2-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 42
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-3-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 36
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-4-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 2A
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-5-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 1E
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-6-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 18
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-7-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 12
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-8-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 0C
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+				qcom,mdss-dsi-qsync-min-fps-9-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 14 BD
+					15 00 00 40 00 00 02 BD 06
+					39 00 00 40 00 00 04 B0 00 13 BD
+					15 00 00 40 00 00 02 BD 00
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-qsync-on-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-off-commands-state ="dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-3-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-4-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-5-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-6-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-7-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-8-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-qsync-min-fps-9-command-state = "dsi_hs_mode";
+				//qcom,panel-roi-alignment=<1440 44 1440 44 1440 44>;
+				//qcom,partial-update-enabled = "single_roi";
+
+				qcom,lm-split = <720 720>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <720>;
+			};
+		};
+	};
+};
+
+&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_ldo {
+	qcom,ulps-enabled;
+	qcom,dsi-select-clocks = "pll_byte_clk0", "pll_dsi_clk0";
+	qcom,mdss-dsi-display-timings {
+		timing@fhd_sdc_120 {
+			qcom,mdss-dsi-panel-phy-timings = [00 1C 07 07 17 0F 06 07 06 02 04 00 17 0C];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@fhd_sdc_90 {
+			qcom,mdss-dsi-panel-phy-timings = [00 1C 07 07 17 0F 06 07 06 02 04 00 17 0C];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@fhd_sdc_60 {
+			qcom,mdss-dsi-panel-phy-timings = [00 1C 07 07 17 0F 06 07 06 02 04 00 17 0C];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@fhd_oplus_120 {
+			qcom,mdss-dsi-panel-phy-timings = [00 1C 07 07 17 0F 06 07 06 02 04 00 17 0C];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@wqhd_sdc_120 {
+			qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 1D 19 0A 0C 0A 02 04 00 24 11];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@wqhd_sdc_90 {
+			qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 1D 19 0A 0C 0A 02 04 00 24 11];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@wqhd_sdc_60 {
+			qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 1D 19 0A 0C 0A 02 04 00 24 11];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@wqhd_oplus_120 {
+			qcom,mdss-dsi-panel-phy-timings = [00 2C 0C 0C 1D 19 0A 0C 0A 02 04 00 24 11];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+	};
+};
+
+&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_ldo {
+	/* HARDWARE CONFIG */
+	qcom,panel-supply-entries = <&oplus_wukong_dsi_panel_pwr_supply>;
+	qcom,dynamic-te-gpio = <&tlmm 87 0>;
+	qcom,platform-reset-gpio = <&tlmm 133 0>;
+	qcom,platform-panel-vout-gpio = <&tlmm 90 0>;
+	//qcom,platform-panel-vddr-aod-en-gpio = <&tlmm 180 0>;
+	qcom,panel_voltage_vddi_name = "vddio";
+	qcom,panel_voltage_vddi = <1 1700000 1800000 1900000>;
+	qcom,panel_voltage_vddr_name = "vci";
+	qcom,panel_voltage_vddr = <1 3000000 3200000 3300000>;
+
+	/* BRIGHTNESS CONFIG */
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,bl-dsc-cmd-state = "dsi_hs_mode";
+	qcom,mdss-dsi-bl-inverted-dbv;
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <4095>;
+	qcom,mdss-brightness-max-level = <4095>;
+	oplus,dsi-bl-normal-max-level = <2047>;
+	oplus,dsi-brightness-normal-max-level = <2047>;
+	oplus,dsi-brightness-default-level = <1433>;
+	oplus,dsi-dc-backlight-threshold = <1037>;
+	oplus,dsi-global-hbm-case-id = <1>;
+	//oplus,dsi-global-hbm-case23-threshold = <2048>;
+
+	/* ESD CONFIG */
+	qcom,esd-check-enabled;
+	qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+	qcom,mdss-dsi-panel-status-command = [
+		06 00 00 00 00 00 01 0A
+		06 00 00 00 00 00 01 0E
+		06 00 00 00 00 00 01 E9
+		06 00 00 00 00 00 01 EE
+	];
+	qcom,mdss-dsi-panel-status-command-state = "dsi_lp_mode";
+	qcom,mdss-dsi-panel-status-value = <
+		0x9D 0x80 0x00 0x00 0x00 0x00
+		0x9F 0x80 0x00 0x00 0x00 0x00
+	>;
+	qcom,mdss-dsi-panel-status-read-length = <1 1 2 2>;
+	oplus,mdss-dsi-panel-status-match-modes = <0x00000000>;
+
+	/* FACTORY CONFIG */
+	oplus,mdss-dsi-vendor-name = "S6E3HC4";
+	oplus,mdss-dsi-manufacture = "samsung1024";
+	oplus,color_vivid_status;
+	oplus,color_srgb_status;
+	oplus,color_oplus_calibrate_status;
+	oplus,color_dual_brightness_status;
+
+	/* OPLUS FEATURES CONFIG */
+	oplus,dp-enabled;
+	//oplus,dsi-cabc-enabled;
+	//oplus,dsi-dre-enabled;
+	oplus,dsi-serial-number-enabled;
+	//oplus,dsi-serial-number-lock;
+	oplus,dsi-serial-number-reg= <0xA1>;
+	oplus,dsi-serial-number-index= <4>;
+	oplus,dsi-serial-number-read-count= <11>;
+	oplus,gpio-pre-on;
+
+	/* ADFR CONFIG */
+	qcom,qsync-enable;
+	qcom,mdss-dsi-qsync-min-refresh-rate = <24>;
+	/*
+	** 0st bit: adfr global on/off
+	** 1st bit: fakeframe on/off
+	** 2st bit: switch on/off
+	** 3rd bit: 0:double-TE switch 1:external TE/TP switch
+	** 4rd bit: idle mode on/off
+	*/
+	oplus,adfr-config = <0x11>;
+
+	/* ofp config */
+	oplus,ofp-fp-type = <0x88>;
+	oplus,ofp-need-to-bypass-gamut;
+	oplus,ofp-need-to-wait-data-before-aod-on;
+};
+
