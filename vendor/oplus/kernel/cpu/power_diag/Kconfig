@@ -1,0 +1,5 @@
+config OPLUS_FEATURE_POWER_DIAG
+	tristate "config oplus power diag feature"
+	default m
+	help
+		This enables monitoring the cpu load and pm qos

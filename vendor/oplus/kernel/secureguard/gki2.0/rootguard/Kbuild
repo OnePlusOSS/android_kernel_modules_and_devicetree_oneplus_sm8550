@@ -1,0 +1,33 @@
+ifeq ($(TARGET_BUILD_VARIANT),userdebug)
+ccflags-y += -DWHITE_LIST_SUPPORT
+endif
+
+ifeq ($(CONFIG_OPLUS_FEATURE_SECURE_ROOTGUARD),y)
+ccflags-y += -DCONFIG_OPLUS_FEATURE_SECURE_ROOTGUARD
+endif
+
+ifeq ($(CONFIG_OPLUS_FEATURE_SECURE_CAPGUARD),y)
+ccflags-y += -DCONFIG_OPLUS_FEATURE_SECURE_CAPGUARD
+endif
+
+ifeq ($(CONFIG_OPLUS_FEATURE_SECURE_EXECGUARD),y)
+ccflags-y += -DCONFIG_OPLUS_FEATURE_SECURE_EXECGUARD
+endif
+
+ifeq ($(CONFIG_OPLUS_FEATURE_SECURE_SRGUARD),y)
+ccflags-y += -DCONFIG_OPLUS_FEATURE_SECURE_SRGUARD
+endif
+
+ifeq ($(CONFIG_OPLUS_FEATURE_SECURE_SOCKETGUARD),y)
+ccflags-y += -DCONFIG_OPLUS_FEATURE_SECURE_SOCKETGUARD
+endif
+
+ifeq ($(OPLUS_OUT_OF_TREE_KO),y)
+ccflags-y += -DCONFIG_OPLUS_KERNEL_SECURE_GUARD_MODULE=1
+endif
+
+obj-$(CONFIG_OPLUS_KERNEL_SECURE_GUARD)    +=  oplus_secure_harden.o
+obj-$(CONFIG_OPLUS_KERNEL_SECURE_GUARD)	   +=  oplus_security_keventupload.o
+oplus_security_keventupload-objs := oplus_kevent_upload.o oplus_secure_debug.o
+obj-$(CONFIG_OPLUS_KERNEL_SECURE_GUARD)	 +=  oplus_security_guard.o
+oplus_security_guard-objs := oplus_security_init.o oplus_hook.o oplus_root_hook.o oplus_guard_general.o oplus_exec_hook.o oplus_harden_hook.o

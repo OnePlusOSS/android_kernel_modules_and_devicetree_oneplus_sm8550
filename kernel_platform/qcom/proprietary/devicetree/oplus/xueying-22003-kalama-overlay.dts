@@ -1,0 +1,88 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../qcom/kalama-mtp-overlay.dts"
+#include "kalama_overlay_common.dtsi"
+#include "xueying_overlay_common.dtsi"
+#include "oplus_chg/oplus-chg-22003.dtsi"
+#include "sensor/xueying-sensor-22003.dtsi"
+#include "uff_sm8550_22003.dtsi"
+#include "nfc/xueying_nfc_sn220.dtsi"
+#include "tp/xueying-oplus_tp-22003.dtsi"
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,xueying";
+
+    oplus,project-id = <22003 22203 22899>;
+    oplus,hw-id = <OPLUS_EVB1 OPLUS_T0 OPLUS_EVT1 OPLUS_EVT2 OPLUS_DVT1 OPLUS_DVT2 OPLUS_PVT1 OPLUS_MP1>;
+};
+
+&tlmm {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  rf_cable0_active: rf_cable0_active {
+    mux {
+      pins = "gpio51";
+      function = "gpio";
+    };
+    config {
+      pins = "gpio51";
+      drive-strength = <2>;
+      input-enable;
+      bias-pull-up;
+    };
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+
+  //#ifdef OPLUS_FEATURE_BT_SMART_ANTENNA
+  oplus_bsa_pins {
+    bt_bsa_high: bt_bsa_high {
+      mux {
+        pins = "gpio98";
+        function = "gpio";
+      };
+      config {
+        pins = "gpio98";
+        drive-strength = <2>;
+        output-high;
+        bias-pull-up;
+      };
+    };
+    bt_bsa_low: bt_bsa_low {
+      mux {
+        pins = "gpio98";
+        function = "gpio";
+      };
+      config {
+        pins = "gpio98";
+        drive-strength = <2>;
+        output-low;
+        bias-pull-down;
+      };
+    };
+  };
+  //#endif
+};
+
+&soc {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  oplus_rf_cable {
+    compatible = "oplus,rf_cable";
+    interrupt-parent = <&tlmm>;
+    rf_cable_support_num = <1>;
+    rf,cable0-gpio = <&tlmm 51 0>;
+    rf,cable-support-timer = <0>;
+    pinctrl-names = "rf_cable_active";
+    pinctrl-0 = <&rf_cable0_active>;
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+
+  //#ifdef OPLUS_FEATURE_BT_SMART_ANTENNA
+  oplus_bsa {
+    compatible = "oplus-bt-bsa";
+    bt-bsa-gpio = <&tlmm 98 0>;
+    pinctrl-names = "bt_bsa_high", "bt_bsa_low";
+    pinctrl-0 = <&bt_bsa_high>;
+    pinctrl-1 = <&bt_bsa_low>;
+    vdd-supply = <&L15B>;
+  };
+  //#endif
+};
