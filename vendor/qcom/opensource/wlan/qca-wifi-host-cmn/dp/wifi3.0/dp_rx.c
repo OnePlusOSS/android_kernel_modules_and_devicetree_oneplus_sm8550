@@ -1361,6 +1361,7 @@ uint8_t dp_rx_process_invalid_peer(struct dp_soc *soc, qdf_nbuf_t mpdu,
 	struct dp_vdev *vdev = NULL;
 	struct dp_pdev *pdev = NULL;
 	struct ieee80211_frame *wh;
+	struct dp_peer *peer = NULL;
 	qdf_nbuf_t curr_nbuf, next_nbuf;
 	uint8_t *rx_tlv_hdr = qdf_nbuf_data(mpdu);
 	uint8_t *rx_pkt_hdr = NULL;
@@ -1493,6 +1494,7 @@ uint8_t dp_rx_process_invalid_peer(struct dp_soc *soc, qdf_nbuf_t mpdu,
 	qdf_nbuf_t curr_nbuf, next_nbuf;
 	struct dp_pdev *pdev;
 	struct dp_vdev *vdev = NULL;
+	struct dp_peer *peer = NULL;
 	struct ieee80211_frame *wh;
 	uint8_t *rx_tlv_hdr = qdf_nbuf_data(mpdu);
 	uint8_t *rx_pkt_hdr = hal_rx_pkt_hdr_get(soc->hal_soc, rx_tlv_hdr);
@@ -1532,6 +1534,21 @@ uint8_t dp_rx_process_invalid_peer(struct dp_soc *soc, qdf_nbuf_t mpdu,
 	}
 
 out:
+	if (vdev->opmode == wlan_op_mode_ap) {
+		peer = dp_peer_find_hash_find(soc, wh->i_addr2, 0,
+					      vdev->vdev_id,
+					      DP_MOD_ID_RX_ERR);
+		/* If SA is a valid peer in vdev,
+		 * don't send disconnect
+		 */
+		if (peer) {
+			dp_peer_unref_delete(peer, DP_MOD_ID_RX_ERR);
+			DP_STATS_INC(soc, rx.err.decrypt_err_drop, 1);
+			dp_err_rl("invalid peer frame with correct SA/RA is freed");
+			goto free;
+		}
+	}
+
 	if (soc->cdp_soc.ol_ops->rx_invalid_peer)
 		soc->cdp_soc.ol_ops->rx_invalid_peer(vdev->vdev_id, wh);
 free:

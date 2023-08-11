@@ -6286,13 +6286,16 @@ static void dsi_display_firmware_display(const struct firmware *fw,
 	DSI_DEBUG("success\n");
 }
 #if defined(CONFIG_PXLW_IRIS)
-static struct device_node *_iris_dsi_display_get_panel_node(struct platform_device *pdev, int index, bool boot_disp_en)
+static struct device_node *_iris_dsi_display_get_panel_node(struct platform_device *pdev, int index, bool boot_disp_en, bool is_sencondary)
 {
 	struct device_node *node = NULL, *mdp_node = NULL;
 	const char *disp_name = NULL;
 	static const char * const disp_name_type[] = {
 		"pxlw,dsi-display-primary-active",
 		"pxlw,dsi-display-secondary-active"};
+	static const char * const disp_name_type_2nd[] = {
+		"pxlw,dsi-display-primary-active-2nd",
+		"pxlw,dsi-display-secondary-active-2nd"};
 
 	if (pdev == NULL)
 		return NULL;
@@ -6313,7 +6316,10 @@ static struct device_node *_iris_dsi_display_get_panel_node(struct platform_devi
 	}
 
 	DSI_INFO("IRIS_LOG I UEFI display[%d] name: %s\n", index, boot_displays[index].name);
-	of_property_read_string(mdp_node, disp_name_type[index], &disp_name);
+	if (is_sencondary)
+		of_property_read_string(mdp_node, disp_name_type_2nd[index], &disp_name);
+	else
+		of_property_read_string(mdp_node, disp_name_type[index], &disp_name);
 	if (disp_name) {
 		DSI_INFO("actual display name: %s, boot display enable: %s\n",
 				disp_name, boot_disp_en ? "true" : "false");
@@ -6338,6 +6344,9 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 	int rc = 0, index = DSI_PRIMARY;
 	bool firm_req = false;
 	struct dsi_display_boot_param *boot_disp;
+#if defined(CONFIG_PXLW_IRIS)
+	bool is_sencondary_panel = false;
+#endif
 
 	if (!pdev || !pdev->dev.of_node) {
 		DSI_ERR("pdev not found\n");
@@ -6388,8 +6397,14 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 		/* The panel name should be same as UEFI name index */
 #if defined(CONFIG_PXLW_IRIS)
 		if (is_project(22811)) {
-			DSI_INFO("This project support iris\n");
-			_iris_dsi_display_get_panel_node(pdev, index, boot_disp->boot_disp_en);
+			DSI_INFO("This project support iris...\n");
+			if (!strcmp(boot_displays[0].name, "qcom,mdss_dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd"))
+				is_sencondary_panel = true;
+			else
+				is_sencondary_panel = false;
+			_iris_dsi_display_get_panel_node(pdev, index, boot_disp->boot_disp_en, is_sencondary_panel);
+		} else {
+			DSI_INFO("This project does not support iris\n");
 		}
 #endif
 		panel_node = of_find_node_by_name(mdp_node, boot_disp->name);
@@ -6401,8 +6416,12 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 				"qcom,dsi-default-panel", 0);
 #if defined(CONFIG_PXLW_IRIS)
 		if (is_project(22811)) {
-			DSI_INFO("This project support iris\n");
-			panel_node = _iris_dsi_display_get_panel_node(pdev, index, boot_disp->boot_disp_en);
+			DSI_INFO("This project support iris+++\n");
+			if (!strcmp(boot_displays[0].name, "qcom,mdss_dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd"))
+				is_sencondary_panel = true;
+			else
+				is_sencondary_panel = false;
+			panel_node = _iris_dsi_display_get_panel_node(pdev, index, boot_disp->boot_disp_en, is_sencondary_panel);
 		} else {
 			DSI_INFO("This project does not support iris\n");
 		}

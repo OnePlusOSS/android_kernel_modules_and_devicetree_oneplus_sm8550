@@ -76,6 +76,7 @@ unsigned int tristate_extcon_tab[] = {
 static struct hrtimer tri_key_timer;
 struct work_struct tri_key_timeout_work;
 
+static DEFINE_MUTEX(tri_key_mutex);
 
 
 static struct extcon_dev_data *g_the_chip;
@@ -1408,11 +1409,13 @@ int oplus_register_hall(const char *name, struct dhall_operations *ops,
 		return -EINVAL;
 	}
 
+	mutex_lock(&tri_key_mutex);
 	if (!g_the_chip) {
 		struct extcon_dev_data *chip = kzalloc(sizeof(struct
 				extcon_dev_data), GFP_KERNEL);
 		if (!chip) {
 			TRI_KEY_ERR("kzalloc err\n");
+			mutex_unlock(&tri_key_mutex);
 			return -ENOMEM;
 		}
 		g_the_chip = chip;
@@ -1428,10 +1431,12 @@ int oplus_register_hall(const char *name, struct dhall_operations *ops,
 				hall_count++;
 			} else {
 				TRI_KEY_ERR("dhall_down_ops NULL\n");
+				mutex_unlock(&tri_key_mutex);
 				return -EINVAL;
 			}
 		} else {
 			TRI_KEY_ERR("dhall_down_ops has been register\n");
+			mutex_unlock(&tri_key_mutex);
 			return -EINVAL;
 		}
 	}
@@ -1444,10 +1449,12 @@ int oplus_register_hall(const char *name, struct dhall_operations *ops,
 				hall_count++;
 			}  else {
 				TRI_KEY_ERR("dhall_up_ops NULL\n");
+				mutex_unlock(&tri_key_mutex);
 				return -EINVAL;
 			}
 		} else {
 			TRI_KEY_ERR("dhall_up_ops has been register\n");
+			mutex_unlock(&tri_key_mutex);
 			return -EINVAL;
 		}
 	}
@@ -1455,6 +1462,7 @@ int oplus_register_hall(const char *name, struct dhall_operations *ops,
 		INIT_WORK(&g_the_chip->register_work, register_tri_key_dev_work);
 		schedule_work(&g_the_chip->register_work);
 	}
+	mutex_unlock(&tri_key_mutex);
 	return 0;
 }
 EXPORT_SYMBOL(oplus_register_hall);

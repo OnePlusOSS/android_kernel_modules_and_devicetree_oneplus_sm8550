@@ -1573,7 +1573,9 @@ void oplus_dsi_display_vsync_switch(void *disp, bool force_te_vsync)
 		oplus_adfr_fakeframe_status_update(display->panel, true);
 
 		if (!strcmp(display->panel->oplus_priv.vendor_name, "AMB670YF07_CS")
-				|| !strcmp(display->panel->oplus_priv.vendor_name, "AMB670YF07_FS")) {
+				|| !strcmp(display->panel->oplus_priv.vendor_name, "AMB670YF07_FS")
+				|| !strcmp(display->panel->oplus_priv.vendor_name, "AMB670YF08_CS")
+				|| !strcmp(display->panel->oplus_priv.vendor_name, "AMB670YF08_FS")) {
 			if (display->panel->cur_h_active == display->panel->cur_mode->timing.h_active) {
 				DSI_INFO("KVRR the same resolution no need ADFR pre-switch!\n");
 			} else {

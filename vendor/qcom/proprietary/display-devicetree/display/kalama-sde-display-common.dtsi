@@ -42,6 +42,8 @@
 #include "dsi-panel-samsung-amb670yf09-1440-3216-dsc-cmd.dtsi"
 #include "dsi-panel-samsung-amb670yf07-cs-1440-3216-dsc-cmd.dtsi"
 #include "dsi-panel-samsung-amb670yf07-fs-1440-3216-dsc-cmd.dtsi"
+#include "dsi-panel-samsung-amb670yf08-cs-1440-3216-dsc-cmd.dtsi"
+#include "dsi-panel-samsung-amb670yf08-fs-1440-3216-dsc-cmd.dtsi"
 #include "dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd.dtsi"
 #include "dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-evt2.dtsi"
 #include "dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-evt1.dtsi"
@@ -55,6 +57,8 @@
 			&dsi_panel_samsung_amb670yf09_1440_3216_dsc_cmd
 			&dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd
 			&dsi_panel_samsung_amb670yf07_fs_1440_3216_dsc_cmd
+			&dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd
+			&dsi_panel_samsung_amb670yf08_fs_1440_3216_dsc_cmd
 			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd
 			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_evt2
 			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_evt1

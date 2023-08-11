@@ -392,13 +392,13 @@
 		prevention,edge_swipe_config = <160 600>;
 
 		prevention,curved_screen_V4;
-		prevention,long_eliminate_point_type = <2 5760 4288 180 12864 300 0>;
+		prevention,long_eliminate_point_type = <2 5760 4288 140 12864 300 1>;
 		prevention,long_fingerhold_condition2 = <370 800 0 0>;
 		prevention,top_corner_config2 =<3 80 420 600 0>;
 		prevention,hor_long_top_corner_config =<152 1054 0 0>;
 		prevention,top_middle_config =<5760 527 527 0>;
-		prevention,corner_eliminate_point_type =<0 640 1054 0>;
-		prevention,finger_hold_differ_size = <1 0 120 100>;
+		prevention,corner_eliminate_point_type =<0 640 1054 1>;
+		prevention,finger_hold_differ_size = <1 0 180 300>;
 		prevention,finger_hold_max_rx_exit_distance = <5 160 1000>;
 		prevention,max_rx_exit_distance = <1 5 150 160 800>;
 		prevention,dynamic_finger_hold_exit_distance = <1 160 1000 320>;
@@ -412,12 +412,12 @@
 		end_stretch_value = <480 250 16 16>;
 
 		touchpanel,tp_ic_type = <2>;
-		panel_type = <8 8 8>;
+		panel_type = <8 8 8 8 8>;
 		// type of tp_dev ,TP-SAMSUNG = 8;
 		firmware_name = "SS";
 		platform_support_project = <22811 22861 22862 22863 22864>;
 		platform_support_project_dir = <22811 22811 22811 22811 22811>;
-		platform_support_project_commandline = "mdss_dsi_panel_samsung_amb670yf07_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_fs_1440_3216_dsc_cmd";
+		platform_support_project_commandline = "mdss_dsi_panel_samsung_amb670yf07_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf07_fs_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd","mdss_dsi_panel_samsung_amb670yf08_fs_1440_3216_dsc_cmd";
 
 		/* SW Support Feature Control */
 		black_gesture_support;

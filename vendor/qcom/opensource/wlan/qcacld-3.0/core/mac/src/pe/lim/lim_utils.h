@@ -115,6 +115,12 @@
 #else
 #define MAX_NUM_PWR_LEVELS 8
 #endif
+
+/* Length of RSNXE element ID + length + one octet of capability */
+#define RSNXE_CAP_FOR_SAE_LEN     3
+/* Position of WPA3 capabilities in the RSNX element */
+#define RSNXE_CAP_POS_0           0
+
 typedef union uPmfSaQueryTimerId {
 	struct {
 		uint8_t sessionId;

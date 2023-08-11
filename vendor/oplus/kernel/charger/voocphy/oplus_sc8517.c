@@ -1143,4 +1143,4 @@ void sc8517_subsys_exit(void)
 
 MODULE_DESCRIPTION("SC SC8517 Charge Pump Driver");
 MODULE_LICENSE("GPL v2");
-MODULE_AUTHOR("kongfanhong@oplus.com");
+MODULE_AUTHOR("kongfanhong");

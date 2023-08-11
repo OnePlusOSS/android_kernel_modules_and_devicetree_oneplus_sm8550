@@ -180,9 +180,11 @@ void oplus_panel_restore_auto_mode(struct dsi_panel *panel) {
 	static bool adfr_init;
 	int ret;
 
-	if (!adfr_init
-		&& oplus_adfr_is_support()
-		&& ((!strcmp(panel->oplus_priv.vendor_name, "AMB670YF07_CS")) || (!strcmp(panel->oplus_priv.vendor_name, "AMB670YF07_FS")))) {
+	if (!adfr_init && oplus_adfr_is_support() &&
+			((!strcmp(panel->oplus_priv.vendor_name, "AMB670YF07_CS")) ||
+			(!strcmp(panel->oplus_priv.vendor_name, "AMB670YF07_FS")) ||
+			(!strcmp(panel->oplus_priv.vendor_name, "AMB670YF08_CS")) ||
+			(!strcmp(panel->oplus_priv.vendor_name, "AMB670YF08_FS")))) {
 		DSI_INFO("[DISP] Restore adfr auto parameter\n");
 		mutex_lock(&panel->panel_tx_lock);
 		ret = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_QSYNC_OFF);

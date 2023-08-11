@@ -3738,30 +3738,44 @@ lim_is_rsnxe_cap_set(struct mac_context *mac_ctx,
 	return false;
 }
 
-/**
- * lim_is_akm_wpa_wpa2() - Check if the AKM is legacy than wpa3
+/*
+ * lim_rebuild_rsnxe() - Rebuild the RSNXE for STA
  *
- * @session: PE session
+ * @rsnx_ie: RSNX IE
  *
- * This is to check if the AKM is older than WPA3. This helps to determine if
- * RSNXE needs to be carried or not.
+ * This API is used to construct new RSNX IE for a WPA3
+ * connection where the AP doesn't advertise the RSNX IE,
+ * mask all bits other than WPA3 caps(SAE_H2E and SAE_PK)
  *
- * return true - If AKM is WPA/WPA2 which means it's older than WPA3
- *        false - If AKM is not older than WPA3
+ * Return: Newly constructed RSNX IE
  */
-static inline bool
-lim_is_akm_wpa_wpa2(struct pe_session *session)
+static inline uint8_t *lim_rebuild_rsnxe(uint8_t *rsnx_ie)
 {
-	int32_t akm;
+	const uint8_t *rsnxe_cap;
+	uint16_t cap_mask, capab;
+	uint8_t cap_len;
+	uint8_t *new_rsnxe = NULL;
 
-	akm = wlan_crypto_get_param(session->vdev, WLAN_CRYPTO_PARAM_KEY_MGMT);
-	if (akm == -1)
-		return false;
+	rsnxe_cap = wlan_crypto_parse_rsnxe_ie(rsnx_ie, &cap_len);
+	if (!rsnxe_cap || !cap_len)
+		return NULL;
 
-	if (WLAN_CRYPTO_IS_WPA_WPA2(akm))
-		return true;
+	cap_mask = WLAN_CRYPTO_RSNX_CAP_SAE_H2E | WLAN_CRYPTO_RSNX_CAP_SAE_PK;
+	capab = (rsnxe_cap[RSNXE_CAP_POS_0] & cap_mask);
 
-	return false;
+	if (capab) {
+		cap_len = 1;
+		capab |= cap_len - 1;
+
+		new_rsnxe = qdf_mem_malloc(RSNXE_CAP_FOR_SAE_LEN);
+		if (!new_rsnxe)
+			return NULL;
+		new_rsnxe[0] = WLAN_ELEMID_RSNXE;
+		new_rsnxe[1] = cap_len;
+		new_rsnxe[2] = capab & 0x00ff;
+		return new_rsnxe;
+	}
+	return NULL;
 }
 
 static inline void
@@ -3769,6 +3783,13 @@ lim_strip_rsnx_ie(struct mac_context *mac_ctx,
 		  struct pe_session *session,
 		  struct cm_vdev_join_req *req)
 {
+	int32_t akm;
+	uint8_t *rsnxe = NULL, *new_rsnxe = NULL, *assoc_ie = NULL;
+	uint8_t assoc_ie_len;
+
+	akm = wlan_crypto_get_param(session->vdev, WLAN_CRYPTO_PARAM_KEY_MGMT);
+	if (akm == -1)
+		return;
 	/*
 	 * Userspace may send RSNXE also in connect request irrespective
 	 * of the connecting AP capabilities. This allows the driver to chose
@@ -3779,24 +3800,60 @@ lim_strip_rsnx_ie(struct mac_context *mac_ctx,
 	 * may misbahave due to the new IE. It's observed that few
 	 * legacy APs which don't support the RSNXE reject the
 	 * connection at EAPOL stage.
-	 * So, strip the IE when below conditions are met to avoid
-	 * sending the RSNXE to legacy APs,
+	 * So, modify the IE when below conditions are met to avoid
+	 * the interop issues due to RSNXE,
 	 * 1. If AP doesn't support/advertise the RSNXE
-	 * 2. If the connection is in a older mode than WPA3 i.e. WPA/WPA2 mode
-	 * 3. If no other bits are set than SAE_H2E, SAE_PK, SECURE_LTF,
+	 * 2. If no other bits are set than SAE_H2E, SAE_PK, SECURE_LTF,
 	 * SECURE_RTT, PROT_RANGE_NEGOTIOATION in RSNXE capabilities
 	 * field.
-
+	 *
+	 * For WPA2 and older security - Remove the RSNXE completely.
+	 * For WPA3 security - Mask all caps others than SAE_H2E and SAE_PK.
 	 */
-	if (!util_scan_entry_rsnxe(req->entry) &&
-	    lim_is_akm_wpa_wpa2(session) &&
-	    !lim_is_rsnxe_cap_set(mac_ctx, req)) {
-		mlme_debug("Strip RSNXE as it's not supported by AP");
-		lim_strip_ie(mac_ctx, req->assoc_ie.ptr,
-			     (uint16_t *)&req->assoc_ie.len,
-			     WLAN_ELEMID_RSNXE, ONE_BYTE,
-			     NULL, 0, NULL, WLAN_MAX_IE_LEN);
+
+	if (util_scan_entry_rsnxe(req->entry) ||
+	    lim_is_rsnxe_cap_set(mac_ctx, req)) {
+		return;
 	}
+
+	rsnxe = qdf_mem_malloc(WLAN_MAX_IE_LEN + 2);
+	if (!rsnxe)
+		return;
+
+	lim_strip_ie(mac_ctx, req->assoc_ie.ptr,
+		     (uint16_t *)&req->assoc_ie.len, WLAN_ELEMID_RSNXE,
+		     ONE_BYTE, NULL, 0, rsnxe, WLAN_MAX_IE_LEN);
+
+	if (WLAN_CRYPTO_IS_WPA_WPA2(akm)) {
+		mlme_debug("Strip RSNXE as it is not supported by AP");
+		goto end;
+	} else if (WLAN_CRYPTO_IS_WPA3(akm)) {
+		new_rsnxe = lim_rebuild_rsnxe(rsnxe);
+		if (!new_rsnxe)
+			goto end;
+
+		assoc_ie = qdf_mem_malloc(req->assoc_ie.len + new_rsnxe[1] + 2);
+		if (!assoc_ie) {
+			qdf_mem_free(new_rsnxe);
+			goto end;
+		}
+
+		/* Append the new RSNXE to the assoc ie */
+		qdf_mem_copy(assoc_ie, req->assoc_ie.ptr, req->assoc_ie.len);
+		assoc_ie_len = req->assoc_ie.len;
+		qdf_mem_copy(&assoc_ie[assoc_ie_len], new_rsnxe,
+			     new_rsnxe[1] + 2);
+		assoc_ie_len += new_rsnxe[1] + 2;
+		qdf_mem_free(new_rsnxe);
+
+		/* Replace the assoc ie with new assoc_ie */
+		qdf_mem_free(req->assoc_ie.ptr);
+		req->assoc_ie.ptr = &assoc_ie[0];
+		req->assoc_ie.len = assoc_ie_len;
+		mlme_debug("Update the RSNXE for WPA3 connection");
+	}
+end:
+	qdf_mem_free(rsnxe);
 }
 
 void

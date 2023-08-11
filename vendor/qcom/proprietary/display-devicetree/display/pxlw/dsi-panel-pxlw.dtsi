@@ -11,6 +11,7 @@
  */
 
 #include "dsi-panel-samsung-amb670yf07-cs-1440-3216-dsc-cmd-2nd.dtsi"
+#include "dsi-panel-samsung-amb670yf08-cs-1440-3216-dsc-cmd-2nd.dtsi"
 //#include "dsi-panel-boe-nt37705-1080-2412-dsc-cmd-2nd.dtsi"
 
 &soc {
@@ -111,10 +112,42 @@
 	};
 };
 */
+
+&dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd {
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x7f 0x1>;
+	qcom,dsi-ctrl-num = <0>;
+	qcom,dsi-phy-num = <0>;
+	qcom,panel-supply-entries = <&oplus_dsi_panel_pwr_supply>;
+	qcom,iris-supply-entries = <&dsi_iris_pwr_supply>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	//qcom,mdss-dsi-bl-min-level = <1>;
+	//qcom,mdss-dsi-bl-max-level = <2047>;
+	//qcom,mdss-brightness-max-level = <4095>;
+	//qcom,mdss-dsi-bl-inverted-dbv;
+	qcom,platform-reset-gpio = <&tlmm 133 0>;
+};
+
+&dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd_2nd {
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x7f 0x1>;
+	qcom,dsi-sec-ctrl-num = <1>;
+	qcom,dsi-sec-phy-num = <1>;
+	qcom,panel-sec-supply-entries = <&dsi_panel_pwr_sec_supply>;
+	qcom,mdss-dsi-sec-bl-pmic-control-type = "bl_ctrl_external";
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	//qcom,mdss-dsi-bl-min-level = <1>;
+	//qcom,mdss-dsi-bl-max-level = <2047>;
+	//qcom,mdss-brightness-max-level = <4095>;
+	//qcom,mdss-dsi-bl-inverted-dbv;
+	qcom,dsi-select-sec-clocks = "pll_byte_clk1", "pll_dsi_clk1";
+};
+
 /* select panel */
 &mdss_mdp {
 	//pxlw,dsi-display-primary-active = "qcom,mdss_dsi_panel_boe_nt37705_1080_2412_dsc_cmd";
 	//pxlw,dsi-display-secondary-active = "qcom,mdss_dsi_panel_boe_nt37705_1080_2412_dsc_cmd_2nd";
 	pxlw,dsi-display-primary-active = "qcom,mdss_dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd";
 	pxlw,dsi-display-secondary-active = "qcom,mdss_dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd_2nd";
+
+	pxlw,dsi-display-primary-active-2nd = "qcom,mdss_dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd";
+	pxlw,dsi-display-secondary-active-2nd = "qcom,mdss_dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd_2nd";
 };
