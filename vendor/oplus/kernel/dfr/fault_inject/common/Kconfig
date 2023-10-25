@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2020 Oplus. All rights reserved.
+config OPLUS_FEATURE_FAULT_INJECT
+	tristate "device fault inject"
+	default n
+	depends on OPLUS_SYSTEM_KERNEL
+	help
+            framework for device fault inject.
+
+config OPLUS_FEATURE_FAULT_INJECT_SAMPLE
+	tristate "device fault inject sample"
+	default n
+	depends on OPLUS_FEATURE_FAULT_INJECT
+	help
+            using charger interfce designed sample fault inject.

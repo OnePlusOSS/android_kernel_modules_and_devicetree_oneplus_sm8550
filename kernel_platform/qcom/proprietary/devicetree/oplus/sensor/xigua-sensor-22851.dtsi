@@ -1,0 +1,59 @@
+/**********************************************************************************
+* Copyright (c)  2022-2024  Guangdong oplus Mobile Comm Corp., Ltd
+* Description: oplus sensor dtsi
+*
+* Version: 1.0
+* Date: 2022-07-04
+*
+* ------------------------------ Revision History: --------------------------------
+* <version>         <date>        <author>                <desc>
+***********************************************************************************/
+&soc {
+	//#ifdef OPLUS_FEATURE_SENSOR_SMEM
+	sensor_fb: sensor_fb {
+		compatible = "oplus,sensor-feedback";
+		master-id  = <3>;
+		smem-id    = <608>;
+	};
+	ssc_interactive {
+		sup-power-fb;
+		sup-hbm-mode = <1>;
+		need_lb_algo = <1>;
+
+		primary_lb_brl_info {
+			brl_thrd_num = <1>;
+			brl_thrd = <1>;
+			brl_l2h_thrd = <1>;
+		};
+	};
+	oplus_sensor {
+		compatible = "oplus,sensor-devinfo";
+		/*virtual sensor*/
+		mag_fusion {
+			sensor-type = <6>;//OPLUS_MAG_FUSION
+			is-virtual-sensor;
+			fusion-type = <0>;//OPLUS_FUSION
+			fold-feature = <0>;
+		};
+	};
+	consumer_ir_core: consumer_ir_core {
+		compatible = "oplus,kookong_ir_core";
+		status = "okay";
+		vdd-type = <0>; /*0: internal LDO , 1: external LDO*/
+		vdd-supply = <&pm_humu_l9>;
+		vdd-min-vol = <3160000>;
+		vdd-max-vol = <3160000>;
+	};
+};
+
+&qupv3_se11_spi{
+	status = "ok";
+	consumerIr@0 {
+		compatible = "oplus,kookong_ir_spi";
+		reg = <0>;
+		status = "ok";
+
+		spi-max-frequency = <5000000>;    /*4800000,9600000,15000000,19200000*/
+		ir-spi-mode = <0>;
+	};
+};

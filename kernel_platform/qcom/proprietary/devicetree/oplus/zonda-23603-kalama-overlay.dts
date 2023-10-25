@@ -1,0 +1,50 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../qcom/kalama-mtp-overlay.dts"
+#include "kalama_overlay_common.dtsi"
+#include "zonda_overlay_common.dtsi"
+#include "oplus_chg/oplus-chg-23603.dtsi"
+#include "breathing/zonda_breathing_leds.dtsi"
+#include "sensor/zonda-sensor-22635.dtsi"
+#include "tp/zonda-oplus-tp-22635.dtsi"
+#include "uff_sm8550.dtsi"
+#include "nfc/zonda_nfc_es2.dtsi"
+
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,zonda-B";
+
+    oplus,project-id = <23603 23667>;
+    oplus,hw-id = <OPLUS_T0 OPLUS_T1 OPLUS_EVT1 OPLUS_EVT2 OPLUS_DVT1 OPLUS_DVT2 OPLUS_PVT1 OPLUS_MP1>;
+};
+
+&tlmm {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  rf_cable0_active: rf_cable0_active {
+    mux {
+      pins = "gpio51";
+      function = "gpio";
+    };
+    config {
+      pins = "gpio51";
+      drive-strength = <2>;
+      input-enable;
+      bias-pull-up;
+    };
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+};
+
+&soc {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  oplus_rf_cable {
+    compatible = "oplus,rf_cable";
+    interrupt-parent = <&tlmm>;
+    rf_cable_support_num = <1>;
+    rf,cable0-gpio = <&tlmm 51 0>;
+    rf,cable-support-timer = <0>;
+    pinctrl-names = "rf_cable_active";
+    pinctrl-0 = <&rf_cable0_active>;
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+};

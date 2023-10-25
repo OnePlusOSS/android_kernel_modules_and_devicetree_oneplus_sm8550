@@ -1,0 +1,16 @@
+Oplus Kernel Security Reinforcement Solution.
+
+=======
+On the baseline of Android S, 3sets of codes are prepared here because of GKI.
+1.gki1.0
+This is the early source code of ROOT_CHECK, which meets the requirements of GKI1.0,and is
+suitable for projects before Android S or that does NOT require GKI2.0 requirements. (Consider
+ the compatibility risk, remproarily save this code to s/master.)
+2.gki2.0
+The project transformed by GKI2.0 is suitable for projects after Android S.
+
+Note:
+Subsequent addition of new security policies will give priority to updating the code of GKI2.0. 
+If the version before GKI2.0 is no longer used after Android S, the GKI1.0 will not be updated
+ at the same time.
+

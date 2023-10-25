@@ -1,0 +1,4 @@
+
+config OPLUS_FEATURE_BACK_TAP_DETECT
+    bool "back_tap_detect for MediaTek package"
+    default n

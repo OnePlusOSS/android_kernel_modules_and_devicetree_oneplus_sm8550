@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2023-2030 Oplus. All rights reserved.
+
+config OPLUS_FEATURE_STABILITY_HELPER
+    tristate "oplus stability helper"
+    default n
+    help
+      framework stability kernel hook helper

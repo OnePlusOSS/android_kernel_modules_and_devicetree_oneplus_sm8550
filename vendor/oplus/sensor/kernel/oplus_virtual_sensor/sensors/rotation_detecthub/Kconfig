@@ -1,0 +1,4 @@
+
+config OPLUS_FEATURE_ROTATION_DETECT
+    bool "rotation_detect for MediaTek package"
+    default n

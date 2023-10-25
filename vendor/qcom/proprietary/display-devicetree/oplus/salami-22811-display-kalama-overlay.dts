@@ -1,0 +1,16 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../display/kalama-sde-display-mtp-overlay.dts"
+#include "kalama-display-overlay-common.dtsi"
+#include "salami-22811-display-kalama-overlay.dtsi"
+/* #if defined(CONFIG_PXLW_IRIS) */
+#include "pxlw-iris7-kalama-common.dtsi"
+#include "pxlw-salami/dsi-panel-pxlw.dtsi"
+/* #endif */
+
+/ {
+	model = "Qualcomm Technologies, Inc. Kalama MTP,salami";
+
+	oplus,project-id = <22811 22861 22862 22863 22864>;
+};
