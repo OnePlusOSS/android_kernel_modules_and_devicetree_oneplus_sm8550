@@ -307,14 +307,15 @@ static ssize_t pmicwd_proc_write(struct file *file, const char __user *buf,
 	char delim[] = {' ', ' ', '\n'};
 	char *start, *end;
 
-	if (count > 64) {
-		count = 64;
-	}
+	if (count > sizeof(buffer) - 1)
+		count = sizeof(buffer) - 1;
 
 	if (copy_from_user(buffer, buf, count)) {
 		PWD_ERR("%s: read proc input error.\n", __func__);
 		return count;
 	}
+
+	buffer[count] = '\0';
 
 	/* validate the length of each of the 3 parts */
 	start = buffer;

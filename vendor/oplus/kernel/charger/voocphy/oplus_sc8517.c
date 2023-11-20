@@ -780,6 +780,49 @@ static int sc8517_set_chg_auto_mode(struct oplus_voocphy_manager *chip, bool ena
 	return ret;
 }
 
+static u8 sc8517_get_pps_rvs_ocp_deglitch(struct oplus_voocphy_manager *chip)
+{
+	int ret = 0;
+	u8 value = 0;
+
+	if (!chip) {
+		chg_err("Failed\n");
+		return -1;
+	}
+	ret = sc8517_read_byte(chip->client, SC8517_REG_12, &value);
+	value = value & RVS_OCP_DG;
+
+	chg_err("----value = %d\n",value);
+	return value;
+}
+
+
+static int sc8517_set_pps_rvs_ocp_deglitch(struct oplus_voocphy_manager *chip, bool enable)
+{
+	int ret = 0;
+	if (!chip) {
+		chg_err("Failed\n");
+		return -1;
+	}
+
+	if(enable && (sc8517_get_pps_rvs_ocp_deglitch(chip) == NO_EXTRA_DEGLITCH))
+		ret = sc8517_update_bits(chip->client, SC8517_REG_12,RVS_OCP_DG,
+				EXTRA_10US_DEGLITCH << EXTRA_10US_DEGLITCH_SHIFT);
+	else if(!enable && (sc8517_get_pps_rvs_ocp_deglitch(chip) ==
+			(EXTRA_10US_DEGLITCH << EXTRA_10US_DEGLITCH_SHIFT)))
+		ret = sc8517_update_bits(chip->client, SC8517_REG_12,RVS_OCP_DG, NO_EXTRA_DEGLITCH);
+	else
+		ret = 0;
+	chg_err(",enable = %d\n",enable);
+
+	if (ret < 0) {
+		chg_err("SC8517_REG_12\n");
+		return -1;
+	}
+	return ret;
+}
+
+
 static void sc8517_set_pd_svooc_config(struct oplus_voocphy_manager *chip, bool enable)
 {
 	if (!chip) {
@@ -1350,6 +1393,7 @@ static struct oplus_voocphy_operations oplus_sc8517_ops = {
 	.get_pd_svooc_config = sc8517_get_pd_svooc_config,
 	.get_vbus_status	 = sc8517_get_vbus_status,
 	.set_chg_auto_mode 	= sc8517_set_chg_auto_mode,
+	.set_pps_rvs_ocp 	= sc8517_set_pps_rvs_ocp_deglitch,
 	.get_voocphy_enable = sc8517_get_voocphy_enable,
 	.dump_voocphy_reg	= sc8517_dump_reg_in_err_issue,
 	.upload_cp_error	= sc8517_track_upload_cp_err_info,

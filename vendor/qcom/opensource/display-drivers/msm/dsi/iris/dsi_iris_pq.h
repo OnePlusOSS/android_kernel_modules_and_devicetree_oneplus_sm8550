@@ -147,5 +147,5 @@ bool iris_get_ai_lce_disable(void);
 void iris_sdr2hdr_hdr_update(void);
 void iris_init_tm_points_lut(void);
 void iris_brightness_para_reset(void);
-void iris_sdr2hdr_set_degain(void);
+void iris_sdr2hdr_set_degain(u32 mode);
 #endif // _DSI_IRIS_PQ_H_

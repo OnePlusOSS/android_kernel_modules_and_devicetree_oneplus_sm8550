@@ -65,6 +65,12 @@ static struct iio_channel *chan_vbus;
 static const struct charger_properties sgm41512_chg_props = {
 	.alias_name = "sgm41512_chg",
 };
+
+enum {
+	CHARGER_NORMAL_CHG_CURVE,
+	CHARGER_FASTCHG_VOOC_AND_QCPD_CURVE,
+	CHARGER_FASTCHG_SVOOC_CURVE,
+};
 #endif
 
 #ifndef CONFIG_OPLUS_CHARGER_MTK
@@ -1543,6 +1549,7 @@ void sgm41512_vooc_timeout_callback(bool vbus_rising)
 
 	chip->power_good = vbus_rising;
 	if (!vbus_rising) {
+		sgm41512_really_suspend_charger(false);
 		sgm41512_request_dpdm(chip, false);
 		chip->bc12_done = false;
 		chip->bc12_retried = 0;
@@ -1783,6 +1790,31 @@ static void oplus_mt_power_off(void)
 	else
 		chg_err("ac_online is true, return!\n");
 }
+
+static void sgm41512_oplus_chg_choose_gauge_curve(int index_curve)
+{
+	static last_curve_index = -1;
+	int target_index_curve = -1;
+
+	if (index_curve == CHARGER_SUBTYPE_QC ||
+	    index_curve == CHARGER_SUBTYPE_PD ||
+	    index_curve == CHARGER_SUBTYPE_FASTCHG_VOOC) {
+		target_index_curve = CHARGER_FASTCHG_VOOC_AND_QCPD_CURVE;
+	} else if (index_curve == 0) {
+		target_index_curve = CHARGER_NORMAL_CHG_CURVE;
+	} else {
+		target_index_curve = CHARGER_FASTCHG_SVOOC_CURVE;
+	}
+
+	printk(KERN_ERR "%s: index_curve() =%d  target_index_curve =%d last_curve_index =%d",
+		__func__, index_curve, target_index_curve, last_curve_index);
+
+	if (target_index_curve != last_curve_index) {
+		oplus_gauge_set_power_sel(target_index_curve);
+		last_curve_index = target_index_curve;
+	}
+	return;
+}
 #endif
 
 struct oplus_chg_operations  sgm41512_chg_ops = {
@@ -1816,6 +1848,7 @@ struct oplus_chg_operations  sgm41512_chg_ops = {
 	.get_charger_subtype = oplus_sgm41512_chg_get_charger_subtype,
 	.get_instant_vbatt = oplus_battery_meter_get_battery_voltage,
 	.set_power_off = oplus_mt_power_off,
+	.get_platform_gauge_curve = sgm41512_oplus_chg_choose_gauge_curve,
 #else
 	.set_chargerid_switch_val = smbchg_set_chargerid_switch_val,
 	.get_chargerid_switch_val = smbchg_get_chargerid_switch_val,
@@ -2316,8 +2349,20 @@ static int sgm41512_charger_get_property(struct power_supply *psy,
 		if (chip != NULL) {
 			power_good = sgm41512_get_bus_gd();
 		}
-		if (boot_mode == META_BOOT)
+
+		if (g_oplus_chip != NULL) {
+			if (g_oplus_chip->mmi_fastchg == 0)
+				power_good = 1;
+		}
+
+		if ((boot_mode == META_BOOT) || (oplus_vooc_get_fastchg_started() == true) ||
+		    (oplus_vooc_get_fastchg_to_normal() == true) ||
+		    (oplus_vooc_get_fastchg_to_warm() == true) ||
+		    (oplus_vooc_get_fastchg_dummy_started() == true) ||
+		    (oplus_vooc_get_adapter_update_status() == ADAPTER_FW_NEED_UPDATE) ||
+		    (oplus_vooc_get_btb_temp_over() == true)) {
 			power_good = 1;
+		}
 		pr_err("%s, power good (%d)\n", __func__, power_good);
 		val->intval = power_good;
 		break;
@@ -2665,6 +2710,7 @@ static int sgm41512_suspend(struct i2c_client *client, pm_message_t mesg)
 
 static void sgm41512_charger_shutdown(struct i2c_client *client)
 {
+	sgm41512_otg_disable();
 }
 
 static struct of_device_id sgm41512_charger_match_table[] = {

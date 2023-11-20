@@ -601,7 +601,7 @@ int iris_osd_auto_refresh_enable(u32 val)
 	int osd_gpio = -1;
 	struct iris_cfg *pcfg = iris_get_cfg();
 
-	IRIS_LOGI("%s(%d), value: %d", __func__, __LINE__, val);
+	IRIS_LOGV("%s(%d), value: %d", __func__, __LINE__, val);
 
 	if (pcfg == NULL) {
 		IRIS_LOGE("%s(), no secondary display.", __func__);

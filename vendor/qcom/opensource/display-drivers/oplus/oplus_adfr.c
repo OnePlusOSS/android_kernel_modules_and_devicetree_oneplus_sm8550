@@ -1181,57 +1181,20 @@ u32 map_extend_frame(u32 extend_frame)
 	VRR_INFO("minfps_map_index:%u\n", minfps_map_index);
 
 	switch (minfps_map_index) {
-	case 1:  /* xueying primary panel BOE */
-		switch (refresh_rate) {
-		case 120:
-			switch (extend_frame) {
-			case   1: tmp = 0; break; /* 60HZ */
-			case   3: tmp = 1; break; /* 30HZ */
-			case  11: tmp = 2; break; /* 10HZ */
-			case 119: tmp = 3; break; /* 1HZ */
-			}
-			break;
-		case  60:
-			switch (extend_frame) {
-			case   1: tmp = 4; break; /* 60HZ */
-			case   3: tmp = 5; break; /* 30HZ */
-			case  11: tmp = 6; break; /* 10HZ */
-			case 119: tmp = 7; break; /* 1HZ */
-			}
-			break;
-		}
-		break;
-	case 2:  /* xueying second panel BOE */
-		switch (refresh_rate) {
-		case 120:
-			switch (extend_frame) {
-			case   1: tmp = 5; break; /* 60HZ */
-			case   3: tmp = 6; break; /* 30HZ */
-			case  11: tmp = 7; break; /* 10HZ */
-			case 119: tmp = 8; break; /* 1HZ */
-			}
-			break;
-		case  60:
-			switch (extend_frame) {
-			case   1: tmp =  9; break; /* 60HZ */
-			case   3: tmp = 10; break; /* 30HZ */
-			case  11: tmp = 11; break; /* 10HZ */
-			case 119: tmp = 12; break; /* 1HZ */
-			}
-			break;
-		}
-		break;
-	case 3:  /* xueying primary panel SDC */
+	case 3:  /* xueying primary panel SDC (EVT2 and afterwards) */
 		switch (extend_frame) {
+		case   0: tmp = 0; break; /*120HZ */
 		case   1: tmp = 1; break; /* 60HZ */
-		case   3: tmp = 2; break; /* 30HZ */
-		case   5: tmp = 3; break; /* 20HZ */
-		case   7: tmp = 4; break; /* 15HZ */
+		case   2: tmp = 2; break; /* 40HZ */
+		case   3: tmp = 3; break; /* 30HZ */
+		case   5: tmp = 4; break; /* 20HZ */
 		case  11: tmp = 5; break; /* 10HZ */
 		case  23: tmp = 6; break; /* 5HZ  */
 		case 119: tmp = 7; break; /* 1HZ  */
+		default: break;
 		}
 		break;
+	default: break;
 	}
 	VRR_INFO("old extend_frame:%u, new extend_frame:%u\n", extend_frame, tmp);
 	return tmp;

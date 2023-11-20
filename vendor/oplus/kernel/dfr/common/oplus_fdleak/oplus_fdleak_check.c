@@ -90,14 +90,15 @@ static ssize_t fdleak_proc_write(struct file *file, const char __user *buf,
 	char *start, *end;
 	int i;
 
-	if (count > 64) {
-		count = 64;
-	}
+	if (count > sizeof(buffer) - 1)
+		count = sizeof(buffer) - 1;
 
 	if (copy_from_user(buffer, buf, count)) {
 		pr_err(FDLEAK_CHECK_LOG_TAG "%s: read proc input error.\n", __func__);
 		return count;
 	}
+
+	buffer[count] = '\0';
 
 	/* validate the length of each of the 3 parts */
 	start = buffer;

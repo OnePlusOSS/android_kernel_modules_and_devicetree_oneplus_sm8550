@@ -4768,6 +4768,13 @@ static bool is_support_apollo_bk(struct drm_connector *connector)
 	if(c_conn->connector_type == DRM_MODE_CONNECTOR_DSI) {
 		dsi_display = c_conn->display;
 
+		if (!dsi_display || !dsi_display->panel || !dsi_display->panel->oplus_priv.vendor_name) {
+			SDE_ERROR("Invalid params(s) dsi_display %pK, panel %pK\n",
+				dsi_display,
+				((dsi_display) ? dsi_display->panel : NULL));
+			return -EINVAL;
+		}
+
 #if defined(CONFIG_PXLW_IRIS)
 		if (iris_is_chip_supported()) {
 			if (!strcmp(dsi_display->display_type, "secondary")) {
@@ -4776,13 +4783,6 @@ static bool is_support_apollo_bk(struct drm_connector *connector)
 			}
 		}
 #endif
-
-		if (!dsi_display || !dsi_display->panel || !dsi_display->panel->oplus_priv.vendor_name) {
-			SDE_ERROR("Invalid params(s) dsi_display %pK, panel %pK\n",
-				dsi_display,
-				((dsi_display) ? dsi_display->panel : NULL));
-			return -EINVAL;
-		}
 
 		if (dsi_display->panel->oplus_priv.is_apollo_support) {
 			return true;

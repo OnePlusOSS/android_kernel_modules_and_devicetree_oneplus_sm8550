@@ -400,6 +400,13 @@ def creat_enum_var(cfg, file):
         file.write("};\n\n")
 
 
+def creat_ic_enum_var(cfg, file):
+    ic_list = cfg['oplus_chg_ic_list']
+    for ic in ic_list:
+        if 'enum_list' in ic:
+            creat_enum_var(ic, file)
+
+
 def creat_ic_func_enum(cfg, file):
     ic_list = cfg['oplus_chg_ic_list']
     base = 0
@@ -574,6 +581,7 @@ def markdown_write_para_info(func, file, language):
                 "|%d|%s|%s|%s|%s|\n" %
                 (param_count, param, param_range, param_type, param_sub_desc))
             param_count += 1
+        file.write("\n")
     else:
         if language == 'zh':
             file.write("* 参数: N/A\n")
@@ -627,6 +635,11 @@ def markdown_check_write_info(cfg, file, language):
     base = 0
 
     language_check(language)
+
+    if language == 'zh':
+        file.write("# 虚拟IC层接口说明\n")
+    elif language == 'en':
+        file.write("# Virtual IC layer interface description\n")
     for ic in ic_list:
         name = ic['name']
         max_index = ic['max']
@@ -637,12 +650,12 @@ def markdown_check_write_info(cfg, file, language):
         if max_index < len(func_list):
             show_error(name + ": Too many func entries")
 
-        file.write("# %d、%s\n" % (count, name))
+        file.write("## %d、%s\n" % (count, name))
         file.write("version: %s\n" % (version))
 
         for func in func_list:
             check_func_cfg(func, name, index)
-            file.write("## %s\n" % (func['lable']))
+            file.write("### %s\n" % (func['lable']))
 
             if language == 'zh':
                 file.write("* 编号: %d\n" % (base + index))
@@ -718,6 +731,7 @@ def main():
         cfg_out_h = open(cfg_h_file, 'w')
         creat_h_file_head(cfg_out_h)
         creat_enum_var(merge_cfg_data, cfg_out_h)
+        creat_ic_enum_var(merge_cfg_data, cfg_out_h)
         creat_ic_func_enum(merge_cfg_data, cfg_out_h)
         creat_ic_func_def(merge_cfg_data, cfg_out_h)
         creat_ic_cfg_hash(cfg_out_h)

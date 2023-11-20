@@ -22,6 +22,7 @@ enum gauge_topic_item {
 	GAUGE_ITEM_HMAC,
 	GAUGE_ITEM_AUTH,
 	GAUGE_ITEM_REAL_TEMP,
+	GAUGE_ITEM_SUBBOARD_TEMP_ERR,
 };
 
 enum gauge_type_id {

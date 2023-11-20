@@ -367,6 +367,10 @@ static inline void getnstimeofday(struct timespec *ts)
 #define USBTEMP_CHARGING_CURRENT_LIMIT	3000
 #define USBTEMP_CURR_TABLE_MAX		5
 
+#define DEFAULT_SUBBOARD_HIGH_ABNORMAL_TEMP  1000
+#define SUBBOARD_LOW_ABNORMAL_TEMP   (-300)
+#define GAUGE_LOW_ABNORMAL_TEMP      (-200)
+
 #define SMART_NORMAL_CHARGER_500MA 	0X1000
 #define SMART_NORMAL_CHARGER_900MA	0X2000
 #define SMART_NORMAL_CHARGER_1200MA	0X4000
@@ -991,6 +995,11 @@ typedef enum {
 	AGING_FFC_VERSION_MAX
 } AGING_FFC_VERSION;
 
+typedef enum {
+	SUBBOARD_NTC_ABNORMAL,
+	SUBBOARD_NTC_NORMAL
+} SUBBOARD_NTC_ABNORMAL_STATUS;
+
 #define AGING1_STAGE_CYCLE	500
 #define AGING2_STAGE_CYCLE	1000
 
@@ -1078,6 +1087,7 @@ struct oplus_chg_chip {
 	int tbatt_temp;
 	int shell_temp;
 	int subboard_temp;
+	bool subboard_ntc_abnormal_status;
 	int tbatt_power_off_cali_temp;
 	bool tbatt_use_subboard_temp;
 	bool tbatt_shell_status;
@@ -1148,6 +1158,10 @@ struct oplus_chg_chip {
 	int smart_normal_cool_down;
 	int smart_charge_user;
 	int usbtemp_cool_down;
+	int subboard_ntc_abnormal_current;
+	int subboard_ntc_abnormal_cool_down;
+	int subboard_ntc_abnormal_high_temp;
+	bool subboard_abnormal_method_support;
 	bool usbtemp_check;
 	bool led_on;
 	bool led_on_change;
@@ -1187,6 +1201,7 @@ struct oplus_chg_chip {
 	bool fg_bcl_poll;
 	bool chg_powersave;
 	bool healthd_ready;
+	bool support_integrated_pmic;
 #if IS_ENABLED(CONFIG_FB) || IS_ENABLED(CONFIG_DRM_MSM) ||                     \
 	IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
 	struct notifier_block chg_fb_notify;
@@ -1315,6 +1330,8 @@ struct oplus_chg_chip {
 	int batt_target_curr;
 	int pre_charging_current;
 	bool aicl_done;
+	int input_current_limit;
+	int charging_current;
 
 	bool support_low_soc_unlimit;
 	int unlimit_soc;
@@ -1384,6 +1401,7 @@ struct oplus_chg_chip {
 	struct delayed_work vbatt_diff_over_load_trigger_work;
 	oplus_chg_track_trigger cool_down_match_err_load_trigger;
 	struct delayed_work cool_down_match_err_load_trigger_work;
+	struct delayed_work soc_update_when_resume_work;
 	struct reserve_soc_data rsd;
 	bool is_gauge_ready;
 
@@ -1444,6 +1462,8 @@ struct oplus_chg_chip {
 
 	int bms_heat_temp_compensation;
 	int chg_cycle_status;
+
+	int soc_resume_sleep_time;
 };
 
 #define SOFT_REST_VOL_THRESHOLD		4300
@@ -1608,6 +1628,9 @@ int __attribute__((weak)) get_boot_mode(void)
 #endif
 
 int oplus_get_report_batt_temp(void);
+SUBBOARD_NTC_ABNORMAL_STATUS subboard_ntc_abnormal_check(int subboard_temp, int gauge_temp);
+SUBBOARD_NTC_ABNORMAL_STATUS get_subboard_ntc_abnormal_status(void);
+void set_subboard_ntc_abnormal_status(SUBBOARD_NTC_ABNORMAL_STATUS status);
 /*********************************************
  * power_supply usb/ac/battery functions
  **********************************************/
@@ -1779,11 +1802,13 @@ bool oplus_chg_is_abnormal_adapter(void);
 bool oplus_chg_fg_package_read_support(void);
 int oplus_chg_get_wls_status_keep(void);
 void oplus_chg_set_wls_status_keep(int value);
+void oplus_chg_set_input_current_limit(struct oplus_chg_chip *chip);
 
 #ifdef OPLUS_CUSTOM_OP_DEF
 int oplus_svooc_disconnect_time(void);
 #endif
 
+bool oplus_chg_get_flash_led_status(void);
 int oplus_chg_set_enable_volatile_writes(void);
 int oplus_chg_set_complete_charge_timeout(int val);
 int oplus_chg_set_prechg_voltage_threshold(void);

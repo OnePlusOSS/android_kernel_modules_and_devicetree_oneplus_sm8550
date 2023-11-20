@@ -27,6 +27,8 @@
 #define PPS_VOL_MAX_V2 20000
 #define PPS_VOL_CURVE_LMAX 5500
 #define PPS_EXIT_VBUS_MIN 6000
+#define PPS_EXIT_DELAY_STEP 50
+#define PPS_EXIT_DELAY_NUM_MAX 16
 #define PPS_VBAT_DIFF_TIME round_jiffies_relative(msecs_to_jiffies(600 * 1000))
 #define PPS_BCC_CURRENT_MIN (1000 / 100)
 #define PPS_BATT_CURR_TO_BCC_CURR 100
@@ -304,6 +306,7 @@ typedef enum {
 	PPS_STOP_VOTER_VBATT_DIFF = (1 << 14),
 	PPS_STOP_VOTER_CP_ERROR = (1 << 15),
 	PPS_STOP_VOTER_STARTUP_FAIL = (1 << 16),
+	PPS_STOP_VOTER_FLASH_LED = (1 << 17),
 	PPS_STOP_VOTER_OTHER_ABORMAL = (1 << 31),
 } PPS_STOP_VOTER;
 
@@ -600,6 +603,8 @@ struct oplus_pps_chip {
 	int pps_dummy_started;
 	int pps_fastchg_started;
 	int pps_power_changed;
+	int pps_recover_cnt;
+	bool pps_flash_unsupport;
 
 	/*quirks*/
 	int last_pps_power;
@@ -679,6 +684,7 @@ void oplus_pps_hardware_init(void);
 void oplus_pps_cp_reset(void);
 void oplus_pps_stop_disconnect(void);
 void oplus_pps_stop_usb_temp(void);
+void oplus_pps_stop_mmi(void);
 void oplus_pps_set_vbatt_diff(bool diff);
 int oplus_is_pps_charging(void);
 void oplus_pps_set_power(int pps_ability, int imax, int vmax);
@@ -706,11 +712,12 @@ void oplus_pps_reset_stop_status(void);
 int oplus_pps_get_adapter_type(void);
 int oplus_pps_get_stop_status(void);
 bool oplus_pps_get_pps_dummy_started(void);
-void oplus_pps_set_pps_dummy_started(bool enable);
+void oplus_pps_set_pps_dummy_started(bool enable, int adapter_type);
 bool oplus_pps_get_pps_fastchg_started(void);
 void oplus_pps_print_log(void);
 bool oplus_pps_voter_charging_start(void);
 int oplus_pps_get_support_type(void);
+int oplus_pps_get_icurr_ratio(void);
 int oplus_pps_get_master_ibus(void);
 int oplus_pps_get_slave_ibus(void);
 int oplus_pps_get_slave_b_ibus(void);
@@ -735,4 +742,6 @@ int oplus_pps_get_last_power(void);
 void oplus_pps_clear_last_charging_status(void);
 int oplus_pps_track_upload_err_info(struct oplus_pps_chip *chip, int err_type, int value);
 bool oplus_pps_get_btb_temp_over(void);
+int oplus_pps_check_3rd_support(void);
+void oplus_pps_stop_flash_led(bool on);
 #endif /*_OPLUS_PPS_H_*/

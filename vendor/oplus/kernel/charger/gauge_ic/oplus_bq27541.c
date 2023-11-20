@@ -3802,8 +3802,8 @@ static int bq28z610_set_bcc_debug_parameters(const char *buf)
 			printk(KERN_ERR "%s BCC_N_DEBUG:%d\n", __func__, bcc_debug_mode);
 		}
 		if (strlen(buf) > BUFFER_OFFSET_ADDRESS) {
-			strncpy(bcc_debug_buf, buf + BUFFER_OFFSET_ADDRESS, BCC_PAGE_SIZE);
-			printk(KERN_ERR "%s bcc_debug_buf:%s, temp_buf\n", __func__, bcc_debug_buf, temp_buf);
+			strncpy(bcc_debug_buf, buf + BUFFER_OFFSET_ADDRESS, BCC_PAGE_SIZE - BUFFER_OFFSET_ADDRESS);
+			printk(KERN_ERR "%s bcc_debug_buf:%s, temp_buf:%s\n", __func__, bcc_debug_buf, temp_buf);
 		}
 		return ret;
 	}

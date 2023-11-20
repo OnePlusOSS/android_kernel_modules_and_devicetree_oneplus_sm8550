@@ -3890,6 +3890,11 @@ static void _iris_send_cont_splash_pkt(uint32_t type)
 
 	if (type == IRIS_CONT_SPLASH_LK) {
 		pseq_cs = _iris_get_ctrl_seq_cs(pcfg);
+		if (!pseq_cs) {
+			IRIS_LOGE("%s() invalid pseq_cs", __func__);
+			vfree(opt_arr);
+			return;
+		}
 		iris_send_assembled_pkt(pseq_cs->ctrl_opt, pseq_cs->cnt);
 	} else if (type == IRIS_CONT_SPLASH_KERNEL) {
 		iris_lp_enable_pre();
@@ -4051,6 +4056,11 @@ static int _iris_update_pq_seq(struct iris_update_ipopt *popt, int ipopt_cnt)
 	int32_t opt_id = 0;
 	struct iris_cfg *pcfg = iris_get_cfg();
 	struct iris_ctrl_seq *pseq = _iris_get_ctrl_seq(pcfg);
+
+	if (!pseq) {
+		IRIS_LOGE("%s(), invalid pseq", __func__);
+		return -EINVAL;
+	}
 
 	for (i = 0; i < ipopt_cnt; i++) {
 		/*need to update sequence*/

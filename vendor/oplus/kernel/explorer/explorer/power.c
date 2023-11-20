@@ -731,6 +731,32 @@ int clock_control_explorer(struct explorer_plat_data *epd, bool is_on) {
 
 	return err;
 }
+static void explorer_set_awake(struct explorer_plat_data *chip, bool awake)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
+
+	if (awake) {
+		wake_lock(&chip->suspend_lock);
+	} else {
+		wake_unlock(&chip->suspend_lock);
+	}
+#else
+	static bool pm_flag = false;
+
+	if (!chip->suspend_ws)
+		return;
+
+	if (awake && !pm_flag) {
+		pm_flag = true;
+		__pm_stay_awake(chip->suspend_ws);
+		pr_err("%s, __pm_stay_awake.\n", __func__);
+	} else if (!awake && pm_flag) {
+		__pm_relax(chip->suspend_ws);
+		pm_flag = false;
+		pr_err("%s, __pm_relax.\n", __func__);
+	}
+#endif
+}
 
 int power_clock_control_explorer(struct explorer_plat_data *epd, bool is_on) {
 	int ret = 0;
@@ -757,6 +783,7 @@ int power_clock_control_explorer(struct explorer_plat_data *epd, bool is_on) {
 	atomic_set(&epd->is_explorer_on, is_on_status);
 
 	if (is_on == true) {
+		explorer_set_awake(epd, true);
 		ret = clock_control_explorer_internal(epd, true);
 		if (!ret) {
 			ret = power_control_explorer_internal(epd, true);
@@ -766,6 +793,7 @@ int power_clock_control_explorer(struct explorer_plat_data *epd, bool is_on) {
 		if (!ret) {
 			ret = clock_control_explorer_internal(epd, false);
 		}
+		explorer_set_awake(epd, false);
 	}
 out:
 	mutex_unlock(&epd->power_sync_lock);

@@ -250,19 +250,19 @@ int oplus_display_panel_get_vendor(void *buf)
 	if (1 == panel_id)
 		display = get_sec_display();
 
-#if defined(CONFIG_PXLW_IRIS)
-	if (iris_is_chip_supported() && (!strcmp(display->panel->type, "secondary"))) {
-		LCD_INFO("iris secondary panel no need config\n");
-		return 0;
-	}
-#endif
-
 	if (!display || !display->panel ||
 			!display->panel->oplus_priv.vendor_name ||
 			!display->panel->oplus_priv.manufacture_name) {
 		LCD_ERR("failed to config lcd proc device\n");
 		return -EINVAL;
 	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(display->panel->type, "secondary"))) {
+		LCD_INFO("iris secondary panel no need config\n");
+		return -EINVAL;
+	}
+#endif
 
 	vendor = (char *)display->panel->oplus_priv.vendor_name;
 	manu_name = (char *)display->panel->oplus_priv.manufacture_name;
@@ -1420,10 +1420,48 @@ int oplus_display_panel_set_dither_status(void *buf)
 	return 0;
 }
 
+inline bool oplus_panel_pwm_onepulse_is_enabled(struct dsi_panel *panel)
+{
+	if (!panel) {
+		LCD_ERR("Invalid panel\n");
+		return false;
+	}
+
+	return (bool)(panel->oplus_priv.pwm_onepulse_support &&
+			panel->oplus_priv.pwm_onepulse_enabled);
+}
+
+inline bool oplus_panel_pwm_onepulse_is_used(struct dsi_panel *panel)
+{
+	if (!panel) {
+		LCD_ERR("Invalid panel\n");
+		return false;
+	}
+
+	return oplus_panel_pwm_onepulse_is_enabled(panel)
+		&& (panel->bl_config.bl_level > panel->bl_config.pwm_bl_threshold);
+}
+
 inline bool oplus_panel_pwm_turbo_is_enabled(struct dsi_panel *panel)
 {
+	if (!panel) {
+		LCD_ERR("Invalid panel\n");
+		return false;
+	}
+
 	return (bool)(panel->oplus_priv.pwm_turbo_support &&
 			panel->oplus_priv.pwm_turbo_enabled);
+}
+
+inline bool oplus_panel_pwm_turbo_switch_state(struct dsi_panel *panel)
+{
+	if (!panel) {
+		LCD_ERR("Invalid panel\n");
+		return false;
+	}
+
+	return (bool)(panel->oplus_priv.pwm_turbo_support &&
+			panel->oplus_pwm_switch_state);
 }
 
 int oplus_panel_send_pwm_turbo_dcs_unlock(struct dsi_panel *panel, bool enabled)
@@ -1526,6 +1564,103 @@ int oplus_display_panel_set_pwm_turbo(void *data)
 
 	return rc;
 }
+
+/* add for pwm onepulse switch */
+int oplus_panel_send_pwm_pulse_dcs_unlock(struct dsi_panel *panel, bool enabled)
+{
+	int rc = 0;
+
+	if (enabled)
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_PWM_SWITCH_ONEPULSE);
+	else
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_PWM_SWITCH_THREEPULSE);
+
+	return rc;
+}
+
+int oplus_panel_update_pwm_pulse_lock(struct dsi_panel *panel, bool enabled)
+{
+	int rc = 0;
+
+	mutex_lock(&panel->panel_lock);
+
+	panel->oplus_priv.pwm_onepulse_enabled = enabled;
+	panel->oplus_pwm_switch_state = !panel->oplus_pwm_switch_state;
+
+	mutex_unlock(&panel->panel_lock);
+
+	return rc;
+}
+
+int oplus_display_panel_get_pwm_pulse(void *data)
+{
+	int rc = 0;
+	struct dsi_display *display = get_main_display();
+	struct dsi_panel *panel = NULL;
+	uint32_t *enabled = data;
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	if (!panel->oplus_priv.pwm_onepulse_support) {
+		LCD_WARN("Falied to get pwm pulse status, because it is unsupport\n");
+		rc = -EFAULT;
+		return rc;
+	}
+
+	mutex_lock(&display->display_lock);
+	mutex_lock(&panel->panel_lock);
+
+	*enabled = panel->oplus_priv.pwm_onepulse_enabled;
+
+	mutex_unlock(&panel->panel_lock);
+	mutex_unlock(&display->display_lock);
+	LCD_INFO("Get pwm onepulse status: %d\n", *enabled);
+
+	return rc;
+}
+
+int oplus_display_panel_set_pwm_pulse(void *data)
+{
+	int rc = 0;
+	struct dsi_display *display = get_main_display();
+	struct dsi_panel *panel = NULL;
+	uint32_t *enabled = data;
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	if (!panel->oplus_priv.pwm_onepulse_support) {
+		LCD_WARN("Falied to set pwm onepulse status, because it is unsupport\n");
+		rc = -EFAULT;
+		return rc;
+	}
+
+	LCD_INFO("Set pwm onepulse status: %d\n", *enabled);
+
+	if (*enabled == panel->oplus_priv.pwm_onepulse_enabled) {
+		LCD_WARN("Skip setting duplicate pwm onepulse status: %d\n", *enabled);
+		rc = -EFAULT;
+		return rc;
+	}
+
+	mutex_lock(&display->display_lock);
+	rc = oplus_panel_update_pwm_pulse_lock(panel, *enabled);
+	mutex_unlock(&display->display_lock);
+
+	return rc;
+}
+/* end for pwm onepulse switch */
 
 int oplus_panel_set_ffc_mode_unlock(struct dsi_panel *panel)
 {
@@ -2144,6 +2279,11 @@ int oplus_wait_for_vsync(struct dsi_panel *panel)
 	struct dsi_display *d_display = get_main_display();
 	struct drm_encoder *drm_enc = NULL;
 
+	if (!panel || !panel->cur_mode) {
+		DSI_ERR("Oplus Features config No panel device\n");
+		return -ENODEV;
+	}
+
 	if(!strcmp(panel->type, "secondary")) {
 		d_display = get_sec_display();
 	}
@@ -2152,10 +2292,7 @@ int oplus_wait_for_vsync(struct dsi_panel *panel)
 		DSI_ERR("invalid display params\n");
 		return -ENODEV;
 	}
-	if (!panel || !panel->cur_mode) {
-		DSI_ERR("Oplus Features config No panel device\n");
-		return -ENODEV;
-	}
+
 	drm_enc = d_display->bridge->base.encoder;
 
 	if (!drm_enc) {

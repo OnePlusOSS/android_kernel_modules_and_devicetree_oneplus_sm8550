@@ -1053,6 +1053,14 @@ int oplus_smart_chg_set_normal_cool_down(int cool_down)
 	return 0;
 }
 
+int oplus_smart_chg_get_normal_cool_down(void)
+{
+	if (g_smart_chg == NULL)
+		return -ENODEV;
+
+	return g_smart_chg->normal_cool_down;
+}
+
 long oplus_smart_chg_get_quick_mode_time_gain(void)
 {
 	long total_time, gain_time;

@@ -30,6 +30,7 @@ struct pwrkey_monitor_data g_bright_data = {
 /* if last stage in this array, skip */
 static char bright_last_skip_block_stages[][64] = {
 	{ "POWERKEY_interceptKeyBeforeQueueing" }, /* framework policy may not goto sleep when bright check, skip */
+	{ "POWERKEY_START_BR" }, /* Long press and hold power while the screen is on may not goto sleep,skip */
 };
 
 /* if contain stage in this array, skip */

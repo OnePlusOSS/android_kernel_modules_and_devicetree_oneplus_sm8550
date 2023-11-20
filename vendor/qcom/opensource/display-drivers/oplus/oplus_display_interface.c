@@ -71,6 +71,22 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 		}
 	}
 
+	/* switch the command when pwm onepulse is enabled */
+	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+		switch (*type) {
+		case DSI_CMD_PWM_SWITCH_HIGH:
+			*type = DSI_CMD_PWM_SWITCH_ONEPULSE;
+			break;
+		case DSI_CMD_TIMMING_PWM_SWITCH_HIGH:
+			*type = DSI_CMD_TIMMING_PWM_SWITCH_ONEPULSE;
+			break;
+		case DSI_CMD_HBM_ON:
+			*type = DSI_CMD_HBM_ON_ONEPULSE;
+		default:
+			break;
+		}
+	}
+
 	count = panel->cur_mode->priv_info->cmd_sets[*type].count;
 	if (count == 0) {
 		LCD_DEBUG("[%s] %s is undefined, restore to %s\n",

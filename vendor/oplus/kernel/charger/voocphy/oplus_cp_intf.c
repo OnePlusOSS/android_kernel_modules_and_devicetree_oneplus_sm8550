@@ -151,7 +151,7 @@ static int oplus_cp_get_vbat(void)
 	    cp_device[CP_MASTER].dev_ops->oplus_get_cp_vbat != NULL) {
 		vbat = cp_device[CP_MASTER].dev_ops->oplus_get_cp_vbat(cp_device[CP_MASTER].client);
 	}
-	pps_err("ucp_fail = 0x%x\n", vbat);
+	pps_err("vbat = %d\n", vbat);
 	return vbat;
 }
 
@@ -444,7 +444,7 @@ void oplus_pps_device_protect_irq_callback(DEV_PROTECT_FLAG flag)
 		return;
 	}
 
-	if (flag.ibus_ucp || flag.ibus_ocp) {
+	if (flag.value_bit.ibus_ucp || flag.value_bit.ibus_ocp) {
 		oplus_pps_stop_disconnect();
 	}
 }

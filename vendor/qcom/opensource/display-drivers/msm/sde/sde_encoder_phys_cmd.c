@@ -406,7 +406,7 @@ static void sde_encoder_phys_cmd_te_rd_ptr_irq(void *arg, int irq_idx)
 
 #ifdef OPLUS_FEATURE_DISPLAY
         conn = to_sde_connector(phys_enc->connector);
-        if (conn) {
+        if (conn && te_timestamp) {
             oplus_save_te_timestamp(conn, te_timestamp->timestamp);
         }
 #endif /* OPLUS_FEATURE_DISPLAY */

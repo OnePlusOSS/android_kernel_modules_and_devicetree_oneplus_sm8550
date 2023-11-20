@@ -31,6 +31,7 @@
 #include <oplus_parallel.h>
 
 #define GAUGE_IC_NUM_MAX 2
+#define ERR_COUNT_MAX 3
 #define GAUGE_PARALLEL_IC_NUM_MIN 2
 #define GAUGE_DEFAULT_VOLT_MV		3800
 
@@ -70,6 +71,7 @@ struct oplus_mms_gauge {
 	struct work_struct update_change_work;
 	struct work_struct gauge_update_work;
 	struct work_struct gauge_set_curve_work;
+	struct delayed_work subboard_ntc_err_work;
 
 	struct votable *gauge_update_votable;
 
@@ -86,6 +88,7 @@ struct oplus_mms_gauge {
 	bool wls_online;
 	bool hmac;
 	bool support_subboard_ntc;
+	bool check_subboard_ntc_err;
 	int child_num;
 	struct oplus_virtual_gauge_child *child_list;
 	int main_gauge;
@@ -1418,6 +1421,8 @@ static void oplus_mms_gauge_init_work(struct work_struct *work)
 	chip->support_subboard_ntc = of_property_read_bool(node, "oplus,support_subboard_ntc");
 	chg_info("support_subboard_ntc=%d \n", chip->support_subboard_ntc);
 
+	chip->check_subboard_ntc_err = false;
+
 	oplus_mms_gauge_virq_register(chip);
 	g_mms_gauge = chip;
 
@@ -1931,10 +1936,104 @@ end:
 	return 0;
 }
 
+static int oplus_mms_gauge_push_subboard_temp_err(struct oplus_mms_gauge *chip)
+{
+	struct mms_msg *msg;
+	int rc;
+
+	msg = oplus_mms_alloc_msg(MSG_TYPE_ITEM, MSG_PRIO_HIGH, GAUGE_ITEM_SUBBOARD_TEMP_ERR);
+	if (msg == NULL) {
+		chg_err("alloc battery subboard msg error\n");
+		return -ENOMEM;
+	}
+	rc = oplus_mms_publish_msg(chip->gauge_topic, msg);
+	if (rc < 0) {
+		chg_err("publish battery subboard msg error, rc=%d\n", rc);
+		kfree(msg);
+	}
+
+	return rc;
+}
+
+#define SUBBOARD_LOW_ABNORMAL_TEMP (-300)
+#define SUBBOARD_HIGH_ABNORMAL_TEMP 1000
+#define GAUGE_LOW_ABNORMAL_TEMP (-200)
+
+static void oplus_mms_subboard_ntc_err_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct oplus_mms_gauge *chip =
+		container_of(dwork, struct oplus_mms_gauge, subboard_ntc_err_work);
+	int subboard_temp, gauge_temp;
+	int err_count = 0;
+
+	do {
+		subboard_temp = oplus_gauge_get_subboard_temp(chip);
+		gauge_temp = oplus_gauge_get_batt_temperature(chip);
+		chg_info("subboard_temp:%d, gauge_temp:%d, err_count:%d\n",
+			 subboard_temp, gauge_temp, err_count);
+		usleep_range(10000, 11000);
+		if (((subboard_temp <= SUBBOARD_LOW_ABNORMAL_TEMP) &&
+		     (gauge_temp >= GAUGE_LOW_ABNORMAL_TEMP)) ||
+		    (subboard_temp >= SUBBOARD_HIGH_ABNORMAL_TEMP))
+			err_count++;
+		else
+			break;
+	} while (err_count <= ERR_COUNT_MAX);
+
+	if (err_count >= ERR_COUNT_MAX) {
+		chip->check_subboard_ntc_err = true;
+		oplus_mms_gauge_push_subboard_temp_err(chip);
+		chg_err("send subboard temp err msg!\n");
+	}
+}
+#define SUBBOARD_NTC_ERR_CHECK 100
 static int oplus_mms_gauge_update_temp(struct oplus_mms *mms, union mms_msg_data *data)
 {
 	struct oplus_mms_gauge *chip;
-	int temp;
+	int temp, gauge_temp;
+	static int last_temp;
+
+	if (mms == NULL) {
+		chg_err("mms is NULL");
+		return -EINVAL;
+	}
+	if (data == NULL) {
+		chg_err("data is NULL");
+		return -EINVAL;
+	}
+
+	chip = oplus_mms_get_drvdata(mms);
+	if (chip->support_subboard_ntc && !chip->check_subboard_ntc_err) {
+		temp = oplus_gauge_get_subboard_temp(chip);
+		gauge_temp = oplus_gauge_get_batt_temperature(chip);
+		if (gauge_temp <= GAUGE_INVALID_TEMP) {
+			temp = gauge_temp;
+		} else if (((temp <= SUBBOARD_LOW_ABNORMAL_TEMP) &&
+			    (gauge_temp >= GAUGE_LOW_ABNORMAL_TEMP)) ||
+			   (temp >= SUBBOARD_HIGH_ABNORMAL_TEMP)) {
+			if (!chip->check_subboard_ntc_err) {
+				if (!(work_busy(&chip->subboard_ntc_err_work.work) & (WORK_BUSY_RUNNING)))
+					schedule_delayed_work(&chip->subboard_ntc_err_work,
+						msecs_to_jiffies(SUBBOARD_NTC_ERR_CHECK));
+				temp = last_temp;
+			}
+		} else {
+			last_temp = temp;
+		}
+	} else {
+		temp = oplus_gauge_get_batt_temperature(chip);
+	}
+
+	data->intval = temp;
+
+	chg_info("support_subboard_ntc = %d, temp = %d\n", chip->support_subboard_ntc, temp);
+	return 0;
+}
+
+static int oplus_mms_subboard_temp_err(struct oplus_mms *mms, union mms_msg_data *data)
+{
+	struct oplus_mms_gauge *chip;
 
 	if (mms == NULL) {
 		chg_err("mms is NULL");
@@ -1947,14 +2046,10 @@ static int oplus_mms_gauge_update_temp(struct oplus_mms *mms, union mms_msg_data
 
 	chip = oplus_mms_get_drvdata(mms);
 	if (chip->support_subboard_ntc)
-		temp = oplus_gauge_get_subboard_temp(chip);
+		data->intval = chip->check_subboard_ntc_err;
 	else
-		temp = oplus_gauge_get_batt_temperature(chip);
-
-	data->intval = temp;
-
-	chg_debug("support_subboard_ntc = %d, temp = %d \n",
-		chip->support_subboard_ntc, temp);
+		data->intval = 0;
+	chg_debug("error_info = %d \n", data->intval);
 	return 0;
 }
 
@@ -2540,6 +2635,15 @@ static struct mms_item oplus_mms_gauge_item[] = {
 		.desc = {
 			.item_id = GAUGE_ITEM_REAL_TEMP,
 			.update = oplus_mms_gauge_real_temp,
+		}
+	}, {
+		.desc = {
+			.item_id = GAUGE_ITEM_SUBBOARD_TEMP_ERR,
+			.str_data = false,
+			.up_thr_enable = false,
+			.down_thr_enable = false,
+			.dead_thr_enable = false,
+			.update = oplus_mms_subboard_temp_err,
 		}
 	}
 };
@@ -3180,6 +3284,7 @@ static int oplus_mms_gauge_probe(struct platform_device *pdev)
 	INIT_WORK(&chip->update_change_work, oplus_mms_gauge_update_change_work);
 	INIT_WORK(&chip->gauge_update_work, oplus_mms_gauge_gauge_update_work);
 	INIT_WORK(&chip->gauge_set_curve_work, oplus_mms_gauge_set_curve_work);
+	INIT_DELAYED_WORK(&chip->subboard_ntc_err_work, oplus_mms_subboard_ntc_err_work);
 
 	schedule_delayed_work(&chip->hal_gauge_init_work, 0);
 

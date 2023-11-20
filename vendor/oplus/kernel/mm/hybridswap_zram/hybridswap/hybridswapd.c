@@ -3,7 +3,7 @@
  * Copyright (C) 2020-2022 Oplus. All rights reserved.
  */
 
-#define pr_fmt(fmt) "[HYBRIDSWAP]" fmt
+#define pr_fmt(fmt) "[HYB_ZRAM]" fmt
 
 #include <uapi/linux/sched/types.h>
 #include <linux/sched.h>
@@ -29,6 +29,14 @@
 #include "../zram_drv.h"
 #include "../zram_drv_internal.h"
 #include "internal.h"
+#include "hybridswap.h"
+
+enum scan_balance {
+	SCAN_EQUAL,
+	SCAN_FRACT,
+	SCAN_ANON,
+	SCAN_FILE,
+};
 
 enum swapd_pressure_level {
 	LEVEL_LOW = 0,
@@ -71,27 +79,27 @@ struct hybridswapd_task {
 #define PAGES_PER_1MB (1 << 8)
 
 typedef bool (*free_swap_is_low_func)(void);
-extern free_swap_is_low_func free_swap_is_low_fp;
+static free_swap_is_low_func free_swap_is_low_fp;
 
-unsigned long long global_anon_refault_ratio;
-unsigned long long swapd_skip_interval;
-bool last_round_is_empty;
-unsigned long last_swapd_time;
-struct eventfd_ctx *swapd_press_efd[LEVEL_COUNT];
-atomic64_t zram_wm_ratio = ATOMIC_LONG_INIT(ZRAM_WM_RATIO);
-atomic64_t compress_ratio = ATOMIC_LONG_INIT(COMPRESS_RATIO);
-atomic_t avail_buffers = ATOMIC_INIT(0);
-atomic_t min_avail_buffers = ATOMIC_INIT(0);
-atomic_t high_avail_buffers = ATOMIC_INIT(0);
-atomic_t max_reclaim_size = ATOMIC_INIT(100);
-atomic64_t free_swap_threshold = ATOMIC64_INIT(0);
-atomic64_t zram_crit_thres = ATOMIC_LONG_INIT(0);
-atomic64_t cpuload_threshold = ATOMIC_LONG_INIT(0);
-atomic64_t hs_swap_anon_refault_threshold = ATOMIC_LONG_INIT(HS_SWAP_ANON_REFAULT_THRESHOLD);
-atomic64_t anon_refault_snapshot_min_interval = ATOMIC_LONG_INIT(ANON_REFAULT_SNAPSHOT_MIN_INTERVAL);
-atomic64_t empty_round_skip_interval = ATOMIC_LONG_INIT(EMPTY_ROUND_SKIP_INTERNVAL);
-atomic64_t max_skip_interval = ATOMIC_LONG_INIT(MAX_SKIP_INTERVAL);
-atomic64_t empty_round_check_threshold = ATOMIC_LONG_INIT(EMPTY_ROUND_CHECK_THRESHOLD);
+static unsigned long long global_anon_refault_ratio;
+static unsigned long long swapd_skip_interval;
+static bool last_round_is_empty;
+static unsigned long last_swapd_time;
+static struct eventfd_ctx *swapd_press_efd[LEVEL_COUNT];
+static atomic64_t zram_wm_ratio = ATOMIC_LONG_INIT(ZRAM_WM_RATIO);
+static atomic64_t compress_ratio = ATOMIC_LONG_INIT(COMPRESS_RATIO);
+static atomic_t avail_buffers = ATOMIC_INIT(0);
+static atomic_t min_avail_buffers = ATOMIC_INIT(0);
+static atomic_t high_avail_buffers = ATOMIC_INIT(0);
+static atomic_t max_reclaim_size = ATOMIC_INIT(100);
+static atomic64_t free_swap_threshold = ATOMIC64_INIT(0);
+static atomic64_t zram_crit_thres = ATOMIC_LONG_INIT(0);
+static atomic64_t cpuload_threshold = ATOMIC_LONG_INIT(0);
+static atomic64_t hs_swap_anon_refault_threshold = ATOMIC_LONG_INIT(HS_SWAP_ANON_REFAULT_THRESHOLD);
+static atomic64_t anon_refault_snapshot_min_interval = ATOMIC_LONG_INIT(ANON_REFAULT_SNAPSHOT_MIN_INTERVAL);
+static atomic64_t empty_round_skip_interval = ATOMIC_LONG_INIT(EMPTY_ROUND_SKIP_INTERNVAL);
+static atomic64_t max_skip_interval = ATOMIC_LONG_INIT(MAX_SKIP_INTERVAL);
+static atomic64_t empty_round_check_threshold = ATOMIC_LONG_INIT(EMPTY_ROUND_CHECK_THRESHOLD);
 static unsigned long reclaim_exceed_sleep_ms = 50;
 static unsigned long all_totalreserve_pages;
 
@@ -127,6 +135,9 @@ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
 		unsigned long nr_pages,
 		gfp_t gfp_mask,
 		bool may_swap);
+
+static void wake_all_swapd(void);
+
 #ifdef CONFIG_OPLUS_JANK
 extern u32 get_cpu_load(u32 win_cnt, struct cpumask *mask);
 #endif
@@ -136,67 +147,67 @@ inline u64 get_zram_wm_ratio_value(void)
 	return atomic64_read(&zram_wm_ratio);
 }
 
-inline u64 get_compress_ratio_value(void)
+static inline u64 get_compress_ratio_value(void)
 {
 	return atomic64_read(&compress_ratio);
 }
 
-inline unsigned int get_avail_buffers_value(void)
+static inline unsigned int get_avail_buffers_value(void)
 {
 	return atomic_read(&avail_buffers);
 }
 
-inline unsigned int get_min_avail_buffers_value(void)
+static inline unsigned int get_min_avail_buffers_value(void)
 {
 	return atomic_read(&min_avail_buffers);
 }
 
-inline unsigned int get_high_avail_buffers_value(void)
+static inline unsigned int get_high_avail_buffers_value(void)
 {
 	return atomic_read(&high_avail_buffers);
 }
 
-inline u64 get_swapd_max_reclaim_size(void)
+static inline u64 get_swapd_max_reclaim_size(void)
 {
 	return atomic_read(&max_reclaim_size);
 }
 
-inline u64 get_free_swap_threshold_value(void)
+static inline u64 get_free_swap_threshold_value(void)
 {
 	return atomic64_read(&free_swap_threshold);
 }
 
-inline unsigned long long get_hs_swap_anon_refault_threshold_value(void)
+static inline unsigned long long get_hs_swap_anon_refault_threshold_value(void)
 {
 	return atomic64_read(&hs_swap_anon_refault_threshold);
 }
 
-inline unsigned long get_anon_refault_snapshot_min_interval_value(void)
+static inline unsigned long get_anon_refault_snapshot_min_interval_value(void)
 {
 	return atomic64_read(&anon_refault_snapshot_min_interval);
 }
 
-inline unsigned long long get_empty_round_skip_interval_value(void)
+static inline unsigned long long get_empty_round_skip_interval_value(void)
 {
 	return atomic64_read(&empty_round_skip_interval);
 }
 
-inline unsigned long long get_max_skip_interval_value(void)
+static inline unsigned long long get_max_skip_interval_value(void)
 {
 	return atomic64_read(&max_skip_interval);
 }
 
-inline unsigned long long get_empty_round_check_threshold_value(void)
+static inline unsigned long long get_empty_round_check_threshold_value(void)
 {
 	return atomic64_read(&empty_round_check_threshold);
 }
 
-inline u64 get_zram_critical_threshold_value(void)
+static inline u64 get_zram_critical_threshold_value(void)
 {
 	return atomic64_read(&zram_crit_thres);
 }
 
-inline u64 get_cpuload_threshold_value(void)
+static inline u64 get_cpuload_threshold_value(void)
 {
 	return atomic64_read(&cpuload_threshold);
 }
@@ -767,12 +778,12 @@ static unsigned long get_totalreserve_pages(void)
 	return val;
 }
 
-struct pglist_data *first_online_pgdat(void)
+static struct pglist_data *first_online_pgdat_dup(void)
 {
 	return NODE_DATA(first_online_node);
 }
 
-struct pglist_data *next_online_pgdat(struct pglist_data *pgdat)
+static struct pglist_data *next_online_pgdat_dup(struct pglist_data *pgdat)
 {
 	int nid = next_online_node(pgdat->node_id);
 
@@ -781,14 +792,14 @@ struct pglist_data *next_online_pgdat(struct pglist_data *pgdat)
 	return NODE_DATA(nid);
 }
 
-struct zone *next_zone(struct zone *zone)
+static struct zone *next_zone_dup(struct zone *zone)
 {
 	pg_data_t *pgdat = zone->zone_pgdat;
 
 	if (zone < pgdat->node_zones + MAX_NR_ZONES - 1)
 		zone++;
 	else {
-		pgdat = next_online_pgdat(pgdat);
+		pgdat = next_online_pgdat_dup(pgdat);
 		if (pgdat)
 			zone = pgdat->node_zones;
 		else
@@ -797,7 +808,12 @@ struct zone *next_zone(struct zone *zone)
 	return zone;
 }
 
-unsigned int system_cur_avail_buffers(void)
+#define for_each_zone_dup(zone)			        \
+	for (zone = (first_online_pgdat_dup())->node_zones; \
+		zone;					\
+		zone = next_zone_dup(zone))
+
+static unsigned int system_cur_avail_buffers(void)
 {
 	unsigned long reclaimable;
 	long buffers;
@@ -807,7 +823,7 @@ unsigned int system_cur_avail_buffers(void)
 
 	buffers = global_zone_page_state(NR_FREE_PAGES) - all_totalreserve_pages;
 
-	for_each_zone(zone)
+	for_each_zone_dup(zone)
 		wmark_low += low_wmark_pages(zone);
 	pagecache = global_node_page_state(NR_ACTIVE_FILE) +
 		global_node_page_state(NR_INACTIVE_FILE);
@@ -870,8 +886,8 @@ static void snapshot_anon_refaults(void)
 /*
  * Return true means skip reclaim.
  */
-bool get_memcg_anon_refault_status(struct mem_cgroup *memcg,
-		pg_data_t *pgdat)
+static bool get_memcg_anon_refault_status(struct mem_cgroup *memcg,
+					  pg_data_t *pgdat)
 {
 	const unsigned int percent_constant = 100;
 	unsigned long long cur_anon_pagefault;
@@ -1011,96 +1027,6 @@ static int swapd_shrink_parameter_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-static int swapd_update_cpumask(struct task_struct *tsk, char *buf,
-		struct pglist_data *pgdat)
-{
-	int retval;
-	struct cpumask temp_mask;
-	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-	struct hybridswapd_task* hyb_task = PGDAT_ITEM_DATA(pgdat);
-
-	if (unlikely(!hyb_task)) {
-		log_err("set task %s cpumask %s node %d failed, "
-				"hyb_task is NULL\n", tsk->comm, buf, pgdat->node_id);
-		return -EINVAL;
-	}
-
-	cpumask_clear(&temp_mask);
-	retval = cpulist_parse(buf, &temp_mask);
-	if (retval < 0 || cpumask_empty(&temp_mask)) {
-		log_err("%s are invalid, use default\n", buf);
-		goto use_default;
-	}
-
-	if (!cpumask_subset(&temp_mask, cpu_present_mask)) {
-		log_err("%s is not subset of cpu_present_mask, use default\n",
-				buf);
-		goto use_default;
-	}
-
-	if (!cpumask_subset(&temp_mask, cpumask)) {
-		log_err("%s is not subset of cpumask, use default\n", buf);
-		goto use_default;
-	}
-
-	set_cpus_allowed_ptr(tsk, &temp_mask);
-	cpumask_copy(&hyb_task->swapd_bind_cpumask, &temp_mask);
-	return 0;
-
-use_default:
-	if (cpumask_empty(&hyb_task->swapd_bind_cpumask))
-		set_cpus_allowed_ptr(tsk, cpumask);
-	return -EINVAL;
-}
-
-static ssize_t swapd_bind_write(struct kernfs_open_file *of, char *buf,
-		size_t nbytes, loff_t off)
-{
-	int ret = 0, nid;
-	struct pglist_data *pgdat;
-
-	buf = strstrip(buf);
-	for_each_node_state(nid, N_MEMORY) {
-		pgdat = NODE_DATA(nid);
-		if (!PGDAT_ITEM_DATA(pgdat))
-			continue;
-
-		if (PGDAT_ITEM(pgdat, swapd)) {
-			ret = swapd_update_cpumask(PGDAT_ITEM(pgdat, swapd),
-					buf, pgdat);
-			if (ret)
-				break;
-		}
-	}
-
-	if (ret)
-		return ret;
-
-	return nbytes;
-}
-
-static int swapd_bind_read(struct seq_file *m, void *v)
-{
-	int nid;
-	struct pglist_data *pgdat;
-	struct hybridswapd_task* hyb_task;
-
-	seq_printf(m, "%4s %s\n", "Node", "mask");
-	for_each_node_state(nid, N_MEMORY) {
-		pgdat = NODE_DATA(nid);
-		hyb_task = PGDAT_ITEM_DATA(pgdat);
-		if (!hyb_task)
-			continue;
-
-		if (!hyb_task->swapd)
-			continue;
-		seq_printf(m, "%4d %*pbl\n", nid,
-				cpumask_pr_args(&hyb_task->swapd_bind_cpumask));
-	}
-
-	return 0;
-}
-
 struct cftype mem_cgroup_swapd_legacy_files[] = {
 	{
 		.name = "active_app_info_list",
@@ -1199,12 +1125,6 @@ struct cftype mem_cgroup_swapd_legacy_files[] = {
 		.flags = CFTYPE_ONLY_ON_ROOT,
 		.write_s64 = reclaim_exceed_sleep_ms_write,
 		.read_s64 = reclaim_exceed_sleep_ms_read,
-	},
-	{
-		.name = "swapd_bind",
-		.flags = CFTYPE_ONLY_ON_ROOT,
-		.write = swapd_bind_write,
-		.seq_show = swapd_bind_read,
 	},
 	{
 		.name = "max_reclaimin_size_mb",
@@ -1313,7 +1233,7 @@ static unsigned long zram_same_pages(void)
 /* add extra zram_increase / INC_EXTRA_ZRAM_RATIO to zram, same
  * pages do not occupy physical memory
  * */
-unsigned long get_nr_zram_total(void)
+static unsigned long get_nr_zram_total(void)
 {
 	unsigned long nr_zram = 1;
 
@@ -1327,7 +1247,7 @@ unsigned long get_nr_zram_total(void)
 	return nr_zram ?: 1;
 }
 
-bool zram_watermark_ok(void)
+static bool zram_watermark_ok(void)
 {
 	long long diff_buffers;
 	long long wm = 0;
@@ -1351,7 +1271,8 @@ static inline bool zram_is_full(void)
 {
 	return zram_used_pages() >= get_nr_zram_total();
 }
-bool free_zram_is_ok(void)
+
+static bool free_zram_is_ok(void)
 {
 	unsigned long nr_used, nr_tot, nr_rsv, same_pages;
 
@@ -1386,7 +1307,7 @@ static bool zram_need_swapout(void)
 	return false;
 }
 
-bool zram_watermark_exceed(void)
+static bool zram_watermark_exceed(void)
 {
 	u64 nr_zram_used;
 	u64 nr_wm = get_zram_critical_threshold_value();
@@ -1444,6 +1365,9 @@ static void wakeup_swapd(pg_data_t *pgdat)
 	if (!waitqueue_active(&hyb_task->swapd_wait))
 		return;
 
+	if (!free_zram_is_ok())
+		return;
+
 	/* make anon pagefault snapshots */
 	if (atomic_read(&snapshotd_init_flag) == 1)
 		wakeup_snapshotd();
@@ -1464,7 +1388,7 @@ static void wakeup_swapd(pg_data_t *pgdat)
 	wake_up_interruptible(&hyb_task->swapd_wait);
 }
 
-void wake_all_swapd(void)
+static void wake_all_swapd(void)
 {
 	pg_data_t *pgdat = NULL;
 	int nid;
@@ -1475,7 +1399,7 @@ void wake_all_swapd(void)
 	}
 }
 
-bool free_swap_is_low(void)
+static bool free_swap_is_low(void)
 {
 	struct sysinfo info;
 
@@ -1483,7 +1407,6 @@ bool free_swap_is_low(void)
 
 	return (info.freeswap < get_free_swap_threshold_value());
 }
-EXPORT_SYMBOL(free_swap_is_low);
 
 static inline u64 __calc_nr_to_reclaim(void)
 {
@@ -1680,6 +1603,48 @@ static void swapd_shrink_node(pg_data_t *pgdat)
 			nr_reclaimed * 4, before_avail, after_avail, swapd_skip_interval);
 }
 
+static int swapd_update_cpumask(struct task_struct *tsk, char *buf,
+		struct pglist_data *pgdat)
+{
+	int retval;
+	struct cpumask temp_mask;
+	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
+	struct hybridswapd_task *hyb_task = PGDAT_ITEM_DATA(pgdat);
+
+	if (unlikely(!hyb_task)) {
+		log_err("set task %s cpumask %s node %d failed, "
+			"hyb_task is NULL\n", tsk->comm, buf, pgdat->node_id);
+		return -EINVAL;
+	}
+
+	cpumask_clear(&temp_mask);
+	retval = cpulist_parse(buf, &temp_mask);
+	if (retval < 0 || cpumask_empty(&temp_mask)) {
+		log_err("%s are invalid, use default\n", buf);
+		goto use_default;
+	}
+
+	if (!cpumask_subset(&temp_mask, cpu_present_mask)) {
+		log_err("%s is not subset of cpu_present_mask, use default\n",
+				buf);
+		goto use_default;
+	}
+
+	if (!cpumask_subset(&temp_mask, cpumask)) {
+		log_err("%s is not subset of cpumask, use default\n", buf);
+		goto use_default;
+	}
+
+	set_cpus_allowed_ptr(tsk, &temp_mask);
+	cpumask_copy(&hyb_task->swapd_bind_cpumask, &temp_mask);
+	return 0;
+
+use_default:
+	if (cpumask_empty(&hyb_task->swapd_bind_cpumask))
+		set_cpus_allowed_ptr(tsk, cpumask);
+	return -EINVAL;
+}
+
 static int swapd(void *p)
 {
 	pg_data_t *pgdat = (pg_data_t *)p;
@@ -1760,7 +1725,7 @@ do_eswap:
 /*
  * This swapd start function will be called by init and node-hot-add.
  */
-int swapd_run(int nid)
+static int swapd_run(int nid)
 {
 	pg_data_t *pgdat = NODE_DATA(nid);
 	struct sched_param param = {
@@ -1792,7 +1757,7 @@ int swapd_run(int nid)
  * Called by memory hotplug when all memory in a node is offlined.  Caller must
  * hold mem_hotplug_begin/end().
  */
-void swapd_stop(int nid)
+static void swapd_stop(int nid)
 {
 	struct pglist_data *pgdata = NODE_DATA(nid);
 	struct task_struct *swapd;
@@ -1852,16 +1817,27 @@ static int swapd_cpu_online(unsigned int cpu)
 	return 0;
 }
 
-void alloc_pages_slowpath_hook(void *data, gfp_t gfp_flags,
-		unsigned int order, unsigned long delta)
+static void vh_tune_scan_type(void *data, char *scan_balance)
 {
-	if (gfp_flags & __GFP_KSWAPD_RECLAIM)
-		wake_all_swapd();
+	if (current_is_swapd()) {
+		*scan_balance = SCAN_ANON;
+		return;
+	}
+
+#ifdef CONFIG_HYBRIDSWAP_CORE
+	if (unlikely(!hybridswap_core_enabled()))
+		return;
+
+	/* real zram full, scan file only */
+	if (!free_zram_is_ok()) {
+		*scan_balance = SCAN_FILE;
+		return;
+	}
+#endif
 }
 
-void rmqueue_hook(void *data, struct zone *preferred_zone,
-		struct zone *zone, unsigned int order, gfp_t gfp_flags,
-		unsigned int alloc_flags, int migratetype)
+static void vh_alloc_pages_slowpath(void *data, gfp_t gfp_flags,
+				unsigned int order, unsigned long delta)
 {
 	if (gfp_flags & __GFP_KSWAPD_RECLAIM)
 		wake_all_swapd();
@@ -1939,31 +1915,6 @@ static void destroy_swapd_thread(void)
 		kfree((void*)PGDAT_ITEM_DATA(pgdat));
 		pgdat->android_oem_data1 = 0;
 	}
-}
-
-ssize_t hybridswap_swapd_pause_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t len)
-{
-	char *type_buf = NULL;
-	bool val;
-
-	type_buf = strstrip((char *)buf);
-	if (kstrtobool(type_buf, &val))
-		return -EINVAL;
-	atomic_set(&swapd_pause, val);
-
-	return len;
-}
-
-ssize_t hybridswap_swapd_pause_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	ssize_t size = 0;
-
-	size += scnprintf(buf + size, PAGE_SIZE - size,
-			"%d\n", atomic_read(&swapd_pause));
-
-	return size;
 }
 
 #if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
@@ -2102,18 +2053,18 @@ static void unregister_panel_event_notifier(void)
 #endif
 }
 
-void __init swapd_pre_init(void)
+void swapd_pre_init(void)
 {
 	free_swap_is_low_fp = free_swap_is_low;
 	all_totalreserve_pages = get_totalreserve_pages();
 }
 
-void swapd_pre_deinit(void)
+static void swapd_pre_deinit(void)
 {
 	all_totalreserve_pages = 0;
 }
 
-int swapd_init(struct zram *zram)
+static int swapd_init(struct zram **zram)
 {
 	int ret;
 
@@ -2131,13 +2082,13 @@ int swapd_init(struct zram *zram)
 		goto snapshotd_fail;
 	}
 
-	ret = create_swapd_thread(zram);
+	swapd_zram = zram[ZRAM_TYPE_BASEPAGE];
+	ret = create_swapd_thread(swapd_zram);
 	if (ret) {
 		log_err("create_swapd_thread failed, ret=%d\n", ret);
 		goto create_swapd_fail;
 	}
 
-	swapd_zram = zram;
 	atomic_set(&swapd_enabled, 1);
 	return 0;
 
@@ -2149,7 +2100,7 @@ snapshotd_fail:
 	return ret;
 }
 
-void swapd_exit(void)
+static void swapd_exit(void)
 {
 	destroy_swapd_thread();
 	snapshotd_exit();
@@ -2158,7 +2109,32 @@ void swapd_exit(void)
 	atomic_set(&swapd_enabled, 0);
 }
 
-bool hybridswap_swapd_enabled(void)
+static bool hybridswap_swapd_enabled(void)
 {
 	return !!atomic_read(&swapd_enabled);
+}
+
+void hybridswapd_ops_init(struct hybridswapd_operations *ops)
+{
+	ops->fault_out_pause = &fault_out_pause;
+	ops->fault_out_pause_cnt = &fault_out_pause_cnt;
+	ops->swapd_pause = &swapd_pause;
+
+	ops->memcg_legacy_files = mem_cgroup_swapd_legacy_files;
+	ops->update_memcg_param = update_swapd_memcg_param;
+
+	ops->pre_init = swapd_pre_init;
+	ops->pre_deinit = swapd_pre_deinit;
+
+	ops->init = swapd_init;
+	ops->deinit = swapd_exit;
+	ops->enabled = hybridswap_swapd_enabled;
+
+	ops->free_zram_is_ok = free_zram_is_ok;
+	ops->zram_watermark_ok = zram_watermark_ok;
+	ops->zram_total_pages = get_nr_zram_total;
+	ops->wakeup_kthreads = wake_all_swapd;
+
+	ops->vh_alloc_pages_slowpath = vh_alloc_pages_slowpath;
+	ops->vh_tune_scan_type = vh_tune_scan_type;
 }

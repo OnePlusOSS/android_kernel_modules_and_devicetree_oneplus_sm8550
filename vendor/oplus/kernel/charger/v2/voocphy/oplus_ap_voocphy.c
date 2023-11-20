@@ -1110,7 +1110,7 @@ static int oplus_voocphy_reset_voocphy(struct oplus_voocphy_manager *chip)
 	}
 
 	/* When OVP control by slave CP, this interface must be implemented */
-	if (chip->ovp_ctrl_cpindex == SLAVE_CP_ID &&
+	if (chip->slave_ops && chip->ovp_ctrl_cpindex == SLAVE_CP_ID &&
 	    chip->slave_ops->reset_voocphy_ovp) {
 		chip->slave_ops->reset_voocphy_ovp(chip);
 	}

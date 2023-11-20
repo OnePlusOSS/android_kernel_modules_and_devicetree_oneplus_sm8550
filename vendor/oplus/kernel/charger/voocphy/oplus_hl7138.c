@@ -555,6 +555,7 @@ int hl7138_reset_voocphy(struct oplus_voocphy_manager *chip)
 	hl7138_write_byte(chip->client, HL7138_REG_0B, 0x83);	/* JL:VBUS_OVP=7V;4+val*lsb; */
 	/* hl7138_write_byte(chip->client, HL7138_REG_0C, 0x0F);		//JL:vbus_ovp=10V;04->0c;10.5/5.25V; */
 	hl7138_write_byte(chip->client, HL7138_REG_0E, 0x32);	/* JL:UCP_deb=5ms;IBUS_OCP=3.6A;05->0e;3.5A_max; */
+	hl7138_write_byte(chip->client, HL7138_REG_0F, 0x60); /* IBUS_OCP:3.5A    ocp_th:250mA */
 	hl7138_write_byte(chip->client, HL7138_REG_40, 0x00);	/* JL:Dis_ADC;11->40; */
 	hl7138_write_byte(chip->client, HL7138_REG_02, 0xE0);	/* JL:mask all INT_FLAG */
 	hl7138_write_byte(chip->client, HL7138_REG_10, 0xEC);	/* JL:Dis IIN_REG; */
@@ -622,6 +623,7 @@ static int hl7138_init_device(struct oplus_voocphy_manager *chip)
 	hl7138_write_byte(chip->client, HL7138_REG_11, 0xDC);	/* ovp:90mV */
 	hl7138_write_byte(chip->client, HL7138_REG_08, 0x38);	/* VBAT_OVP:4.56	4.56+0.09*/
 	hl7138_write_byte(chip->client, HL7138_REG_0E, 0x32);	/* IBUS_OCP:3.5A      ocp:100mA */
+	hl7138_write_byte(chip->client, HL7138_REG_0F, 0x60); /* IBUS_OCP:3.5A    ocp_th:250mA */
 	/* hl7138_write_byte(chip->client, HL7138_REG_0A, 0x2E);		//IBAT_OCP:max;JL:01-0A;0X2E=6.6A,MAX; */
 	hl7138_write_byte(chip->client, HL7138_REG_37, 0x00);	/* VOOC_CTRL:disable;JL:2B->37; */
 
@@ -845,10 +847,12 @@ static int hl7138_svooc_hw_setting(struct oplus_voocphy_manager *chip)
 	hl7138_write_byte(chip->client, HL7138_REG_0B, 0x88);	/* VBUS_OVP:12V */
 	hl7138_write_byte(chip->client, HL7138_REG_0C, 0x00);	/* VIN_OVP:10.2V,,JL:04-0C; */
 
-	if (chip->high_curr_setting)
+	if (chip->high_curr_setting) {
 		hl7138_write_byte(chip->client, HL7138_REG_0E, 0xB2);	/* disable OCP */
-	else
+	} else {
 		hl7138_write_byte(chip->client, HL7138_REG_0E, 0x32);	/* IBUS_OCP:3.6A,UCP_DEB=5ms;JL:05-0E; */
+		hl7138_write_byte(chip->client, HL7138_REG_0F, 0x60); /* IBUS_OCP:3.5A    ocp_th:250mA */
+	}
 
 	hl7138_write_byte(chip->client, HL7138_REG_14, 0x02);	/* WD:1000ms,JL:09-14; */
 	hl7138_write_byte(chip->client, HL7138_REG_15, 0x00);	/* enter cp mode */

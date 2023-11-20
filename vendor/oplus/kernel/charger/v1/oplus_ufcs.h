@@ -39,9 +39,9 @@
 #define UFCS_UPDATE_IBAT_TIME 1
 #define UFCS_UPDATE_BCC_TIME 2
 #define UPDATE_FULL_TIME_S 1
-#define UPDATE_FULL_TIME_NS 500 * 1000 * 1000
+#define UFCS_UPDATE_FULL_TIME_NS 400 * 1000 * 1000
 #define UPDATE_CURVE_TIME_S 1
-#define UPDATE_CURVE_TIME_NS 500 * 1000 * 1000
+#define UFCS_UPDATE_CURVE_TIME_NS 400 * 1000 * 1000
 
 #define UFCS_VBAT_DIFF_TIME round_jiffies_relative(msecs_to_jiffies(3 * 60 * 1000))
 #define UFCS_UCT_TIME round_jiffies_relative(msecs_to_jiffies(500))
@@ -407,6 +407,7 @@ typedef enum {
 	UFCS_STOP_VOTER_STARTUP_FAIL = (1 << 16),
 	UFCS_STOP_VOTER_CIRCUIT_SWITCH = (1 << 17),
 	UFCS_STOP_VOTER_HARDRESET = (1 << 18),
+	UFCS_STOP_VOTER_FLASH_LED = (1 << 19),
 	UFCS_STOP_VOTER_OTHER_ABORMAL = (1 << 31),
 } UFCS_STOP_VOTER;
 
@@ -722,6 +723,7 @@ struct oplus_ufcs_chip {
 	int ufcs_force_check;
 	bool ufcs_mos1_switch;
 	bool mos_switch_enable;
+	bool ufcs_flash_unsupport;
 	int ufcs_cpu_up_freq;
 
 	/*other*/
@@ -743,6 +745,7 @@ struct oplus_ufcs_chip {
 	int last_ufcs_power;
 	int ufcs_keep_last_status;
 	int ufcs_startup_retry_times;
+	int ufcs_recover_cnt;
 
 	u8 int_column[UFCS_DUMP_REG_CNT];
 	u8 reg_dump[UFCS_DUMP_REG_CNT];
@@ -838,6 +841,7 @@ bool oplus_ufcs_switch_ufcs_check(void);
 void oplus_ufcs_source_exit(void);
 void oplus_ufcs_stop_usb_temp(void);
 void oplus_ufcs_set_vbatt_diff(bool diff);
+bool oplus_ufcs_get_btb_temp_over(void);
 int oplus_ufcs_get_protocol_status(void);
 bool oplus_is_ufcs_charging(void);
 bool oplus_ufcs_show_vooc(void);
@@ -849,6 +853,7 @@ int oplus_ufcs_get_ffc_started(void);
 int oplus_ufcs_set_ffc_started(bool status);
 int oplus_ufcs_get_ufcs_mos_started(void);
 int oplus_ufcs_get_stop_status(void);
+void oplus_ufcs_stop_flash_led(bool on);
 bool oplus_ufcs_get_ufcs_dummy_started(void);
 void oplus_ufcs_set_ufcs_dummy_started(bool enable);
 bool oplus_ufcs_get_ufcs_fastchg_started(void);

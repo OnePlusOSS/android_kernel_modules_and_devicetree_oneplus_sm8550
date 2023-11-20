@@ -31,13 +31,16 @@ typedef enum {
 	CP_MAX,
 } PPS_CP_DEVICE_NUM;
 
-typedef struct protect_flag {
-	unsigned char ibus_ucp : 1;
-	unsigned char ibus_ocp : 1;
-	unsigned char vbus_ovp : 1;
-	unsigned char ibat_ocp : 1;
-	unsigned char vbat_ovp : 1;
-	unsigned char vout_ovp : 1;
+typedef union protect_flag {
+	u8 value;
+	struct {
+		u8 ibus_ucp : 1;
+		u8 ibus_ocp : 1;
+		u8 vbus_ovp : 1;
+		u8 ibat_ocp : 1;
+		u8 vbat_ovp : 1;
+		u8 vout_ovp : 1;
+	} value_bit;
 } DEV_PROTECT_FLAG;
 
 struct chargepump_device {

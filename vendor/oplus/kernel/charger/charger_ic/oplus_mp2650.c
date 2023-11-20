@@ -75,6 +75,7 @@ extern void mt_power_off(void);
 #else
 #include "../oplus_wireless.h"
 #endif // OPLUS_CUSTOM_OP_DEF
+#include <oplus_battery_log.h>
 
 #define DEBUG_BY_FILE_OPS
 
@@ -96,6 +97,9 @@ static int mp2650_chg_track_upload_icl_err_info(
 	struct chip_mp2650 *chip, int err_type);
 static int mp2650_track_upload_i2c_err_info(
 	struct chip_mp2650 *chip, int err_type, u8 reg);
+
+#define BATTERY_LOG_REG_MAX_SIZE 100
+char buck_ic_reg_info[BATTERY_LOG_REG_MAX_SIZE] = {0};
 
 #ifndef CONFIG_REMOVE_OPLUS_FUNCTION
 int __attribute__((weak)) register_device_proc(char *name, char *version, char *vendor)
@@ -2280,32 +2284,41 @@ int mp2650_other_registers_init(void)
 #define DUMP_REG_LOG_CNT_30S             6
 void mp2650_dump_registers(void)
 {
-    int rc;
+	int rc;
 	int addr;
-    static int dump_count = 0;
-    struct chip_mp2650 *chip = charger_ic;
-    unsigned int val_buf[MP2650_DUMP_MAX_REG + 5] = {0x0};
+	static int dump_count = 0;
+	struct chip_mp2650 *chip = charger_ic;
+	struct oplus_chg_chip *oplus_chip = oplus_chg_get_chg_struct();
+	unsigned int val_buf[MP2650_DUMP_MAX_REG + 5] = {0x0};
 
-	if(atomic_read(&chip->charger_suspended) == 1) {
-		return ;
+	if (!chip || !oplus_chip) {
+		chg_err("chip || oplus_chip is null");
+		return;
 	}
 
-    if(dump_count == DUMP_REG_LOG_CNT_30S) {
-        dump_count = 0;
-        for (addr = MP2650_FIRST_REG; addr <= MP2650_DUMP_MAX_REG; addr++) {
-            rc = mp2650_read_reg(addr, &val_buf[addr]);
-            if (rc) {
-                chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-            }
-        }
-        rc = mp2650_read_reg(0x48, &val_buf[MP2650_DUMP_MAX_REG + 1]);
-        if (rc) {
-             chg_err("Couldn't  read 0x48 rc = %d\n", rc);
-        }
-        rc = mp2650_read_reg(0x49, &val_buf[MP2650_DUMP_MAX_REG + 2]);
-        if (rc) {
-             chg_err("Couldn't  read 0x49 rc = %d\n", rc);
-        }
+	if(atomic_read(&chip->charger_suspended) == 1) {
+		return;
+	}
+
+	if (!oplus_chip->charger_exist)
+		dump_count++;
+
+	if (oplus_chip->charger_exist || (dump_count == DUMP_REG_LOG_CNT_30S)) {
+		dump_count = 0;
+		for (addr = MP2650_FIRST_REG; addr <= MP2650_DUMP_MAX_REG; addr++) {
+			rc = mp2650_read_reg(addr, &val_buf[addr]);
+			if (rc) {
+				chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
+			}
+		}
+		rc = mp2650_read_reg(0x48, &val_buf[MP2650_DUMP_MAX_REG + 1]);
+		if (rc) {
+			chg_err("Couldn't  read 0x48 rc = %d\n", rc);
+		}
+		rc = mp2650_read_reg(0x49, &val_buf[MP2650_DUMP_MAX_REG + 2]);
+		if (rc) {
+			chg_err("Couldn't  read 0x49 rc = %d\n", rc);
+		}
 		rc = mp2650_read_reg(0x2D, &val_buf[MP2650_DUMP_MAX_REG + 3]);
 		if (rc) {
 			chg_err("Couldn't  read 0x2D rc = %d\n", rc);
@@ -2315,24 +2328,62 @@ void mp2650_dump_registers(void)
 			chg_err("Couldn't  read 0x30 rc = %d\n", rc);
 		}
 
-        printk(KERN_ERR "mp2650_dump_reg: [0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
-		"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
-		"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
-		"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
-		"[0x%02x, 0x%02x, 0x%02x], [reg48=0x%02x, reg49=0x%02x, reg2D=0x%02x, reg30=0x%02x]\n",
-		val_buf[0], val_buf[1], val_buf[2], val_buf[3],
-		val_buf[4], val_buf[5], val_buf[6], val_buf[7],
-		val_buf[8], val_buf[9], val_buf[10], val_buf[11],
-		val_buf[12], val_buf[13], val_buf[14], val_buf[15],
-		val_buf[16], val_buf[17], val_buf[18], val_buf[19],
-		val_buf[20], val_buf[21], val_buf[22], val_buf[23],
-		val_buf[24], val_buf[25], val_buf[26], val_buf[27],
-		val_buf[28], val_buf[29], val_buf[30], val_buf[31],
-		val_buf[32], val_buf[33], val_buf[34],
-		val_buf[35], val_buf[36], val_buf[37], val_buf[38]);
-    }
-    dump_count++;
+		printk(KERN_ERR "mp2650_dump_reg: [0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
+			"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
+			"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
+			"[0x%02x, 0x%02x, 0x%02x, 0x%02x], [0x%02x, 0x%02x, 0x%02x, 0x%02x], "
+			"[0x%02x, 0x%02x, 0x%02x], [reg48=0x%02x, reg49=0x%02x, reg2D=0x%02x, reg30=0x%02x]\n",
+			val_buf[0], val_buf[1], val_buf[2], val_buf[3],
+			val_buf[4], val_buf[5], val_buf[6], val_buf[7],
+			val_buf[8], val_buf[9], val_buf[10], val_buf[11],
+			val_buf[12], val_buf[13], val_buf[14], val_buf[15],
+			val_buf[16], val_buf[17], val_buf[18], val_buf[19],
+			val_buf[20], val_buf[21], val_buf[22], val_buf[23],
+			val_buf[24], val_buf[25], val_buf[26], val_buf[27],
+			val_buf[28], val_buf[29], val_buf[30], val_buf[31],
+			val_buf[32], val_buf[33], val_buf[34],
+			val_buf[35], val_buf[36], val_buf[37], val_buf[38]);
+
+		memset(buck_ic_reg_info, 0, BATTERY_LOG_REG_MAX_SIZE);
+		snprintf(buck_ic_reg_info, BATTERY_LOG_REG_MAX_SIZE,
+			",0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,"
+			"0x%02x,0x%02x,0x%02x,0x%02x",
+			val_buf[0], val_buf[1], val_buf[2], val_buf[4], val_buf[8],
+			val_buf[9], val_buf[19], val_buf[20], val_buf[35]);
+	}
 }
+
+static int buck_ic_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct chip_mp2650 *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	strncpy(buffer, buck_ic_reg_info, sizeof(buck_ic_reg_info));
+	return 0;
+}
+
+static int buck_ic_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct chip_mp2650 *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		",in_curr[0x00],in_volt[0x01],chg_curr[0x02],chg_full[0x04],chg&otg_enable[0x08],"
+		"chg_terminal_enable[0x09],status_reg[0x13],fault_reg[0x14],Hiz_enable[0x48]");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_buck_ic_ops = {
+	.dev_name = "buck_ic",
+	.dump_log_head = buck_ic_get_log_head,
+	.dump_log_content = buck_ic_dump_log_data,
+};
+
 bool mp2650_need_to_check_ibatt(void)
 {
     return false;
@@ -3030,7 +3081,7 @@ static void mp2650_track_i2c_err_load_trigger_work(
 	struct chip_mp2650 *chip =
 		container_of(dwork, struct chip_mp2650, i2c_err_load_trigger_work);
 
-	if (!chip)
+	if (!chip->i2c_err_load_trigger)
 		return;
 
 	oplus_chg_track_upload_trigger_data(*(chip->i2c_err_load_trigger));
@@ -3144,7 +3195,7 @@ static void mp2650_chg_track_icl_err_load_trigger_work(
 	struct chip_mp2650 *chip =
 		container_of(dwork, struct chip_mp2650, icl_err_load_trigger_work);
 
-	if (!chip)
+	if (!chip->icl_err_load_trigger)
 		return;
 
 	oplus_chg_track_upload_trigger_data(*(chip->icl_err_load_trigger));
@@ -3350,6 +3401,8 @@ static int mp2650_driver_probe(struct i2c_client *client, const struct i2c_devic
 	init_mp2650_read_log();
 #endif
 
+	battlog_buck_ic_ops.dev_data = (void *)chg_ic;
+	battery_log_ops_register(&battlog_buck_ic_ops);
 	chg_debug(" success\n");
 
 	return ret;

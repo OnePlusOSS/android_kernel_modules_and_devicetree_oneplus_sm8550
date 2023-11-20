@@ -309,6 +309,7 @@
 		touchpanel,touchmajor-limit = <256 256>;
 		touchpanel,int-mode = <1>; /*0: interrupt and disable, 1:interrupt and not disable*/
 		touchpanel,curved-size = <45>;
+		touchpanel,irq_need_dev_resume_time = <250>;
 
 		prevention,curved_screen_V2;
 		prevention,grip_disable_level = <6>;

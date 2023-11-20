@@ -119,6 +119,13 @@
 /* Register 10h */
 #define SC8517_REG_10                      0x10
 
+/* Register 12h */
+#define SC8517_REG_12                       0x12
+#define RVS_OCP_DG                          BIT(3)
+#define NO_EXTRA_DEGLITCH                   0
+#define EXTRA_10US_DEGLITCH                 1
+#define EXTRA_10US_DEGLITCH_SHIFT           3
+
 /* Register 15h */
 #define SC8517_REG_15                      0x15
 #define SC8517_CHG_MODE_MASK               (BIT(1)|BIT(0))

@@ -179,7 +179,7 @@ bool test_kit_qcom_soc_gpio_test(struct test_feature *feature,
 {
 	struct test_kit_soc_gpio_info *gpio_info;
 	size_t index = 0;
-	size_t use_size;
+	size_t use_size = 0;
 	bool pass = true;
 
 	if (buf == NULL) {

@@ -168,9 +168,9 @@ int ir_spi_file_write(void *priv, struct pattern_params *param, enum ir_interfac
 	ir_to_hw.ir_frequency = param->carrier_freq;
 	ir_to_hw.pattern = &param->pattern[0];
 	ir_to_hw.pattern_length = param->size;
-	if (oplus_ir_to_hw_data(&ir_to_hw, IR_HW_SPI) < 0) {
-		pr_info("oplus_ir_to_hw_data error! = %d\n");
-		retval = -EINVAL;
+	retval = oplus_ir_to_hw_data(&ir_to_hw, IR_HW_SPI);
+	if (retval < 0) {
+		pr_info("oplus_ir_to_hw_data error! = %d\n", retval);
 		goto extit;
 	}
 

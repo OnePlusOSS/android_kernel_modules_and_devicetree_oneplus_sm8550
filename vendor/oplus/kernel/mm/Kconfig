@@ -86,4 +86,6 @@ config OPLUS_BALANCE_ANON_FILE_RECLAIM
 
 source "mm/oplus_mm/hybridswap_zram/Kconfig"
 
+source "mm/oplus_mm/thp_zsmalloc/Kconfig"
+
 source "mm/oplus_mm/mm_osvelte/Kconfig"

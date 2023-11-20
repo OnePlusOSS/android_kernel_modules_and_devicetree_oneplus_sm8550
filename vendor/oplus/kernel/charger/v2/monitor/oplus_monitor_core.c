@@ -20,6 +20,7 @@
 #include <oplus_mms_wired.h>
 #include <oplus_chg_comm.h>
 #include <oplus_battery_log.h>
+#include <oplus_smart_chg.h>
 
 #include "oplus_monitor_internal.h"
 
@@ -98,8 +99,29 @@ is_wls_charging_disable_votable_available(struct oplus_monitor *chip)
 	return !!chip->wls_charging_disable_votable;
 }
 
+__maybe_unused static bool
+is_chg_disable_votable_available(struct oplus_monitor *chip)
+{
+	if (!chip->chg_disable_votable)
+		chip->chg_disable_votable = find_votable("CHG_DISABLE");
+	return !!chip->chg_disable_votable;
+}
+
+__maybe_unused static bool
+is_vooc_curr_votable_available(struct oplus_monitor *chip)
+{
+	if (!chip->vooc_curr_votable)
+		chip->vooc_curr_votable = find_votable("VOOC_CURR");
+	return !!chip->vooc_curr_votable;
+}
+
 static void oplus_monitor_update_charge_info(struct oplus_monitor *chip)
 {
+	int ibat_factor = 1;
+	union mms_msg_data data = { 0 };
+	if (oplus_gauge_get_batt_num() == 1)
+		ibat_factor = 2;
+
 	if (is_wired_icl_votable_available(chip))
 		chip->wired_icl_ma = get_effective_result(chip->wired_icl_votable);
 	if (is_wired_charge_suspend_votable_available(chip))
@@ -114,6 +136,17 @@ static void oplus_monitor_update_charge_info(struct oplus_monitor *chip)
 		chip->wls_suspend = get_effective_result(chip->wls_charge_suspend_votable);
 	if (is_wls_charge_suspend_votable_available(chip))
 		chip->wls_user_suspend = get_client_vote(chip->wls_charge_suspend_votable, USER_VOTER);
+
+	if (is_chg_disable_votable_available(chip))
+		chip->mmi_chg = !get_client_vote(chip->chg_disable_votable, MMI_CHG_VOTER);
+	if (is_vooc_curr_votable_available(chip))
+		chip->bcc_current = get_client_vote(chip->vooc_curr_votable, BCC_VOTER) * ibat_factor;
+
+	oplus_mms_get_item_data(chip->wired_topic, WIRED_ITEM_USB_STATUS, &data, true);
+	chip->usb_status = data.intval;
+
+	chip->normal_cool_down = oplus_smart_chg_get_normal_cool_down();
+	chip->otg_switch_status = oplus_wired_get_otg_switch_status();
 
 	if (chip->wired_online) {
 		if (is_wired_fcc_votable_available(chip))
@@ -178,22 +211,13 @@ static bool oplus_monitor_all_topic_is_ready(struct oplus_monitor *chip)
 	return true;
 }
 
-#define IBUS_100MA 100
-#define OPLUS_IBAT_ABNORMAL_THRESHOLD	0
-static void oplus_wired_err_status_dump_regs(struct oplus_monitor *chip)
-{
-	if (!chip->chg_disable &&
-	    !(chip->wired_suspend || chip->wired_user_suspend) &&
-	    (chip->wired_ibus_ma < IBUS_100MA ||
-	     chip->ibat_ma >= OPLUS_IBAT_ABNORMAL_THRESHOLD))
-		oplus_wired_dump_regs();
-}
-
+#define DUMP_REG_LOG_CNT_30S	3
 static void oplus_monitor_charge_info_update_work(struct work_struct *work)
 {
 	struct oplus_monitor *chip = container_of(work, struct oplus_monitor,
 						  charge_info_update_work);
 	union mms_msg_data data = { 0 };
+	static int dump_count = 0;
 	int rc;
 
 	if (chip->wired_online || chip->wls_online)
@@ -239,7 +263,13 @@ static void oplus_monitor_charge_info_update_work(struct work_struct *work)
 		chip->temp_region, chip->ffc_status, chip->cool_down,
 		chip->notify_code, chip->led_on);
 
-	oplus_wired_err_status_dump_regs(chip);
+	if (!chip->wired_online)
+		dump_count++;
+
+	if ((chip->wired_online || dump_count == DUMP_REG_LOG_CNT_30S) && !chip->vooc_started) {
+		dump_count = 0;
+		oplus_wired_dump_regs();
+	}
 }
 
 static int comm_info_dump_log_data(char *buffer, int size, void *dev_data)
@@ -249,10 +279,15 @@ static int comm_info_dump_log_data(char *buffer, int size, void *dev_data)
 	if (!buffer || !chip)
 		return -ENOMEM;
 
-	snprintf(buffer, size, "   %-15d%-15d%-15d%-15d%-15d%-15d%-15d%-15d%-15d",
-		chip->batt_temp, chip->shell_temp, chip->vbat_mv,
-		chip->vbat_min_mv, chip->ibat_ma, chip->batt_soc,
-		chip->ui_soc, chip->wired_online, chip->wired_charge_type);
+	snprintf(buffer, size, ",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"
+		"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"
+		"%d,%d,%d,%d,%d,%d,%d,%d,%d",
+		chip->batt_temp, chip->shell_temp, chip->vbat_mv, chip->vbat_min_mv, chip->ibat_ma,
+		chip->batt_soc, chip->ui_soc, chip->wired_online, chip->wired_charge_type, chip->notify_code,
+		chip->wired_ibus_ma, chip->wired_vbus_mv, chip->smooth_soc, chip->led_on, chip->fv_mv,
+		chip->fcc_ma, chip->wired_icl_ma, chip->otg_switch_status, chip->cool_down, chip->bcc_current,
+		chip->normal_cool_down, chip->chg_cycle_status, chip->mmi_chg, chip->usb_status, chip->cc_detect,
+		chip->batt_full, chip->rechging, chip->pd_svooc, chip->batt_status);
 
 	return 0;
 }
@@ -265,8 +300,11 @@ static int comm_info_get_log_head(char *buffer, int size, void *dev_data)
 		return -ENOMEM;
 
 	snprintf(buffer, size,
-		"   batt_temp      shell_temp     vbat_mv        sub_vbat_mv    ibat_ma\
-        batt_soc       ui_soc         wired_online   charge_type    ");
+		",batt_temp,shell_temp,vbat_mv,vbat_min_mv,ibat_ma,"
+		"batt_soc,ui_soc,wired_online,charge_type,notify_code,"
+		"wired_ibus_ma,wired_vbus_mv,smooth_soc,led_on,fv_mv,"
+		"fcc_ma,wired_icl_ma,otg_switch,cool_down,bcc_current,normal_cool_down,chg_cycle,"
+		"mmi_chg,usb_status,cc_detect,batt_full,rechging,pd_svooc,prop_status");
 
 	return 0;
 }

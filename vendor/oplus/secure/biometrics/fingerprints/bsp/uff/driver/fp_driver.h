@@ -148,6 +148,9 @@ struct fp_key {
 
 #define FP_IOC_RESET_GPIO_CTL_LOW _IO(FP_IOC_MAGIC, 25)
 #define FP_IOC_RESET_GPIO_CTL_HIGH _IO(FP_IOC_MAGIC, 26)
+#define FP_IOC_IRQ_GPIO_CTL_HIGH _IO(FP_IOC_MAGIC, 27)
+#define FP_IOC_IRQ_GPIO_CTL_LOW _IO(FP_IOC_MAGIC, 28)
+
 // netlink function
 /************************************************/
 #define FP_NETLINK_ENABLE 1

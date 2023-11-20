@@ -3106,7 +3106,7 @@ void iris_pt_sr_reset(void)
 		iris_dma_trig(DMA_CH0, 0);
 		iris_update_pq_opt(iris_pq_update_path, true);
 		iris_pmu_frc_set(false);
-		iris_sdr2hdr_set_degain();
+		iris_sdr2hdr_set_degain(PT_MODE);
 	}
 }
 
@@ -3124,7 +3124,7 @@ void iris_pt_sr_restore(void)
 	iris_pt_sr_set(true,
 		pcfg->pt_sr_hsize,
 		pcfg->pt_sr_vsize);
-	iris_sdr2hdr_set_degain();
+	iris_sdr2hdr_set_degain(PT_MODE);
 }
 
 void iris_pwil_idle_mask_update(bool enable)
@@ -3133,6 +3133,8 @@ void iris_pwil_idle_mask_update(bool enable)
 	u32 *payload = NULL;
 
 	payload = iris_get_ipopt_payload_data(IRIS_IP_PWIL, 0xe3, 2);
+	if (!payload)
+		return;
 	cmd[0] = IRIS_PWIL_ADDR + PWIL_IDLE_MASK;
 	if (enable)
 		cmd[1] = 0x000001E7;

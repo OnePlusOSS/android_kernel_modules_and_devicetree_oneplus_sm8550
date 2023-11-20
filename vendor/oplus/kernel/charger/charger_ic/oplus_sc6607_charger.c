@@ -1068,14 +1068,11 @@ static int sc6607_enable_charger(struct sc6607 *chip)
 		return -EINVAL;
 
 	pr_info("enable\n");
-	if (atomic_read(&chip->driver_suspended) == 1) {
-		pr_err("suspend, ignore\n");
+	if (atomic_read(&chip->driver_suspended) || chip->request_otg) {
+		pr_err("suspend or camera, ignore\n");
 		return 0;
 	}
-	if (chg_chip->camera_on == 1) {
-		pr_err("camera_on, ignore\n");
-		return 0;
-	}
+
 	ret = sc6607_field_write(chip, F_CHG_EN, true);
 
 	return ret;
@@ -1132,7 +1129,10 @@ static int sc6607_adc_read_ibus(struct sc6607 *chip)
 
 	if (!chip)
 		return -EINVAL;
-
+	if (oplus_voocphy_mg != NULL && oplus_voocphy_get_fastchg_commu_ing()) {
+		pr_err("svooc in communication, ignore.\n");
+		return oplus_voocphy_mg->cp_ichg;
+	}
 	ibus = sc6607_hk_get_adc(chip, SC6607_ADC_IBUS);
 	ibus /= SC6607_UA_PER_MA;
 
@@ -1145,7 +1145,10 @@ static int sc6607_adc_read_vbus_volt(struct sc6607 *chip)
 
 	if (!chip)
 		return -EINVAL;
-
+	if (oplus_voocphy_mg != NULL && oplus_voocphy_get_fastchg_commu_ing()) {
+		pr_err("svooc in communication, ignore.\n");
+		return oplus_voocphy_mg->cp_vbus;
+	}
 	vbus_vol = sc6607_hk_get_adc(chip, SC6607_ADC_VBUS);
 	vbus_vol /= SC6607_UV_PER_MV;
 
@@ -1158,7 +1161,10 @@ static int sc6607_adc_read_vac(struct sc6607 *chip)
 
 	if (!chip)
 		return -EINVAL;
-
+	if (oplus_voocphy_mg != NULL && oplus_voocphy_get_fastchg_commu_ing()) {
+		pr_err("svooc in communication, ignore.\n");
+		return oplus_voocphy_mg->cp_vac;
+	}
 	vac_vol = sc6607_hk_get_adc(chip, SC6607_ADC_VAC);
 	vac_vol /= SC6607_UV_PER_MV;
 
@@ -1171,7 +1177,10 @@ static int sc6607_adc_read_vbat(struct sc6607 *chip)
 
 	if (!chip)
 		return -EINVAL;
-
+	if (oplus_voocphy_mg != NULL && oplus_voocphy_get_fastchg_commu_ing()) {
+		pr_err("svooc in communication, ignore.\n");
+		return oplus_voocphy_mg->cp_vbat;
+	}
 	vbat = sc6607_hk_get_adc(chip, SC6607_ADC_VBATSNS);
 	vbat /= SC6607_UV_PER_MV;
 
@@ -1184,7 +1193,10 @@ static int sc6607_adc_read_vsys(struct sc6607 *chip)
 
 	if (!chip)
 		return -EINVAL;
-
+	if (oplus_voocphy_mg != NULL && oplus_voocphy_get_fastchg_commu_ing()) {
+		pr_err("svooc in communication, ignore.\n");
+		return oplus_voocphy_mg->cp_vsys;
+	}
 	vsys = sc6607_hk_get_adc(chip, SC6607_ADC_VSYS);
 	vsys /= SC6607_UV_PER_MV;
 
@@ -2228,12 +2240,13 @@ static int sc6607_hk_irq_handle(struct sc6607 *chip)
 			return 0;
 		}
 
-		Charger_Detect_Init();
 		if (chip->is_force_dpdm) {
+			Charger_Detect_Init();
 			chip->is_force_dpdm = false;
 			sc6607_force_dpdm(chip, false);
 		} else {
 			if (chip->oplus_chg_type == POWER_SUPPLY_TYPE_UNKNOWN) {
+				Charger_Detect_Init();
 				sc6607_disable_hvdcp(chip);
 				chip->bc12.first_noti_sdp = true;
 				chip->bc12_done = false;
@@ -3735,11 +3748,12 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	struct sc6607 *pinfo = NULL;
 	uint8_t old_state = TYPEC_UNATTACHED;
 	uint8_t new_state = TYPEC_UNATTACHED;
+	struct oplus_chg_chip *chg_chip = oplus_chg_get_chg_struct();
 	int ret = 0;
 	pinfo = container_of(pnb, struct sc6607, pd_nb);
 
 	pr_err("PD charger event:%d %d\n", (int)event, (int)noti->pd_state.connected);
-	if (pinfo == NULL || g_chip == NULL)
+	if (pinfo == NULL || g_chip == NULL || chg_chip == NULL)
 		return NOTIFY_BAD;
 	switch (event) {
 	case TCP_NOTIFY_PD_STATE:
@@ -3819,7 +3833,8 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 		     new_state == TYPEC_ATTACHED_CUSTOM_SRC ||
 		     new_state == TYPEC_ATTACHED_DBGACC_SNK)) {
 			pr_info("Charger plug in, polarity = %d\n", noti->typec_state.polarity);
-
+			if (!chg_chip->authenticate || chg_chip->balancing_bat_stop_chg)
+				sc6607_disable_charger(g_chip);
 		} else if ((old_state == TYPEC_ATTACHED_SNK ||
 			    old_state == TYPEC_ATTACHED_NORP_SRC ||
 			    old_state == TYPEC_ATTACHED_CUSTOM_SRC ||
@@ -4019,14 +4034,32 @@ static int oplus_sc6607_get_vbat(struct oplus_voocphy_manager *chip)
 
 static void sc6607_init_status_work(struct work_struct *work)
 {
+	bool pg = false;
+	u8 val = 0;
+	int ret = 0;
 	struct delayed_work *dwork = to_delayed_work(work);
 	struct sc6607 *chip = container_of(dwork, struct sc6607, init_status_work);
+
 	if (chip == NULL) {
 		pr_err("g_chip is NULL\n");
 		return;
 	}
-	if (chip->oplus_chg_type != POWER_SUPPLY_TYPE_UNKNOWN)
+
+	ret = sc6607_read_byte(chip, SC6607_REG_HK_INT_STAT, &val);
+	if (!ret)
+		pg = (!!(val & SC6607_HK_VAC_PRESENT_MASK)) && (!!(val & SC6607_HK_VBUS_PRESENT_MASK));
+
+	if (!pg) {
+		pr_err("sc6607_init_status_work power not good,return\n");
 		return;
+	}
+
+	if (chip->oplus_chg_type == POWER_SUPPLY_TYPE_USB_CDP ||
+	    chip->oplus_chg_type == POWER_SUPPLY_TYPE_USB) {
+		pr_err("sc6607_init_status_work BC12 done, inform charger type\n");
+		sc6607_inform_charger_type(chip);
+		return;
+	}
 
 	chip->wd_rerun_detect = true;	/* Rerun detect for META mode */
 	sc6607_hk_irq_handle(chip);
@@ -4834,7 +4867,8 @@ static void sc6607_voocphy_update_data(struct oplus_voocphy_manager *chip)
 			 data_block[7]) *
 			SC6607_VOOCPHY_VBAT_ADC_LSB;
 
-	chip->cp_vsys = sc6607_adc_read_vsys(g_chip);
+	chip->cp_vsys = sc6607_hk_get_adc(g_chip, SC6607_ADC_VSYS);
+	chip->cp_vsys /= SC6607_UV_PER_MV;
 
 	pr_info(" [%d, %d, %d, %d, %d, %d]", chip->cp_ichg,
 		chip->cp_vbus, chip->cp_vac, chip->cp_vbat, chip->cp_vsys, chip->int_flag);
@@ -5340,7 +5374,7 @@ static int sc6607_voocphy_svooc_hw_setting(struct oplus_voocphy_manager *chip)
 	else
 		ret = sc6607_field_write(g_chip, F_VAC_OVP, 0x00); /*VAC_OVP:12v VBUS_OVP:10v*/
 	ret = sc6607_field_write(g_chip, F_VBUS_OVP, 0x01);
-	ret = sc6607_field_write(g_chip, F_IBUS_OCP, 0x0B); /*IBUS_OCP_UCP:3.75A*/
+	ret = sc6607_field_write(g_chip, F_IBUS_OCP, 0x0D); /*IBUS_OCP_UCP:4.25A*/
 	ret = sc6607_set_watchdog_timer(g_chip, 1000);
 	ret = sc6607_field_write(g_chip, F_MODE, 0x0);
 	ret = sc6607_field_write(g_chip, F_PMID2OUT_OVP, 0x05);

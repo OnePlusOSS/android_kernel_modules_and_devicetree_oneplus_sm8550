@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -25,6 +25,7 @@
 #include <qdf_util.h>           /* qdf_unlikely */
 #include "dp_types.h"
 #include "dp_tx_desc.h"
+#include "dp_peer.h"
 
 #include <cdp_txrx_handle.h>
 #include "dp_internal.h"
@@ -392,6 +393,8 @@ struct dp_tx_desc_pool_s *dp_tx_create_flow_pool(struct dp_soc *soc,
 static bool dp_is_tx_flow_pool_delete_allowed(struct dp_soc *soc,
 					      uint8_t vdev_id)
 {
+	struct dp_peer *peer;
+	struct dp_peer *tmp_peer;
 	struct dp_vdev *vdev = NULL;
 	bool is_allow = true;
 
@@ -406,9 +409,19 @@ static bool dp_is_tx_flow_pool_delete_allowed(struct dp_soc *soc,
 	 * then it's not allowed to delete current pool, for legacy
 	 * connection, allowed always.
 	 */
-	is_allow = policy_mgr_is_mlo_sta_disconnected(
-			(struct wlan_objmgr_psoc *)soc->ctrl_psoc,
-			vdev_id);
+	qdf_spin_lock_bh(&vdev->peer_list_lock);
+	TAILQ_FOREACH_SAFE(peer, &vdev->peer_list,
+			   peer_list_elem,
+			   tmp_peer) {
+		if (dp_peer_get_ref(soc, peer, DP_MOD_ID_CONFIG) ==
+					QDF_STATUS_SUCCESS) {
+			if (peer->valid && !peer->sta_self_peer)
+				is_allow = false;
+			dp_peer_unref_delete(peer, DP_MOD_ID_CONFIG);
+		}
+	}
+	qdf_spin_unlock_bh(&vdev->peer_list_lock);
+
 comp_ret:
 	if (vdev)
 		dp_vdev_unref_delete(soc, vdev, DP_MOD_ID_MISC);

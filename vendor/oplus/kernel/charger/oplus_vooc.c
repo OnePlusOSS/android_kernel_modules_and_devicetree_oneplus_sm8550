@@ -16,6 +16,7 @@
 #include "oplus_chg_track.h"
 #include "oplus_pps.h"
 #include "oplus_ufcs.h"
+#include <oplus_battery_log.h>
 
 #define VOOC_NOTIFY_FAST_PRESENT		0x52
 #define VOOC_NOTIFY_FAST_ABSENT			0x54
@@ -2178,6 +2179,40 @@ void oplus_vooc_shedule_fastchg_work(void)
 		schedule_delayed_work(&g_vooc_chip->fastchg_work, 0);
 	}
 }
+
+static int vooc_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct oplus_vooc_chip *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size, ",%d,%d,%d",
+		oplus_vooc_get_fastchg_started(), oplus_vooc_get_fastchg_dummy_started(),
+		oplus_vooc_get_fastchg_to_normal() || oplus_vooc_get_fastchg_to_warm() || oplus_vooc_get_btb_temp_over());
+
+	return 0;
+}
+
+static int vooc_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct oplus_vooc_chip *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		",fastchg_start,dummy_start,vooc_online_keep");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_vooc_ops = {
+	.dev_name = "vooc",
+	.dump_log_head = vooc_get_log_head,
+	.dump_log_content = vooc_dump_log_data,
+};
+
 static ssize_t proc_fastchg_fw_update_write(struct file *file, const char __user *buff, size_t len, loff_t *data)
 {
 	struct oplus_vooc_chip *chip = PDE_DATA(file_inode(file));
@@ -2333,6 +2368,8 @@ void oplus_vooc_init(struct oplus_vooc_chip *chip)
 	INIT_DELAYED_WORK(&chip->bcc_get_max_min_curr, oplus_vooc_bcc_get_curr_func);
 	g_vooc_chip = chip;
 	chip->vops->eint_regist(chip);
+	battlog_vooc_ops.dev_data = (void *)chip;
+	battery_log_ops_register(&battlog_vooc_ops);
 	if (chip->vooc_fw_update_newmethod) {
 		if (oplus_is_rf_ftm_mode()) {
 			return;

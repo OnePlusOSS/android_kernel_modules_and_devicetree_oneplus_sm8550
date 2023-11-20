@@ -36,6 +36,7 @@
 #if IS_ENABLED(CONFIG_OPLUS_DYNAMIC_CONFIG_CHARGER)
 #include "oplus_cfg.h"
 #endif
+#include <oplus_battery_log.h>
 
 #define VOOC_BAT_VOLT_REGION	4
 #define VOOC_SOC_RANGE_NUM	3
@@ -46,8 +47,9 @@
 #define VOOC_BCC_STOP_CURR_NUM	6
 #define FASTCHG_MIN_CURR	2000
 
-#define BTB_TEMP_OVER_MAX_INPUT_CUR	1000
-#define OPLUS_VOOC_BCC_UPDATE_TIME	500
+#define SUBBOARD_TEMP_ABNORMAL_MAX_CURR		7300
+#define BTB_TEMP_OVER_MAX_INPUT_CUR		1000
+#define OPLUS_VOOC_BCC_UPDATE_TIME		500
 #define OPLUS_VOOC_BCC_UPDATE_INTERVAL	\
 	round_jiffies_relative(msecs_to_jiffies(OPLUS_VOOC_BCC_UPDATE_TIME))
 
@@ -225,6 +227,8 @@ struct oplus_chg_vooc {
 	bool check_curr_delay;
 
 	bool support_fake_vooc_check;
+	int subboard_ntc_abnormal_cool_down;
+	int subboard_ntc_abnormal_current;
 #if IS_ENABLED(CONFIG_OPLUS_DYNAMIC_CONFIG_CHARGER)
 	struct oplus_cfg spec_debug_cfg;
 	struct oplus_cfg normal_debug_cfg;
@@ -3073,6 +3077,18 @@ static void oplus_vooc_gauge_subs_callback(struct mms_subscribe *subs,
 			vote(chip->vooc_disable_votable, NON_STANDARD_VOTER,
 			     (!chip->batt_hmac || !chip->batt_auth), 0, false);
 			break;
+		case GAUGE_ITEM_SUBBOARD_TEMP_ERR:
+			rc = oplus_mms_get_item_data(chip->gauge_topic, id,
+						     &data, false);
+			if (rc < 0) {
+				chg_err("can't get GAUGE_ITEM_SUBBOARD_TEMP_ERR data, rc=%d\n",
+					rc);
+			} else {
+				chg_info("subboard temp err, max curr set %d\n", chip->subboard_ntc_abnormal_current);
+				vote(chip->vooc_curr_votable, BAD_SUBBOARD_VOTER, true,
+				     chip->subboard_ntc_abnormal_current, false);
+			}
+			break;
 		default:
 			break;
 		}
@@ -3849,6 +3865,38 @@ void oplus_vooc_fw_update_work_init(struct oplus_chg_vooc *chip)
 				      FASTCHG_FW_INTERVAL_INIT)));
 }
 
+static int vooc_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct oplus_chg_vooc *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size, ",%d,%d,%d,%d,%d,%d",
+		chip->vooc_online, chip->fastchg_started, chip->fastchg_ing, chip->vooc_online_keep, chip->sid, chip->adapter_id);
+
+	return 0;
+}
+
+static int vooc_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct oplus_chg_vooc *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		",vooc_online,vooc_started,vooc_charging,vooc_online_keep,vooc_sid,adapter_id");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_vooc_ops = {
+	.dev_name = "vooc",
+	.dump_log_head = vooc_get_log_head,
+	.dump_log_content = vooc_dump_log_data,
+};
+
 static void oplus_vooc_init_work(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);
@@ -3908,6 +3956,9 @@ static void oplus_vooc_init_work(struct work_struct *work)
 		rc = -ENODEV;
 		goto get_real_vooc_ic_err;
 	}
+
+	battlog_vooc_ops.dev_data = (void *)chip;
+	battery_log_ops_register(&battlog_vooc_ops);
 	rc = oplus_hal_vooc_init(chip->vooc_ic);
 	if (rc < 0)
 		goto hal_vooc_init_err;
@@ -4384,6 +4435,11 @@ static int oplus_vooc_parse_dt(struct oplus_chg_vooc *chip)
 	chip->vooc_fw_update_newmethod = get_fw_update_newmethod(node);
 	chg_info("oplus,vooc_fw_update_newmethod is %d\n",
 		 chip->vooc_fw_update_newmethod);
+
+	rc = of_property_read_u32(node, "oplus,subboard_ntc_abnormal_current", &chip->subboard_ntc_abnormal_current);
+	if (rc)
+		chip->subboard_ntc_abnormal_current = SUBBOARD_TEMP_ABNORMAL_MAX_CURR;
+	chg_info("subboard_ntc_abnormal_cool_down:%d\n", chip->subboard_ntc_abnormal_current);
 
 	chip->smart_chg_bcc_support =
 		of_property_read_bool(node, "oplus,smart_chg_bcc_support");

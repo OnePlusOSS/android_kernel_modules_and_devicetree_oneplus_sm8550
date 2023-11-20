@@ -421,6 +421,12 @@ static int sgm41512_input_current_limit_write(int value)
 	struct power_supply *battery_psy;
 	union power_supply_propval pval = {0, };
 	int ui_soc = 0;
+
+	if (g_oplus_chip == NULL) {
+		chg_err("g_oplus_chip is not ready, return\n");
+		return -EINVAL;
+	}
+
 	battery_psy = power_supply_get_by_name("battery");
 	if (!battery_psy) {
 		chg_err("battery psy not found; deferring probe\n");
@@ -582,9 +588,19 @@ aicl_rerun:
 		break;
 	}
 
-	if (g_oplus_chip && (g_oplus_chip->stop_chg == 0)) {
+	/*
+	* For the aging mode, check that stop_chg and mmi_chg are both 0 to limit the current
+	* For ATM mode, mmi_chg is 1, and the current is limited only when the port is SDP or CDP
+	*/
+
+	if ((g_oplus_chip->stop_chg == 0 && g_oplus_chip->mmi_chg == 0) ||
+	    ((g_oplus_chip->stop_chg == 0 && g_oplus_chip->mmi_chg == 1) &&
+	       (charger_type_sgm == POWER_SUPPLY_TYPE_USB ||
+	        charger_type_sgm == POWER_SUPPLY_TYPE_USB_CDP))) {
 		pr_err("%s: stop_chg, limit the input current to 100mA \n",  __func__);
-		rc = sgm41512_config_interface(chip, REG00_SGM41512_ADDRESS, REG00_SGM41512_INPUT_CURRENT_LIMIT_100MA, REG00_SGM41512_INPUT_CURRENT_LIMIT_MASK);
+		rc = sgm41512_config_interface(chip, REG00_SGM41512_ADDRESS,
+					REG00_SGM41512_INPUT_CURRENT_LIMIT_100MA,
+					REG00_SGM41512_INPUT_CURRENT_LIMIT_MASK);
 	}
 
 	return rc;
@@ -1627,8 +1643,8 @@ static int sgm41512_enable_charger_type_det(struct charger_device *dev, bool en)
 
 	pr_err("%s en=%d hiz=%d\n", __func__, en, hiz_status);
 
-	if (!chip) {
-		pr_err("%s chip null,return\n", __func__);
+	if (!chip || !g_oplus_chip) {
+		pr_err("%s chip, g_oplus_chip null,return\n", __func__);
 		return -1;
 	}
 
@@ -1642,8 +1658,15 @@ static int sgm41512_enable_charger_type_det(struct charger_device *dev, bool en)
 				__func__, oplus_vooc_get_fastchg_started(), oplus_chg_get_wait_for_ffc_flag(), oplus_voocphy_get_fastchg_dummy_start());
 		schedule_delayed_work(&sgm41512_threaded_irq_work, 0);
 	}  else if (en == 1) {
-		if (g_oplus_chip && (g_oplus_chip->stop_chg == 0))
-			sgm41512_input_current_limit_write(REG00_SGM41512_INPUT_CURRENT_LIMIT_100MA);
+		if ((g_oplus_chip->stop_chg == 0 && g_oplus_chip->mmi_chg == 0) ||
+		    ((g_oplus_chip->stop_chg == 0 && g_oplus_chip->mmi_chg == 1) &&
+		      (charger_type_sgm == POWER_SUPPLY_TYPE_USB ||
+		       charger_type_sgm == POWER_SUPPLY_TYPE_USB_CDP))) {
+			pr_err("%s: stop_chg, limit the input current to 100mA \n",  __func__);
+			sgm41512_config_interface(chip, REG00_SGM41512_ADDRESS,
+						REG00_SGM41512_INPUT_CURRENT_LIMIT_100MA,
+						REG00_SGM41512_INPUT_CURRENT_LIMIT_MASK);
+		}
 	}
 	return 0;
 }
@@ -1665,9 +1688,20 @@ static void register_charger_devinfo(void)
 		pr_err("register_charger_devinfo fail\n");
 }
 
+extern void oplus_chg_pullup_dp_set(bool is_on);
 extern void Charger_Detect_Init(void);
 extern void Charger_Detect_Release(void);
 extern bool is_usb_rdy(void);
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
+void __attribute__((weak)) oplus_chg_pullup_dp_set(bool is_on);
+#else
+void __attribute__((weak)) oplus_chg_pullup_dp_set(bool is_on)
+{
+}
+#endif
+
+
 static void hw_bc12_init(void)
 {
 	int timeout = 350;
@@ -1808,6 +1842,15 @@ enum charger_type mt_charger_type_detection_sgm41512(void)
 			}
 		}
 	}
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+	if (MTK_CHR_Type_num == CHARGING_HOST) {
+		Charger_Detect_Release();
+		oplus_chg_pullup_dp_set(true);
+		return MTK_CHR_Type_num;
+	} else {
+		oplus_chg_pullup_dp_set(false);
+	}
+#endif
 
 	Charger_Detect_Release();
 
@@ -2195,6 +2238,9 @@ static void do_sgm41512_threaded_irq_work(struct work_struct *data)
 				oplus_chg_set_chargerid_switch_val(0);
 				oplus_chg_clear_chargerid_info();
 			}
+		#ifdef CONFIG_OPLUS_CHARGER_MTK
+			oplus_chg_pullup_dp_set(false);
+		#endif
 			oplus_chg_set_charger_type_unknown();
 			oplus_chg_wake_update_work();
 		}

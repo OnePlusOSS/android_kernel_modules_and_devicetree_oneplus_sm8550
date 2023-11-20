@@ -30,7 +30,7 @@ mdss_iris_cfg_zonda_tianma_nt37705_1240_2772_dsc_cmd: pxlw,mdss_iris_cfg_zonda_t
   pxlw,panel-dimming-brightness = <4095>;
   pxlw,panel-te = <60>;
   pxlw,ap-te = <60>;
-  pxlw,esd-ctrl = <3>;
+  pxlw,esd-ctrl = <7>;
   pxlw,timing-cmd-map = [02 01 00 03 FF];
   pxlw,master-timing-cmd-map = [00 00 00 00 00];
   pxlw,frc-dsc-init-delay= <4047>;

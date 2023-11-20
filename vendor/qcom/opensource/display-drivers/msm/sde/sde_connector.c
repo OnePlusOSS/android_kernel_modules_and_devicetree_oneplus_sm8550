@@ -3571,7 +3571,8 @@ static int _sde_connector_install_properties(struct drm_device *dev,
 #ifdef OPLUS_FEATURE_DISPLAY
 		/* OPLUS_FEATURE_ADFR, qsync enhance */
 		/* add qsync min fps prop when DPU support and ADFR support */
-		if (dsi_display->panel->qsync_caps.qsync_support && oplus_adfr_is_support()) {
+		if (dsi_display && dsi_display->panel && dsi_display->panel->qsync_caps.qsync_support
+			&& oplus_adfr_is_support()) {
 			msm_property_install_range(&c_conn->property_info, "qsync_min_fps",
 					0x0, 0, ~0, 0, CONNECTOR_PROP_QSYNC_MIN_FPS);
 		}

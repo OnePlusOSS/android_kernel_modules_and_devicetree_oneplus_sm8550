@@ -130,6 +130,14 @@ u32 iris_fi_repeat_state_get(void)
 	return (rc == 0x3 || rc == 0x2) ? 1 : 0;
 }
 
+void iris_pwil0_intr_raw_clear(bool direct)
+{
+	if (direct)
+		iris_ocp_write_val(IRIS_PWIL_0_ADDR + 0x1fff0, 0xffff);
+	else
+		iris_frc_reg_add(IRIS_PWIL_0_ADDR + 0x1fff0, 0xffff, 0);
+}
+
 u32 iris_blending_flush_state_get(void)
 {
 	u32 rc = 0;
@@ -2115,12 +2123,13 @@ void irisSetExtMvFrc(struct extmv_frc_meta meta)
 		iris_emv_frc_mode_en_set(false);
 	}
 
+	iris_pwil0_intr_raw_clear(true);
 	if (iris_emv_debug > 0)
 		iris_pwil_0_regdump_get_debug();
 	if ((iris_emv_shock > 0) && (iris_emv_rescue_enable > 0))
 		iris_emv_mode_switch(IRIS_EMV_HEALTH_UP);
 	else
-		iris_health_care();
+		iris_health_care2();
 }
 
 bool iris_emv_game_size_changed(void)
@@ -2386,6 +2395,17 @@ bool iris_health_check(void)
 	if (iris_emv_shock_check())
 		return false;
 	return true;
+}
+
+bool iris_health_care2(void)
+{
+	if (!iris_health_check()) {
+		iris_emv_mode_switch(IRIS_EMV_HEALTH_DOWN);
+		udelay(3 * 1000);
+		iris_emv_mode_switch(IRIS_EMV_HEALTH_UP);
+		return true;
+	}
+	return false;
 }
 
 bool iris_emv_on_display_mode(u32 state)

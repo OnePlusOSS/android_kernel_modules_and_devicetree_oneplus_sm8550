@@ -611,7 +611,7 @@ static int __nu1619_write_reg(struct oplus_nu1619_ic *chip, int reg, int val)
 	return 0;
 }
 
-static int nu1619_write_reg_multi_byte(struct oplus_nu1619_ic *chip, int reg, char *cbuf, int length)
+/*static int nu1619_write_reg_multi_byte(struct oplus_nu1619_ic *chip, int reg, char *cbuf, int length)
 {
 	int ret;
 	int send_length;
@@ -643,7 +643,7 @@ static int nu1619_write_reg_multi_byte(struct oplus_nu1619_ic *chip, int reg, ch
 
 	kfree(data_w);
 	return 0;
-}
+}*/
 
 static int nu1619_read_reg(struct oplus_nu1619_ic *chip, int reg, char *returnData, int count)
 {
@@ -703,7 +703,7 @@ static int nu1619_write_cmd_D(struct oplus_nu1619_ic *chip, int val)
 
 static void nu1619_clear_irq(struct oplus_nu1619_ic *chip, char mark0, char mark1)
 {
-	char write_data[2] = {0, 0};
+	/*char write_data[2] = {0, 0};*/
 
 	chg_err("<~WPC~>nu1619_clear_irq----------\n");
 	nu1619_write_reg(chip, 0x0000, 0xff);
@@ -712,7 +712,7 @@ static void nu1619_clear_irq(struct oplus_nu1619_ic *chip, char mark0, char mark
 	nu1619_write_cmd_D(chip, 0x08);
 	return;
 
-	write_data[0] = 0x17 | mark0;
+	/*write_data[0] = 0x17 | mark0;
 	write_data[1] = 0x00 | mark1;
 	nu1619_write_reg_multi_byte(chip, 0x0038, write_data, 2);
 
@@ -722,7 +722,7 @@ static void nu1619_clear_irq(struct oplus_nu1619_ic *chip, char mark0, char mark
 
 	write_data[0] = 0x20;
 	write_data[1] = 0x00;
-	nu1619_write_reg_multi_byte(chip, 0x004E, write_data, 2);
+	nu1619_write_reg_multi_byte(chip, 0x004E, write_data, 2);*/
 }
 
 static void nu1619_set_FOD_parameter(struct oplus_nu1619_ic *chip, char parameter)
@@ -732,7 +732,7 @@ static void nu1619_set_FOD_parameter(struct oplus_nu1619_ic *chip, char paramete
 	}
 
 	return;
-	if (parameter == 17) {
+	/*if (parameter == 17) {
 		chg_err("<~WPC~>set FOD parameter BPP17\n");
 		nu1619_config_interface(chip, 0x0068, 0xBE, 0xFF);
 		nu1619_config_interface(chip, 0x0069, 0x78, 0xFF);
@@ -812,7 +812,7 @@ static void nu1619_set_FOD_parameter(struct oplus_nu1619_ic *chip, char paramete
 		nu1619_config_interface(chip, 0x0073, 0x7F, 0xFF);
 
 		chip->nu1619_chg_status.FOD_parameter = parameter;
-	}
+	}*/
 }
 
 static int nu1619_set_tx_Q_value(struct oplus_nu1619_ic *chip)
@@ -1382,10 +1382,10 @@ static void nu1619_reset_variables(struct oplus_nu1619_ic *chip)
 
 static void nu1619_init(struct oplus_nu1619_ic *chip)
 {
-	char write_data[2] = {0, 0};
+	/*char write_data[2] = {0, 0};*/
 	return;
 
-	write_data[0] = 0x17;
+	/*write_data[0] = 0x17;
 	write_data[1] = 0x00;
 	nu1619_write_reg_multi_byte(chip, 0x0038, write_data, 2);
 
@@ -1396,7 +1396,7 @@ static void nu1619_init(struct oplus_nu1619_ic *chip)
 
 	write_data[0] = 0x20;
 	write_data[1] = 0x00;
-	nu1619_write_reg_multi_byte(chip, 0x004E, write_data, 2);
+	nu1619_write_reg_multi_byte(chip, 0x004E, write_data, 2);*/
 }
 
 static void nu1619_charger_init(struct oplus_nu1619_ic *chip)
@@ -2128,6 +2128,8 @@ static int nu1619_write_firmware_data(struct oplus_nu1619_ic *chip, unsigned sho
 	if (addr == 4864) {
 		fw_data = chip->fw_tx_data;
 	}
+	if (fw_data == NULL)
+		return -EINVAL;
 	chg_err("[nu1619] addr=%d length=%d \n", addr, length);
 	addr_h = (char)(addr >> 8);
 	addr_l = (char)(addr & 0xff);
@@ -2874,26 +2876,26 @@ static int nu1619_detect_CEP(struct oplus_nu1619_ic * chip)
 #ifndef FASTCHG_TEST_BY_TIME
 static int nu1619_get_work_freq(struct oplus_nu1619_ic *chip, int *val)
 {
-	int rc;
-	char temp;
+	/*int rc;
+	char temp;*/
 return 0;
-	rc = nu1619_read_reg(chip, 0x5e, &temp, 1);
+	/*rc = nu1619_read_reg(chip, 0x5e, &temp, 1);
 	if (rc) {
 		chg_err("Couldn't read rx freq val, rc = %d\n", rc);
 		return rc;
 	}
 	*val = (int)temp;
-	return rc;
+	return rc;*/
 }
 #endif
 
 static int nu1619_get_special_ID(struct oplus_nu1619_ic *chip)
 {
-	int rc;
-	char temp[2];
+	/*int rc;
+	char temp[2];*/
 
 return 0;
-	rc = nu1619_read_reg(chip, 0xA2, temp, 2);
+	/*rc = nu1619_read_reg(chip, 0xA2, temp, 2);
 	if (rc) {
 		chg_err("Couldn't read rx freq val, rc = %d\n", rc);
 		return -1;
@@ -2904,7 +2906,7 @@ return 0;
 		return -1;
 	} else {
 		return 0;
-	}
+	}*/
 }
 
 static bool nu1619_get_self_reset(void)
@@ -5750,7 +5752,7 @@ static int nu1619_charge_status_process(struct oplus_nu1619_ic *chip)
 			break;
 		}
 		chargepump_enable();
-		chargepump_check_dwp_status();
+		(void)chargepump_check_dwp_status();
 		if (chargepump_check_dwp_status() == -1) {
 			chg_err("<~WPC~> open chargepump false!\n");
 			chargepump_disable();
@@ -6908,7 +6910,7 @@ static void nu1619_get_running_mode(struct oplus_nu1619_ic *chip)
 	int count = 20;
 	int retry_count = 3;
 	char val_buf[5] = { 0, 0, 0, 0, 0 };
-	char temp;
+	char temp = 0;
 
 	if (atomic_read(&chip->suspended) == 1) {
 		while (count--) {

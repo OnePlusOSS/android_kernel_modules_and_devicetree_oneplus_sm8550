@@ -89,6 +89,26 @@ extern int explorer_send_mbox(struct explorer_plat_data *epd,
 			      u32 sync, u32 mod_id,
 			      u32 sub_id, void *data);
 
+static void explorer_awake_init(struct explorer_plat_data *chip)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
+	wake_lock_init(&chip->suspend_lock, WAKE_LOCK_SUSPEND,
+		       "explorer_wakelock");
+#else
+	chip->suspend_ws = wakeup_source_register(NULL, "explorer_wakelock");
+	pr_err("%s wakeup_source_register:%p.\n", __func__, chip->suspend_ws);
+#endif
+}
+
+static void explorer_awake_exit(struct explorer_plat_data *chip)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
+	wake_lock_destroy(&chip->suspend_lock);
+#else
+	wakeup_source_unregister(chip->suspend_ws);
+#endif
+}
+
 static int explorer_open(struct inode *nodp, struct file *filp)
 {
 	struct miscdevice *miscdev = (struct miscdevice *)filp->private_data;
@@ -3962,6 +3982,9 @@ static int explorer_probe(struct platform_device *plat_dev)
 	/* init slt */
 	explorer_sdio_slt_test_case_init();
 #endif
+
+	explorer_awake_init(plat_priv);
+
 	pr_info("%s, done.\n", __func__);
 	return 0;
 
@@ -4024,6 +4047,8 @@ static int explorer_remove(struct platform_device *plat_dev)
 		kfree(training_data_buf);
 		training_data_buf = NULL;
 	}
+
+	explorer_awake_exit(plat_priv);
 
 	return 0;
 }

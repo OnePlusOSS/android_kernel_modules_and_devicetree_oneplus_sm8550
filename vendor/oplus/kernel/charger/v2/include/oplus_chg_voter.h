@@ -89,6 +89,7 @@ enum votable_type {
 #define PARALLEL_VOTER		"PARALLEL_VOTER"
 #define BOOT_FASTCHG_ALLOW_VOTER	"BOOT_FASTCHG_ALLOW_VOTER"
 #define SVOOC_CURR_OCP_VOTER	"SVOOC_CURR_OCP_VOTER"
+#define BAD_SUBBOARD_VOTER	"BAD_SUBBOARD_VOTER"
 
 bool is_client_vote_enabled(struct votable *votable, const char *client_str);
 bool is_client_vote_enabled_locked(struct votable *votable,

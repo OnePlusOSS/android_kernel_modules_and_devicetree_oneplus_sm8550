@@ -130,6 +130,15 @@ int oplus_panel_features_config(struct dsi_panel *panel)
 	LCD_INFO("oplus,pwm-switch-support: %s\n",
 			panel->oplus_priv.pwm_switch_support ? "true" : "false");
 
+	panel->oplus_priv.pwm_onepulse_support = utils->read_bool(utils->data,
+			"oplus,pwm-onepulse-support");
+	LCD_INFO("oplus,pwm-onepulse-support: %s\n",
+			panel->oplus_priv.pwm_onepulse_support ? "true" : "false");
+	panel->oplus_priv.pwm_onepulse_enabled = utils->read_bool(utils->data,
+			"oplus,pwm-onepulse-default-enabled");
+	LCD_INFO("oplus,pwm-onepulse-default-enabled: %s\n",
+			panel->oplus_priv.pwm_onepulse_enabled ? "true" : "false");
+
 	panel->oplus_priv.dynamic_demua_support = utils->read_bool(utils->data,
 			"oplus,dynamic-demua-support");
 	LCD_INFO("oplus,dynamic-demua-supportt: %s\n",

@@ -58,6 +58,7 @@ extern void mt_power_off(void);
 #include <oplus_chg_module.h>
 #include <oplus_chg_ic.h>
 #include <oplus_mms_wired.h>
+#include <oplus_battery_log.h>
 
 /* TODO */
 #define WPC_TERMINATION_CURRENT		100
@@ -89,6 +90,9 @@ int mp2650_get_vbus_voltage(void);
 static int mp2650_set_charger_vsys_threshold(struct chip_mp2650 *chip, int val);
 static int mp2650_burst_mode_enable(bool enable);
 static int mp2650_reg_dump_internal(void);
+
+#define BATTERY_LOG_REG_MAX_SIZE 100
+char buck_ic_reg_info[BATTERY_LOG_REG_MAX_SIZE] = {0};
 
 static DEFINE_MUTEX(mp2650_i2c_access);
 
@@ -2945,7 +2949,7 @@ static int mp2650_exit(struct oplus_chg_ic_dev *ic_dev)
 	return 0;
 }
 
-#define MP2650_DUMP_REG_COUNT   0x14
+#define MP2650_DUMP_REG_COUNT   0x15
 static int mp2650_reg_dump_internal(void)
 {
 	int rc = 0;
@@ -2970,13 +2974,21 @@ static int mp2650_reg_dump_internal(void)
 
 	printk(KERN_INFO "mp2650_dump_reg: [%02x, %02x, %02x, %02x], [%02x, %02x, %02x, %02x], "
 			"[%02x, %02x, %02x, %02x], [%02x, %02x, %02x, %02x], "
-			"[%02x, %02x, %02x, %02x], reg[0x48]=%02x \n",
+			"[%02x, %02x, %02x, %02x], reg[0x14]=%02x,reg[0x48]=%02x \n",
 			val_buf[0], val_buf[1], val_buf[2], val_buf[3],
 			val_buf[4], val_buf[5], val_buf[6], val_buf[7],
 			val_buf[8], val_buf[9], val_buf[10], val_buf[11],
 			val_buf[12], val_buf[13], val_buf[14], val_buf[15],
 			val_buf[16], val_buf[17], val_buf[18], val_buf[19],
-			val_buf[20]);
+			val_buf[20], val_buf[21]);
+
+	memset(buck_ic_reg_info, 0, BATTERY_LOG_REG_MAX_SIZE);
+	snprintf(buck_ic_reg_info, BATTERY_LOG_REG_MAX_SIZE,
+		",0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,"
+		"0x%02x,0x%02x,0x%02x,0x%02x",
+		val_buf[0], val_buf[1], val_buf[2], val_buf[4], val_buf[8],
+		val_buf[9], val_buf[19], val_buf[20], val_buf[21]);
+
 	return 0;
 }
 
@@ -2985,6 +2997,38 @@ static int mp2650_reg_dump(struct oplus_chg_ic_dev *ic_dev)
 	int rc = mp2650_reg_dump_internal();
 	return rc;
 }
+
+static int buck_ic_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct chip_mp2650 *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	strncpy(buffer, buck_ic_reg_info, sizeof(buck_ic_reg_info));
+
+	return 0;
+}
+
+static int buck_ic_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct chip_mp2650 *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		",in_curr[0x00],in_volt[0x01],chg_curr[0x02],chg_full[0x04],chg&otg_enable[0x08],"
+		"chg_terminal_enable[0x09],status_reg[0x13],fault_reg[0x14],Hiz_enable[0x48]");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_buck_ic_ops = {
+	.dev_name = "buck_ic",
+	.dump_log_head = buck_ic_get_log_head,
+	.dump_log_content = buck_ic_dump_log_data,
+};
 
 static int mp2650_smt_test(struct oplus_chg_ic_dev *ic_dev, char buf[], int len)
 {
@@ -3472,6 +3516,8 @@ static int mp2650_driver_probe(struct i2c_client *client,
 		chg_err("can't get ic index, rc=%d\n", ret);
 		goto reg_ic_err;
 	}
+	battlog_buck_ic_ops.dev_data = (void *)chg_ic;
+	battery_log_ops_register(&battlog_buck_ic_ops);
 	ic_cfg.name = node->name;
 	ic_cfg.index = ic_index;
 	sprintf(ic_cfg.manu_name, "buck/boost-mp2762");

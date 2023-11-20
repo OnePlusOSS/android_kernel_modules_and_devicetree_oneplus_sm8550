@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2023, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include "adreno.h"
@@ -206,6 +206,7 @@ static size_t gen7_snapshot_registers(struct kgsl_device *device, u8 *buf,
 static size_t gen7_legacy_snapshot_shader(struct kgsl_device *device,
 				u8 *buf, size_t remain, void *priv)
 {
+	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
 	struct kgsl_snapshot_shader_v2 *header =
 		(struct kgsl_snapshot_shader_v2 *) buf;
 	struct gen7_shader_block_info *info = (struct gen7_shader_block_info *) priv;
@@ -217,6 +218,20 @@ static size_t gen7_legacy_snapshot_shader(struct kgsl_device *device,
 	if (remain < (sizeof(*header) + (block->size << 2))) {
 		SNAPSHOT_ERR_NOMEM(device, "SHADER MEMORY");
 		return 0;
+	}
+
+	/*
+	 * If crashdumper times out, accessing some readback states from
+	 * AHB path might fail. Hence, skip SP_INST_TAG and SP_INST_DATA*
+	 * state types during snapshot dump in legacy flow.
+	 */
+	if (adreno_is_gen7_0_0(adreno_dev) || adreno_is_gen7_0_1(adreno_dev) ||
+		adreno_is_gen7_4_0(adreno_dev)) {
+		if (block->statetype == SP_INST_TAG ||
+			block->statetype == SP_INST_DATA ||
+			block->statetype == SP_INST_DATA_1 ||
+			block->statetype == SP_INST_DATA_2)
+			return 0;
 	}
 
 	header->type = block->statetype;
@@ -545,6 +560,10 @@ static void gen7_snapshot_shader(struct kgsl_device *device,
 	unsigned int usptp;
 	size_t (*func)(struct kgsl_device *device, u8 *buf, size_t remain,
 		void *priv) = gen7_legacy_snapshot_shader;
+	struct adreno_device *adreno_dev = ADRENO_DEVICE(device);
+
+	if (adreno_is_gen7_0_x_family(adreno_dev))
+		kgsl_regrmw(device, GEN7_SP_DBG_CNTL, GENMASK(1, 0), 3);
 
 	if (CD_SCRIPT_CHECK(device)) {
 		for (i = 0; i < num_shader_blocks; i++) {
@@ -564,7 +583,8 @@ static void gen7_snapshot_shader(struct kgsl_device *device,
 				}
 			}
 		}
-		return;
+
+		goto done;
 	}
 
 	for (i = 0; i < num_shader_blocks; i++) {
@@ -610,6 +630,10 @@ static void gen7_snapshot_shader(struct kgsl_device *device,
 			}
 		}
 	}
+
+done:
+	if (adreno_is_gen7_0_x_family(adreno_dev))
+		kgsl_regrmw(device, GEN7_SP_DBG_CNTL, GENMASK(1, 0), 0x0);
 }
 
 static void gen7_snapshot_mempool(struct kgsl_device *device,
@@ -621,11 +645,11 @@ static void gen7_snapshot_mempool(struct kgsl_device *device,
 
 	kgsl_snapshot_indexed_registers(device, snapshot,
 		GEN7_CP_MEM_POOL_DBG_ADDR, GEN7_CP_MEM_POOL_DBG_DATA,
-		0, 0x2100);
+		0, 0x2200);
 
 	kgsl_snapshot_indexed_registers(device, snapshot,
 		GEN7_CP_BV_MEM_POOL_DBG_ADDR, GEN7_CP_BV_MEM_POOL_DBG_DATA,
-		0, 0x2100);
+		0, 0x2200);
 
 	kgsl_regrmw(device, GEN7_CP_CHICKEN_DBG, 0x4, 0x0);
 	kgsl_regrmw(device, GEN7_CP_BV_CHICKEN_DBG, 0x4, 0x0);

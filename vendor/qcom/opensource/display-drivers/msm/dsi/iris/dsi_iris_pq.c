@@ -623,32 +623,50 @@ void iris_ioinc_filter_ratio_send(void)
 
 }
 
-void iris_crst_coef_check(const u8 *fw_data, size_t fw_size)
+bool iris_crst_coef_check(const u8 *fw_data, size_t fw_size)
 {
 	u32 len = 0;
+	u32 crstk_coef_group = 0;
+	bool ret = false;
+	crstk_coef_group = CRSTK_COEF_GROUP;
 
-	if (fw_size < ((CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP))
-		IRIS_LOGE("fw_size should be = %d bytes", (CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP);
+	if (fw_size < ((CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * crstk_coef_group)) {
+		IRIS_LOGE("fw_size should be = %d bytes", (CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * crstk_coef_group);
+		return false;
+	}
 	else
 		len = fw_size;
 
+	kfree(iris_crstk_coef_buf);
+	iris_crstk_coef_buf = NULL;
+	IRIS_LOGI("kfree iris_crstk_coef_buf");
+
 	if (iris_crstk_coef_buf == NULL) {
 		if (len == 0)
-			len = (CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP;
+			len = (CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * crstk_coef_group;
 
 		iris_crstk_coef_buf = kzalloc(len, GFP_KERNEL);
+		IRIS_LOGI("kzalloc iris_crstk_coef_buf add_ress: 0x%x", &iris_crstk_coef_buf[0]);
 	}
 	if (!iris_crstk_coef_buf) {
 		IRIS_LOGE("%s:failed to alloc mem iris_crstk_coef_buf:%p",
 			__func__, iris_crstk_coef_buf);
-		return;
+		return false;
 	}
 	IRIS_LOGI("crs_fw size: %d", len);
-	//memcpy(&iris_crstk_coef_buf[0], (fw_data), ((CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP));
 	memcpy(&iris_crstk_coef_buf[0], (fw_data), len);
 
-	IRIS_LOGI("csc2 or precsc: 0x%x,\n", iris_crstk_coef_buf[len/2 - 1]);
+	IRIS_LOGI("csc2 or precsc: 0x%x", iris_crstk_coef_buf[len/2 - 1]);
 
+	if (iris_crstk_coef_buf[len/2 - 1] == 0xaaaa || iris_crstk_coef_buf[len/2 - 1] == 0x5555) {
+		IRIS_LOGI("csc2 or precsc data check OK!");
+		ret = true;
+	} else {
+		IRIS_LOGI("csc2 or precsc data eheck error!");
+		ret = false;
+	}
+
+	return ret;
 }
 
 void iris_pq_parameter_init(void)
@@ -1594,7 +1612,7 @@ static u32 validate_hdr_scale(u64 hdr_nit, u64 ratio_panel, u32 edr_ratio)
 
 	switch (edr_ratio) {
 		case 0x3:
-			if (hdr_nit_new >= 0 && hdr_nit_new <= 60 * 10000) {
+			if (hdr_nit_new <= 60 * 10000) {
 				if (ratio_panel > 2 * 10000)
 					ratio_panel = 2 * 10000;
 			} else if (hdr_nit_new > 60 * 10000 && hdr_nit_new <= 450 * 10000) {
@@ -1609,7 +1627,7 @@ static u32 validate_hdr_scale(u64 hdr_nit, u64 ratio_panel, u32 edr_ratio)
 				ratio_panel = 10000;
 			break;
 		case 0x2:
-			if (hdr_nit_new >= 0 && hdr_nit_new <= 60 * 10000) {
+			if (hdr_nit_new <= 60 * 10000) {
 				if (ratio_panel > 2 * 10000)
 					ratio_panel = 2 * 10000;
 			} else if (hdr_nit_new > 60 * 10000 && hdr_nit_new <= 375 * 10000) {
@@ -1625,7 +1643,7 @@ static u32 validate_hdr_scale(u64 hdr_nit, u64 ratio_panel, u32 edr_ratio)
 			break;
 		case 0x1:
 		default:
-			if (hdr_nit_new >= 0 && hdr_nit_new <= 60 * 10000) {
+			if (hdr_nit_new <= 60 * 10000) {
 				if (ratio_panel > 2 * 10000)
 					ratio_panel = 2 * 10000;
 			} else if (hdr_nit_new > 60 * 10000 && hdr_nit_new <= 300 * 10000) {
@@ -2160,12 +2178,22 @@ void iris_sdr2hdr_level_set(u32 level)
 		payload = iris_get_ipopt_payload_data(IRIS_IP_SDR2HDR, 0xc0 + level, 2);
 		if (!payload)
 			return;
-		if (pcfg->pt_sr_enable == false) {
-			payload[0] = iris_de_default[level * 2];
-			payload[9] = iris_de_default[level * 2 + 1];
+		if (pcfg->frc_enabled || pcfg->pwil_mode == FRC_MODE || iris_is_pmu_dscu_on()) {
+			if (pcfg->frcgame_pq_guided_level > 1) {
+				payload[0] = iris_de_disable[0];
+				payload[9] = iris_de_disable[1];
+			} else {
+				payload[0] = iris_de_default[level * 2];
+				payload[9] = iris_de_default[level * 2 + 1];
+			}
 		} else {
-			payload[0] = iris_de_disable[0];
-			payload[9] = iris_de_disable[1];
+			if (pcfg->pt_sr_enable == false) {
+				payload[0] = iris_de_default[level * 2];
+				payload[9] = iris_de_default[level * 2 + 1];
+			} else {
+				payload[0] = iris_de_disable[0];
+				payload[9] = iris_de_disable[1];
+			}
 		}
 		iris_update_ip_opt(IRIS_IP_SDR2HDR, 0x10 + level, 0x01);
 
@@ -2695,7 +2723,7 @@ void iris_sdr2hdr_set_ftc(u32 value)
 	IRIS_LOGI("%s(), value: %u", __func__, value);
 }
 
-void iris_sdr2hdr_set_degain(void)
+void iris_sdr2hdr_set_degain(u32 mode)
 {
 	uint32_t  *payload = NULL;
 	struct iris_setting_info *iris_setting = iris_get_setting();
@@ -2710,12 +2738,23 @@ void iris_sdr2hdr_set_degain(void)
 	payload = iris_get_ipopt_payload_data(IRIS_IP_SDR2HDR, option, 2);
 	if (!payload)
 		return;
-	if (pcfg->pt_sr_enable == false) {
-		payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
-		payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+	if (pcfg->frc_enabled || pcfg->pwil_mode == FRC_MODE || iris_is_pmu_dscu_on()
+		|| mode == FRC_MODE) {
+		if (pcfg->frcgame_pq_guided_level > 1) {
+			payload[0] = iris_de_disable[0];
+			payload[9] = iris_de_disable[1];
+		} else {
+			payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
+			payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+		}
 	} else {
-		payload[0] = iris_de_disable[0];
-		payload[9] = iris_de_disable[1];
+		if (pcfg->pt_sr_enable == false) {
+			payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
+			payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+		} else {
+			payload[0] = iris_de_disable[0];
+			payload[9] = iris_de_disable[1];
+		}
 	}
 	iris_init_update_ipopt_t(IRIS_IP_SDR2HDR, option, option, 0x01);
 
@@ -4072,6 +4111,7 @@ void iris_sr_level_set(u32 mode, u32 guided_level, u32 dejaggy_level, u32 peakin
 			pcfg->frc_pq_peaking_level = peaking_level;
 			pcfg->frc_pq_DLTI_level = DLTI_level;
 		}
+		iris_sdr2hdr_set_degain(mode);
 	} else {
 		pcfg->pt_sr_guided_level = guided_level;
 		pcfg->pt_sr_dejaggy_level = dejaggy_level;

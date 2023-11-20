@@ -61,6 +61,7 @@ extern void oplus_sde_cp_crtc_pcc_change(struct drm_crtc *crtc_drm);
 
 #if defined(CONFIG_PXLW_IRIS)
 #include "dsi_iris_api.h"
+extern u32 iris_pq_disable;
 #endif
 
 #define SDE_PSTATES_MAX (SDE_STAGE_MAX * 4)
@@ -3726,6 +3727,12 @@ static int _sde_crtc_check_dest_scaler_data(struct drm_crtc *crtc,
 		goto err;
 
 disable:
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (iris_pq_disable > 0)) {
+		//need to disable detail enhancer in dual memc
+		_sde_crtc_check_dest_scaler_data_disable(crtc, cstate, 0);
+	} else
+#endif
 	_sde_crtc_check_dest_scaler_data_disable(crtc, cstate, num_ds_enable);
 	return 0;
 

@@ -984,6 +984,10 @@ void mtk_charger_int_handler(void)
 {
 #ifdef OPLUS_FEATURE_CHG_BASIC
 	chr_err("%s\n", __func__);
+	if (!g_oplus_chip) {
+		chg_err("g_oplus_chip is null\n");
+		return;
+	}
 	if (is_mtksvooc_project == false) {
 		if (mt_get_charger_type() != CHARGER_UNKNOWN) {
 			oplus_wake_up_usbtemp_thread();

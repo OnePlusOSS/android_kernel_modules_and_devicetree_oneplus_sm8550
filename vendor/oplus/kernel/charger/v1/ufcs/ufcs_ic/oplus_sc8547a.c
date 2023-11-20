@@ -909,6 +909,11 @@ static int sc8547_reset_voocphy(struct oplus_voocphy_manager *chip)
 
 	/* turn off mos */
 	sc8547_write_byte(chip->client, SC8547_REG_07, 0x0);
+	/* sc8547b need disable WDT when exit charging, to avoid after WDT time out.
+	IF time out, sc8547b will trigger interrupt frequently.
+	in addition, sc8547 and sc8547b WDT will disable when disable CP */
+	sc8547_update_bits(chip->client, SC8547_REG_09,
+			   SC8547_WATCHDOG_MASK, SC8547_WATCHDOG_DIS);
 	/* hwic config with plugout */
 	reg_data = 0x20 | (chip->ovp_reg & 0x1f);
 	sc8547_write_byte(chip->client, SC8547_REG_00, reg_data);
@@ -971,6 +976,29 @@ static int sc8547_reactive_voocphy(struct oplus_voocphy_manager *chip)
 	pr_info("oplus_vooc_reactive_voocphy done");
 
 	return VOOCPHY_SUCCESS;
+}
+
+static int sc8547a_set_ufcs_enable(struct oplus_voocphy_manager *chip, bool enable)
+{
+	int ret = 0;
+
+	if (!chip) {
+		pr_err("Failed\n");
+		return -1;
+	}
+	if (enable) {
+		ret = sc8547_write_byte(chip->client, SC8547_REG_07, 0x80);
+		ret = sc8547_write_byte(chip->client, SC8547_REG_09, 0x14);
+	} else {
+		ret = sc8547_write_byte(chip->client, SC8547_REG_07, 0x0);
+		ret = sc8547_write_byte(chip->client, SC8547_REG_09, 0x14);
+	}
+	chg_err("set enable = %d\n", enable);
+	if (ret < 0) {
+		chg_err("SC8547_REG_07 fail\n");
+		return -1;
+	}
+	return ret;
 }
 
 static irqreturn_t sc8547a_charger_interrupt(int irq, void *dev_id)
@@ -1436,6 +1464,7 @@ static struct oplus_voocphy_operations oplus_sc8547_ops = {
 	.get_pd_svooc_config = sc8547_get_pd_svooc_config,
 	.get_voocphy_enable = sc8547_get_voocphy_enable,
 	.dump_voocphy_reg = sc8547_dump_reg_in_err_issue,
+	.set_ufcs_enable = sc8547a_set_ufcs_enable,
 };
 
 static int sc8547_charger_choose(struct oplus_voocphy_manager *chip)

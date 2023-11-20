@@ -36,6 +36,7 @@
 #include "charger_ic/oplus_switching.h"
 #include "oplus_ufcs.h"
 #include "oplus_chg_exception.h"
+#include "oplus_quirks.h"
 
 #undef pr_fmt
 #define pr_fmt(fmt) "OPLUS_CHG[TRACK]: %s[%d]: " fmt, __func__, __LINE__
@@ -766,6 +767,7 @@ static struct flag_reason_table track_flag_reason_table[] = {
 	{ TRACK_NOTIFY_FLAG_MOS_ERROR_ABNORMAL, "MosError" },
 	{ TRACK_NOTIFY_FLAG_HK_ABNORMAL, "HouseKeepingAbnormal" },
 	{ TRACK_NOTIFY_FLAG_UFCS_IC_ABNORMAL, "UFCSICAbnormal" },
+	{ TRACK_NOTIFY_FLAG_ADAPTER_ABNORMAL, "AdapterAbnormal" },
 
 	{ TRACK_NOTIFY_FLAG_UFCS_ABNORMAL, "UfcsAbnormal" },
 	{ TRACK_NOTIFY_FLAG_COOLDOWN_ABNORMAL, "CoolDownAbnormal" },
@@ -982,6 +984,7 @@ static struct oplus_chg_track_ufcs_err_reason ufcs_err_reason_table[] = {
 	{ TRACK_UFCS_ERR_STARTUP_FAIL, "startup_fail" },
 	{ TRACK_UFCS_ERR_CIRCUIT_SWITCH, "circuit_switch" },
 	{ TRACK_UFCS_ERR_ANTHEN_ERR, "ahthen_err" },
+	{ TRACK_UFCS_ERR_PDO_ERR, "pdo_err" },
 
 	{ TRACK_UFCS_ERR_WDT_TIMEOUT, "Watchdog_Timeout" },
 	{ TRACK_UFCS_ERR_TEMP_SHUTDOWN, "Temperature_Shutdown" },
@@ -2547,8 +2550,8 @@ static int oplus_chg_track_get_chg_abnormal_reason_info(int notify_code, struct 
 				index += snprintf(&(track_status->chg_abnormal_reason[index]),
 						  OPLUS_CHG_TRACK_CHG_ABNORMAL_REASON_LENS - index, ",%s",
 						  chg_abnormal_reason_table[i].reason);
-			break;
 			charge_index = i;
+			break;
 		}
 	}
 
@@ -2774,6 +2777,14 @@ static int oplus_chg_track_parse_dt(struct oplus_chg_track *track_dev)
 	rc = of_property_count_elems_of_size(node, "track,olc_config", sizeof(u64));
 	if (rc < 0) {
 		pr_err("Count track_olc_config failed, rc=%d\n", rc);
+#ifndef CONFIG_DISABLE_OPLUS_FUNCTION
+		if (get_eng_version() == PREVERSION) {
+			chg_err("preversion open SocJump NoCharging FastChgBreak olc config\n");
+			track_dev->track_cfg.exception_data.olc_config[0] = 0x2;
+			track_dev->track_cfg.exception_data.olc_config[2] = 0x1;
+			track_dev->track_cfg.exception_data.olc_config[4] = 0x1;
+		}
+#endif
 	} else {
 		length = rc;
 		if (length > OLC_CONFIG_NUM_MAX)
@@ -3836,7 +3847,9 @@ static int oplus_chg_track_pack_dcs_info(struct oplus_chg_track *chip)
 	ret += snprintf(&p_data[ret], OPLUS_CHG_TRIGGER_MSG_LEN - ret, "$$track_ver@@%s", TRACK_VERSION);
 
 	oplus_chg_track_get_type_tag(chip->trigger_data.type_reason, type_reason_tag);
+	type_reason_tag[OPLUS_CHG_TRIGGER_REASON_TAG_LEN - 1] = 0;
 	oplus_chg_track_get_flag_tag(chip->trigger_data.flag_reason, flag_reason_tag);
+	flag_reason_tag[OPLUS_CHG_TRIGGER_REASON_TAG_LEN - 1] = 0;
 	ret += snprintf(&p_data[ret], OPLUS_CHG_TRIGGER_MSG_LEN - ret, "$$type_reason@@%s", type_reason_tag);
 	ret += snprintf(&p_data[ret], OPLUS_CHG_TRIGGER_MSG_LEN - ret, "$$flag_reason@@%s", flag_reason_tag);
 
@@ -4497,7 +4510,8 @@ static void oplus_chg_track_record_break_charging_info(struct oplus_chg_track *t
 				  (power_info.wired_info.power >= track_status->wired_max_power));
 
 		index += snprintf(&(track_chip->charging_break_trigger.crux_info[index]),
-				  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$online@@%d", track_status->wired_online);
+				  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$online@@%d",
+				  track_status->wired_online || oplus_quirks_keep_connect_status());
 		if (strlen(track_status->fastchg_break_info.name)) {
 			index += snprintf(&(track_chip->charging_break_trigger.crux_info[index]),
 					  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$voocphy_name@@%s",
@@ -4508,12 +4522,19 @@ static void oplus_chg_track_record_break_charging_info(struct oplus_chg_track *t
 		}
 		if (track_status->fastchg_break_val) {
 			index += snprintf(&(track_chip->charging_break_trigger.crux_info[index]),
-					  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$err_val@@%s",
+					  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$err_val@@%d",
 					  track_status->fastchg_break_val);
 		}
 		if (strlen(sub_crux_info)) {
 			index += snprintf(&(track_chip->charging_break_trigger.crux_info[index]),
 					  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$crux_info@@%s", sub_crux_info);
+		}
+		if (oplus_vooc_get_abnormal_adapter_current_cnt() > 0 &&
+		    chip->abnormal_adapter_dis_cnt > 0) {
+			index += snprintf(&(track_chip->charging_break_trigger.crux_info[index]),
+					  OPLUS_CHG_TRACK_CURX_INFO_LEN - index,
+					  "$$dev_id@@adapter$$err_reason@@impedance_large$$dis_cnt@@%d",
+					  chip->abnormal_adapter_dis_cnt);
 		}
 		pr_debug("wired[%s]\n", track_chip->charging_break_trigger.crux_info);
 	} else if (power_info.power_type == TRACK_CHG_TYPE_WIRELESS) {
@@ -4935,7 +4956,14 @@ int oplus_chg_track_check_wired_charging_break(int vbus_rising)
 			if (!break_recording) {
 				pr_debug("should report\n");
 				break_recording = true;
-				track_chip->charging_break_trigger.flag_reason = TRACK_NOTIFY_FLAG_FAST_CHARGING_BREAK;
+				if (oplus_vooc_get_abnormal_adapter_current_cnt() > 0 &&
+				    chip->abnormal_adapter_dis_cnt > 0) {
+					track_chip->charging_break_trigger.type_reason = TRACK_NOTIFY_TYPE_DEVICE_ABNORMAL;
+					track_chip->charging_break_trigger.flag_reason = TRACK_NOTIFY_FLAG_ADAPTER_ABNORMAL;
+				} else {
+					track_chip->charging_break_trigger.type_reason = TRACK_NOTIFY_TYPE_CHARGING_BREAK;
+					track_chip->charging_break_trigger.flag_reason = TRACK_NOTIFY_FLAG_FAST_CHARGING_BREAK;
+				}
 				oplus_chg_track_match_fastchg_break_reason(track_chip);
 				oplus_chg_track_record_break_charging_info(track_chip, chip, power_info,
 									   track_chip->wired_break_crux_info);
@@ -4951,6 +4979,7 @@ int oplus_chg_track_check_wired_charging_break(int vbus_rising)
 			   !track_status->fastchg_break_info.code && track_status->mmi_chg) {
 			if (!break_recording) {
 				break_recording = true;
+				track_chip->charging_break_trigger.type_reason = TRACK_NOTIFY_TYPE_CHARGING_BREAK;
 				track_chip->charging_break_trigger.flag_reason =
 					TRACK_NOTIFY_FLAG_GENERAL_CHARGING_BREAK;
 				oplus_chg_track_record_break_charging_info(track_chip, chip, power_info,

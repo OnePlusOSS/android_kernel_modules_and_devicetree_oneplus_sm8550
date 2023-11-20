@@ -2096,6 +2096,7 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	"qcom,mdss-dsi-hbm-on-command",
+	"qcom,mdss-dsi-hbm-on-onepulse-command",
 	"qcom,mdss-dsi-hbm-off-command",
 	"qcom,mdss-dsi-aor-on-command",
 	"qcom,mdss-dsi-aor-off-command",
@@ -2132,6 +2133,9 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-loading-effect-off-command",
 	"qcom,mdss-dsi-hbm-enter-switch-command",
 	"qcom,mdss-dsi-hbm-exit-switch-command",
+	"qcom,mdss-dsi-pwm-switch-onepulse-command",
+	"qcom,mdss-dsi-timming-pwm-switch-onepulse-command",
+	"qcom,mdss-dsi-pwm-switch-threepulse-command",
 	"qcom,mdss-dsi-pwm-switch-high-command",
 	"qcom,mdss-dsi-pwm-switch-low-command",
 	"qcom,mdss-dsi-timming-pwm-switch-high-command",
@@ -2212,6 +2216,7 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	"qcom,mdss-dsi-hbm-on-command-state",
+	"qcom,mdss-dsi-hbm-on-onepulse-command-state",
 	"qcom,mdss-dsi-hbm-off-command-state",
 	"qcom,mdss-dsi-aor-on-command-state",
 	"qcom,mdss-dsi-aor-off-command-state",
@@ -2248,6 +2253,9 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-loading-effect-off-command-state",
 	"qcom,mdss-dsi-hbm-enter-switch-command-state",
 	"qcom,mdss-dsi-hbm-exit-switch-command-state",
+	"qcom,mdss-dsi-pwm-switch-onepulse-command-state",
+	"qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state",
+	"qcom,mdss-dsi-pwm-switch-threepulse-command-state",
 	"qcom,mdss-dsi-pwm-switch-high-command-state",
 	"qcom,mdss-dsi-pwm-switch-low-command-state",
 	"qcom,mdss-dsi-timming-pwm-switch-high-command-state",
@@ -2267,10 +2275,10 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-adfr-pre-switch-command-state",
 	"qcom,mdss-dsi-dly-on-command-state",
 	"qcom,mdss-dsi-dly-off-command-state",
-	"qcom,mdss-dsi-cabc-off-command",
-	"qcom,mdss-dsi-cabc-ui-command",
-	"qcom,mdss-dsi-cabc-still-image-command",
-	"qcom,mdss-dsi-cabc-video-command",
+	"qcom,mdss-dsi-cabc-off-command-state",
+	"qcom,mdss-dsi-cabc-ui-command-state",
+	"qcom,mdss-dsi-cabc-still-image-command-state",
+	"qcom,mdss-dsi-cabc-video-command-state",
 	"qcom,mdss-dsi-esd-switch-page-command-state",
 	"qcom,dsi-panel-date-switch-command-state",
 	"qcom,mdss-dsi-panel-info-switch-page-command-state",
@@ -5338,6 +5346,7 @@ int dsi_panel_switch_cmd_mode_in(struct dsi_panel *panel)
 int dsi_panel_switch(struct dsi_panel *panel)
 {
 	int rc = 0;
+
 #if defined(CONFIG_PXLW_IRIS)
 	enum dsi_cmd_set_type TIMING_SWITCH_TYPE_ID = DSI_CMD_SET_TIMING_SWITCH;
 	if (is_project(22811))
@@ -5367,6 +5376,11 @@ int dsi_panel_switch(struct dsi_panel *panel)
 		pr_info("IRIS_LOG: dsi_cmd %s\n", cmd_set_prop_map[TIMING_SWITCH_TYPE_ID]);
 	} else
 #endif
+
+	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+		oplus_sde_early_wakeup(panel);
+		oplus_wait_for_vsync(panel);
+	}
 
 	rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_TIMING_SWITCH);
 	if (rc)

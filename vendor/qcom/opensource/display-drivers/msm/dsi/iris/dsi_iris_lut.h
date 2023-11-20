@@ -21,6 +21,13 @@ enum {
 	LOAD_METHOD_CNT
 };
 
+enum {
+	LOAD_FW_FAIL = 0,
+	LOAD_GOLDEN_FW,
+	LOAD_CALIBRATED_FW
+};
+extern u8 fw_loaded_status;
+extern u16 fw_calibrated_status;
 int iris_parse_lut_cmds(uint32_t flag);
 int iris_send_lut(u8 lut_type, u8 lut_table_index);
 void iris_update_ambient_lut(enum LUT_TYPE lutType, u32 lutPos);
@@ -29,7 +36,7 @@ u8 iris_get_fw_load_status(void);
 void iris_update_fw_load_status(u8 value);
 void iris_update_gamma(void);
 int iris_dbgfs_fw_calibrate_status_init(void);
-void iris_crst_coef_check(const u8 *fw_data, size_t fw_size);
+bool iris_crst_coef_check(const u8 *fw_data, size_t fw_size);
 u16 iris_get_firmware_aplstatus_value(void);
 int32_t iris_request_firmware(const struct firmware **fw,
 		const uint8_t *name);

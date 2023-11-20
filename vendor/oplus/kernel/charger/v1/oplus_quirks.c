@@ -155,6 +155,15 @@ int abnormal_diconnect_count(void) {
 				info->number, i, info->plugout_jiffies, info->plugin_jiffies, jiffies, info->abnormal_diconnect, count,
 				time_is_after_jiffies(info->plugin_jiffies + msecs_to_jiffies(KEEP_CONNECT_TIME_OUT)));
 	}
+	info = &g_quirks_chip->plug_info_head;
+	if (time_is_after_jiffies(info->plugout_jiffies + msecs_to_jiffies(KEEP_CONNECT_TIME_OUT))) {
+		if (info->abnormal_diconnect == 1)
+			count++;
+	}
+	i++;
+	chg_err("info%d[%d] plugout_jiffies:%lu,plugin_jiffies:%lu, jiffies:%lu, abnormal_diconnect:%d, count:%d, in_20s:%d\n",
+		info->number, i, info->plugout_jiffies, info->plugin_jiffies, jiffies, info->abnormal_diconnect, count,
+		time_is_after_jiffies(info->plugin_jiffies + msecs_to_jiffies(KEEP_CONNECT_TIME_OUT)));
 	return count;
 }
 
@@ -176,6 +185,8 @@ void clear_abnormal_diconnect_count(void) {
 		info = list_entry(pos, struct plug_info, list);
 		info->abnormal_diconnect = 0;
 	}
+	info = &g_quirks_chip->plug_info_head;
+	info->abnormal_diconnect = 0;
 	chg_err("!!\n");
 	return;
 }
@@ -447,7 +458,7 @@ int oplus_quirks_init(struct oplus_chg_chip *chg_chip)
 			goto error;
 		memset(info, 0, sizeof(struct plug_info));
 		list_add(&info->list, &g_quirks_chip->plug_info_head.list);
-		info->number = i;
+		info->number = i + 1;
 		chg_err("%d\n", i);
 	}
 

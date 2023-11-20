@@ -1081,7 +1081,6 @@ static int __attribute__((__unused__)) init_ddr_vendor_size(struct device_info *
 
 	info->manufacture = (char *) kzalloc(32, GFP_KERNEL);
 	if (!info->manufacture) {
-		kfree(info->version);
 		kfree(info);
 		return -ENOMEM;
 	}
@@ -1170,7 +1169,6 @@ static int __attribute__((__unused__)) init_ddr_vendor_size(struct device_info *
 
 		info->manufacture = (char *) kzalloc(32, GFP_KERNEL);
 		if (!info->manufacture) {
-			kfree(info->version);
 			kfree(info);
 			return -ENOMEM;
 		}

@@ -13,9 +13,13 @@
 #include <oplus_chg_module.h>
 
 static struct battery_log_dev *g_battery_log_dev;
+static struct battery_log_ops *g_ops_register_fail[BATTERY_LOG_DEVICE_ID_END];
+static int register_fail_num = 0;
 
 static const char * const g_battery_log_device_id_table[] = {
 	[BATTERY_LOG_DEVICE_ID_COMM_INFO] = "comm_info",
+	[BATTERY_LOG_DEVICE_ID_VOOC] = "vooc",
+	[BATTERY_LOG_DEVICE_ID_BUCK_IC] = "buck_ic",
 	/*[BATTERY_LOG_DEVICE_ID_BQ27541] = "bq27541",*/
 };
 
@@ -132,8 +136,13 @@ int battery_log_ops_register(struct battery_log_ops *ops)
 	struct battery_log_dev *l_dev = g_battery_log_dev;
 	int dev_id;
 
-	if (!l_dev || !ops || !ops->dev_name) {
-		chg_err("l_dev or ops is null\n");
+	if (!ops || !ops->dev_name) {
+		chg_err("ops is null\n");
+		return -EINVAL;
+	}
+	if (!l_dev) {
+		g_ops_register_fail[register_fail_num++] = ops;
+		chg_err("l_dev is not ready, ops register when l_dev is ready\n");
 		return -EINVAL;
 	}
 
@@ -174,6 +183,7 @@ int oplus_battery_log_support(void)
 static int oplus_battery_log_probe(struct platform_device *pdev)
 {
 	struct battery_log_dev *l_dev;
+	int i;
 
 	l_dev = devm_kzalloc(&pdev->dev, sizeof(struct battery_log_dev), GFP_KERNEL);
 	if (!l_dev)
@@ -186,6 +196,11 @@ static int oplus_battery_log_probe(struct platform_device *pdev)
 	mutex_init(&l_dev->devid_lock);
 	oplus_battery_log_parse_dt(l_dev);
 	g_battery_log_dev = l_dev;
+	if (register_fail_num != 0) {
+		for (i = 0; i < register_fail_num; i++)
+			battery_log_ops_register(g_ops_register_fail[i]);
+	}
+
 	return 0;
 }
 

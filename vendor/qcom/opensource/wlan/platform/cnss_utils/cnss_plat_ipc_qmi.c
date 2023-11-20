@@ -26,6 +26,8 @@
 #define QMI_INIT_RETRY_MAX_TIMES 240
 #define QMI_INIT_RETRY_DELAY_MS 250
 #define NUM_LOG_PAGES			10
+#define CNSS_DAEMON_CFG_WAIT_RETRY	200
+#define CNSS_DAEMON_CFG_WAIT_MS	50
 
 /**
  * struct cnss_plat_ipc_file_data: File transfer context data
@@ -591,6 +593,7 @@ cnss_plat_ipc_qmi_init_setup_req_handler(struct qmi_handle *handle,
 	cfg->dms_mac_addr_supported = req_msg->dms_mac_addr_supported;
 	cfg->qdss_hw_trace_override = req_msg->qdss_hw_trace_override;
 	cfg->cal_file_available_bitmask = req_msg->cal_file_available_bitmask;
+	cfg->initialized = 1;
 
 	ret = qmi_send_response
 		(svc->svc_hdl, sq, txn,
@@ -776,12 +779,20 @@ static struct qmi_msg_handler cnss_plat_ipc_qmi_req_handlers[] = {
  */
 struct cnss_plat_ipc_daemon_config *cnss_plat_ipc_qmi_daemon_config(void)
 {
+	int i;
 	struct cnss_plat_ipc_qmi_svc_ctx *svc = &plat_ipc_qmi_svc;
 	struct cnss_plat_ipc_qmi_client_ctx *qmi_client =
 		&svc->qmi_client_ctx[CNSS_PLAT_IPC_DAEMON_QMI_CLIENT_V01];
 
 	if (!qmi_client->client_connected)
 		return NULL;
+
+	for (i = 0; i < CNSS_DAEMON_CFG_WAIT_RETRY; i++) {
+		if (daemon_cfg.initialized == 1)
+			break;
+
+		msleep(CNSS_DAEMON_CFG_WAIT_MS);
+	}
 
 	return &daemon_cfg;
 }

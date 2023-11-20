@@ -619,6 +619,11 @@ static int sc8547_reset_voocphy(struct oplus_voocphy_manager *chip)
 
 	/* turn off mos */
 	sc8547_write_byte(chip->client, SC8547_REG_07, 0x0);
+	/* sc8547b need disable WDT when exit charging, to avoid after WDT time out.
+	IF time out, sc8547b will trigger interrupt frequently.
+	in addition, sc8547 and sc8547b WDT will disable when disable CP */
+	sc8547_update_bits(chip->client, SC8547_REG_09,
+			   SC8547_WATCHDOG_MASK, SC8547_WATCHDOG_DIS);
 	/* hwic config with plugout */
 	reg_data = 0x20 | (chip->ovp_reg & 0x1f);
 	sc8547_write_byte(chip->client, SC8547_REG_00, reg_data);

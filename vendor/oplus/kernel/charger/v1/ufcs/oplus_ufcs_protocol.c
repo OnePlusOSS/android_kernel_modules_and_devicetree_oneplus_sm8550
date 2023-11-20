@@ -130,7 +130,7 @@ static int oplus_ufcs_protocol_mos_set(int on)
 	struct oplus_ufcs_protocol *chip = g_protocol;
 
 	if (oplus_ufcs_get_support_type() == UFCS_SUPPORT_AP_VOOCPHY) {
-		ret = oplus_voocphy_set_chg_enable(on);
+		ret = oplus_voocphy_set_ufcs_enable(on);
 	} else if (oplus_ufcs_get_support_type() == UFCS_SUPPORT_BIDIRECT_VOOCPHY) {
 		ret = oplus_voocphy_set_ufcs_enable(on);
 		oplus_voocphy_set_chg_auto_mode(on);
@@ -1919,7 +1919,7 @@ static int oplus_ufcs_protocol_flags_handler(struct oplus_ufcs_protocol *chip)
 	fault = &chip->flag.hd_error;
 	rc = chip->ops->ufcs_ic_read_flags(chip);
 
-	if ((fault->dm_ovp) || (fault->dm_ovp) || (fault->temp_shutdown) || (fault->wtd_timeout)) {
+	if ((fault->dp_ovp) || (fault->dm_ovp) || (fault->temp_shutdown) || (fault->wtd_timeout)) {
 		chip->error.hardware_error = 1;
 		ufcs_err("read protocol: find hardware error!\n");
 		goto error;
@@ -2632,14 +2632,14 @@ static void oplus_ufcs_protocol_track_i2c_err_load_trigger_work(struct work_stru
 	struct delayed_work *dwork = to_delayed_work(work);
 	struct oplus_ufcs_protocol *chip = container_of(dwork, struct oplus_ufcs_protocol, i2c_err_load_trigger_work);
 
-	if (!chip)
+	if (!chip->i2c_err_load_trigger)
 		return;
 
 	oplus_chg_track_upload_trigger_data(*(chip->i2c_err_load_trigger));
-	if (chip->i2c_err_load_trigger) {
-		kfree(chip->i2c_err_load_trigger);
-		chip->i2c_err_load_trigger = NULL;
-	}
+
+	kfree(chip->i2c_err_load_trigger);
+	chip->i2c_err_load_trigger = NULL;
+
 	chip->i2c_err_uploading = false;
 }
 static int oplus_ufcs_protocol_dump_reg_info(struct oplus_ufcs_protocol *chip, char *dump_info, int len)
@@ -2737,14 +2737,14 @@ static void oplus_ufcs_protocol_track_cp_err_load_trigger_work(struct work_struc
 	struct delayed_work *dwork = to_delayed_work(work);
 	struct oplus_ufcs_protocol *chip = container_of(dwork, struct oplus_ufcs_protocol, cp_err_load_trigger_work);
 
-	if (!chip)
+	if (!chip->cp_err_load_trigger)
 		return;
 
 	oplus_chg_track_upload_trigger_data(*(chip->cp_err_load_trigger));
-	if (chip->cp_err_load_trigger) {
-		kfree(chip->cp_err_load_trigger);
-		chip->cp_err_load_trigger = NULL;
-	}
+
+	kfree(chip->cp_err_load_trigger);
+	chip->cp_err_load_trigger = NULL;
+
 	chip->cp_err_uploading = false;
 }
 

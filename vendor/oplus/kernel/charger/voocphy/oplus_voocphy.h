@@ -434,6 +434,9 @@ do {				\
 
 #define DEFAULT_CP_IBUS_DEVATION	800
 
+#define PPS_VOOCPHY_VBUS_VBAT_LOW	300
+#define PPS_VOOCPHY_VBUS_VBAT_HIGH	500
+
 struct vooc_monitor_event {
 	int status;
 	int cnt;
@@ -653,6 +656,12 @@ struct oplus_voocphy_manager {
 	unsigned int slave_cp_enable_thr;
 	unsigned int slave_cp_disable_thr_high;
 	unsigned int slave_cp_disable_thr_low;
+
+	int svooc_strategy_soc_num;
+	int svooc_strategy_soc_min;
+	int svooc_strategy_soc_low;
+	int svooc_strategy_soc_mid;
+	int svooc_strategy_soc_high;
 
 	int batt_temp_plugin; //batt_temp at plugin
 	int batt_soc_plugin; //batt_soc at plugin
@@ -876,6 +885,7 @@ struct oplus_voocphy_operations {
 	int (*adsp_voocphy_reset_again)(void);
 	u8 (*get_vbus_status)(struct oplus_voocphy_manager *chip);
 	int (*set_chg_auto_mode)(struct oplus_voocphy_manager *chip, bool enable);
+	int (*set_pps_rvs_ocp)(struct oplus_voocphy_manager *chip, bool enable);
 	int (*clear_interrupts)(struct oplus_voocphy_manager *chip);
 	int (*get_voocphy_enable)(struct oplus_voocphy_manager *chip, u8 *data);
 	void (*dump_voocphy_reg)(struct oplus_voocphy_manager *chip);
@@ -963,6 +973,7 @@ void oplus_voocphy_reset_fastchg_state(void);
 bool oplus_voocphy_get_bidirect_cp_support(void);
 bool oplus_voocphy_int_disable_chg(void);
 int oplus_voocphy_set_chg_auto_mode(bool enable);
+int oplus_pps_set_rvs_ocp_deglitch(bool enable);
 void oplus_voocphy_get_dbg_info(void);
 void oplus_voocphy_clear_dbg_info(void);
 void oplus_voocphy_clear_cnt_info(void);
@@ -987,6 +998,7 @@ int oplus_voocphy_get_batt_curve_current(void);
 void oplus_adsp_voocphy_force_svooc(int enable);
 int oplus_get_adsp_voocphy_enable(void);
 int oplus_voocphy_get_last_fast_chg_type(void);
+int oplus_voocphy_chg_out_check_event_handle(unsigned long data);
 void oplus_voocphy_clear_last_fast_chg_type(void);
 void oplus_voocphy_clear_variables(void);
 void oplus_voocphy_turn_off_fastchg(void);

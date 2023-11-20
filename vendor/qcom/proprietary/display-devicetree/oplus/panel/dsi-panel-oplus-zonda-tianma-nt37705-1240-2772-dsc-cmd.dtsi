@@ -87,7 +87,7 @@
 				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
 				oplus,fod-on-vblank = <0>;
 				oplus,fod-off-vblank = <0>;
-				oplus,ofp-need-to-filter-backlight-dim-icon;
+				oplus,ofp-need-to-separate-backlight;
 				qcom,mdss-dsi-bl-demua1-command = [
 					/* 51hex > 0x644 */
 					39 00 00 50 00 00 06 F0 55 AA 52 08 04
@@ -465,7 +465,7 @@
 				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
 				oplus,fod-on-vblank = <0>;
 				oplus,fod-off-vblank = <0>;
-				oplus,ofp-need-to-filter-backlight-dim-icon;
+				oplus,ofp-need-to-separate-backlight;
 				qcom,mdss-dsi-bl-demua1-command = [
 					/* 51hex > 0x644 */
 					39 00 00 50 00 00 06 F0 55 AA 52 08 04
@@ -842,7 +842,7 @@
 				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
 				oplus,fod-on-vblank = <0>;
 				oplus,fod-off-vblank = <0>;
-				oplus,ofp-need-to-filter-backlight-dim-icon;
+				oplus,ofp-need-to-separate-backlight;
 				qcom,mdss-dsi-bl-demua1-command = [
 					/* 51hex > 0x644 */
 					39 00 00 50 00 00 06 F0 55 AA 52 08 04
@@ -918,6 +918,7 @@
 					/* switch60Hz */
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					39 00 00 00 11 00 02 2F 00
+					39 00 00 40 00 00 02 BE 47
 					39 00 00 40 00 00 02 6F A8
 					39 00 00 40 00 00 03 BA 00 00
 					39 00 00 40 00 00 02 6F B0
@@ -1221,7 +1222,7 @@
 				qcom,mdss-dsi-qsync-min-fps-0 = <1314>;
 				oplus,fod-on-vblank = <0>;
 				oplus,fod-off-vblank = <0>;
-				oplus,ofp-need-to-filter-backlight-dim-icon;
+				oplus,ofp-need-to-separate-backlight;
 				qcom,mdss-dsi-bl-demua1-command = [
 					/* 51hex > 0x644 */
 					39 00 00 50 00 00 06 F0 55 AA 52 08 04
@@ -1610,7 +1611,7 @@
 				qcom,mdss-dsi-qsync-min-fps-2 = <60>;
 				oplus,fod-on-vblank = <0>;
 				oplus,fod-off-vblank = <0>;
-				oplus,ofp-need-to-filter-backlight-dim-icon;
+				oplus,ofp-need-to-separate-backlight;
 				qcom,mdss-dsi-bl-demua1-command = [
 					/* 51hex > 0x644 */
 					39 00 00 50 00 00 06 F0 55 AA 52 08 04

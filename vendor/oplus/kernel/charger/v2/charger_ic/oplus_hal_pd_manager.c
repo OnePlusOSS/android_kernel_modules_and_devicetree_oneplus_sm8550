@@ -1558,6 +1558,11 @@ static void *oplus_chg_get_func(struct oplus_chg_ic_dev *ic_dev,
 			OPLUS_IC_FUNC_GET_DATA_ROLE,
 			pd_manager_get_data_role);
 		break;
+	case OPLUS_IC_FUNC_GET_TYPEC_ROLE:
+		func = OPLUS_CHG_IC_FUNC_CHECK(
+			OPLUS_IC_FUNC_GET_TYPEC_ROLE,
+			pd_manager_get_typec_mode);
+		break;
 	default:
 		chg_err("this func(=%d) is not supported\n", func_id);
 		func = NULL;

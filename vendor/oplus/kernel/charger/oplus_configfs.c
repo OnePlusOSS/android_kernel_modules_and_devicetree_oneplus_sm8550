@@ -31,6 +31,7 @@
 #ifndef CONFIG_DISABLE_OPLUS_FUNCTION
 #include <soc/oplus/system/oplus_project.h>
 #endif
+#include "oplus_region_check.h"
 
 #define OPLUS_SVOOC_ID_MIN    10
 
@@ -819,7 +820,10 @@ static ssize_t mmi_charging_enable_store(struct device *dev, struct device_attri
 			if (oplus_chg_get_voocphy_support() == ADSP_VOOCPHY) {
 				oplus_adsp_voocphy_turn_off();
 			} else {
-				if (!(((chip->pd_svooc == false &&
+				if ((oplus_pps_get_support_type() != PPS_SUPPORT_NOT) &&
+					oplus_pps_get_pps_fastchg_started()) {
+					oplus_pps_stop_mmi();
+				} else if (!(((chip->pd_svooc == false &&
 					chip->chg_ops->get_charger_subtype() == CHARGER_SUBTYPE_PD) ||
 					chip->chg_ops->get_charger_subtype() == CHARGER_SUBTYPE_QC) &&
 					!oplus_vooc_get_fastchg_started()))
@@ -1430,6 +1434,29 @@ static ssize_t ufcs_oplus_id_store(struct device *dev, struct device_attribute *
 }
 static DEVICE_ATTR_RW(ufcs_oplus_id);
 
+static ssize_t pps_third_support_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int val = 0;
+
+	val = oplus_pps_check_3rd_support();
+	val = val < 0 ? 0 : val;
+
+	return sprintf(buf, "%d\n", val);
+}
+static DEVICE_ATTR_RO(pps_third_support);
+
+static ssize_t pps_third_priority_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int val = 0;
+
+	val = third_pps_priority_than_svooc();
+	val = val < 0 ? 0 : val;
+
+	return sprintf(buf, "%d\n", val);
+}
+static DEVICE_ATTR_RO(pps_third_priority);
+
+
 static ssize_t screen_off_by_batt_temp_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	int val = 0;
@@ -1770,12 +1797,11 @@ static ssize_t battery_log_head_show(struct device *dev, struct device_attribute
 	}
 
 	if (oplus_battery_log_support() != true) {
-		chg_err("this proect dont support read battery log\n");
 		return -ENODEV;
 	}
 
 	return battery_log_common_operate(BATTERY_LOG_DUMP_LOG_HEAD,
-		buf, PAGE_SIZE);
+		buf, BATTERY_LOG_MAX_SIZE);
 }
 static DEVICE_ATTR_RO(battery_log_head);
 
@@ -1790,12 +1816,11 @@ static ssize_t battery_log_content_show(struct device *dev, struct device_attrib
 	}
 
 	if (oplus_battery_log_support() != true) {
-		chg_err("this proect dont support read battery log\n");
 		return -ENODEV;
 	}
 
 	return battery_log_common_operate(BATTERY_LOG_DUMP_LOG_CONTENT,
-		buf, PAGE_SIZE);
+		buf, BATTERY_LOG_MAX_SIZE);
 }
 static DEVICE_ATTR_RO(battery_log_content);
 
@@ -1869,6 +1894,8 @@ static struct device_attribute *oplus_battery_attributes[] = {
 	&dev_attr_ppschg_ing,
 	&dev_attr_ppschg_power,
 	&dev_attr_ufcs_oplus_id,
+	&dev_attr_pps_third_support,
+	&dev_attr_pps_third_priority,
 	&dev_attr_screen_off_by_batt_temp,
 	&dev_attr_bcc_parms,
 	&dev_attr_bcc_current,

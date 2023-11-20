@@ -39,6 +39,8 @@ struct oplus_monitor {
 	struct votable *wls_fcc_votable;
 	struct votable *wls_charge_suspend_votable;
 	struct votable *wls_charging_disable_votable;
+	struct votable *chg_disable_votable;
+	struct votable *vooc_curr_votable;
 
 	/* battery */
 	int vbat_mv;
@@ -99,12 +101,17 @@ struct oplus_monitor {
 	enum oplus_temp_region temp_region;
 	enum oplus_chg_ffc_status ffc_status;
 	int cool_down;
+	int normal_cool_down;
 	unsigned int notify_code;
 	unsigned int notify_flag;
 	bool led_on;
 	bool rechging;
 	bool ui_soc_ready;
 	int chg_cycle_status;
+	int bcc_current;
+	int mmi_chg;
+	int usb_status;
+	bool otg_switch_status;
 
 	/* vooc */
 	bool vooc_online;

@@ -735,15 +735,7 @@ bool sc8571_master_get_enable(void)
 
 void sc8571_master_pmid2vout_enable(bool enable)
 {
-	return; /*return temporary*/
-	if (!chip_sc8571_master) {
-		pps_err("chip is NULL\n");
-		return;
-	}
-	if (enable == false)
-		sc8571_write_byte(SC8571_REG_41, 0x20); /*0X41 disable pmid2vout*/
-	else
-		sc8571_write_byte(SC8571_REG_41, 0x00); /*0X41 enable pmid2vout*/
+	/*do nothing now*/
 }
 
 void sc8571_master_cfg_sc(void)

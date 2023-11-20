@@ -324,7 +324,11 @@ static ssize_t swrm_debug_peek_write(struct file *file, const char __user *ubuf,
 
 	lbuf[count] = '\0';
 	rc = get_parameters(lbuf, param, 1);
-	if ((param[0] <= SWRM_MAX_REGISTER) && (rc == 0))
+	if (//#ifdef OPLUS_ARCH_EXTENDS
+		//Check the register address, modifications for fixing crash issue
+		!(param[0] % 4) &&
+		//#endif
+		(param[0] <= SWRM_MAX_REGISTER) && (rc == 0))
 		swrm->read_data = swr_master_read(swrm, param[0]);
 	else
 		rc = -EINVAL;
@@ -361,7 +365,11 @@ static ssize_t swrm_debug_write(struct file *file,
 
 	lbuf[count] = '\0';
 	rc = get_parameters(lbuf, param, 2);
-	if ((param[0] <= SWRM_MAX_REGISTER) &&
+	if (//#ifdef OPLUS_ARCH_EXTENDS
+		//Check the register address, modification for fixing crash issue
+		!(param[0] % 4) &&
+		//#endif
+		(param[0] <= SWRM_MAX_REGISTER) &&
 		(param[1] <= 0xFFFFFFFF) &&
 		(rc == 0))
 		swr_master_write(swrm, param[0], param[1]);

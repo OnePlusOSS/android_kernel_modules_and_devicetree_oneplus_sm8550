@@ -41,8 +41,8 @@ struct lut_node {
 };
 
 static struct lut_node iris_lut_param;
-static u8 fw_loaded_status = FIRMWARE_LOAD_FAIL;
-static u16 fw_calibrated_status;
+u8 fw_loaded_status = FIRMWARE_LOAD_FAIL;
+u16 fw_calibrated_status;
 
 static DEFINE_MUTEX(fw_attach_cmd_lock);
 static DEFINE_SPINLOCK(fw_status_lock);
@@ -386,6 +386,7 @@ static void _iris_parse_misc_info(void)
 int iris_parse_lut_cmds(uint32_t flag)
 {
 	int ret = 0;
+	bool temp_flag = 0;
 	struct iris_data data[] = { {NULL, 0}, {NULL, 0}, {NULL, 0}, {NULL, 0} };
 	const struct firmware *fw = NULL;
 	const struct firmware *ccf1_fw = NULL;
@@ -406,7 +407,7 @@ int iris_parse_lut_cmds(uint32_t flag)
 
 	if (flag == LOAD_CALIBRATED_ONLY) {
 		firmware_state |= (1<<0);
-		goto load_ccf_only;
+		goto load_calibrated;
 	}
 
 	// Load "iris7.fw".
@@ -418,94 +419,160 @@ int iris_parse_lut_cmds(uint32_t flag)
 		IRIS_LOGI("%s(%d), request name: %s, size: %u.",
 				__func__, __LINE__, IRIS_FIRMWARE_NAME, data[0].size);
 	} else {
-		IRIS_LOGE("%s(), failed to request: %s", __func__, IRIS_FIRMWARE_NAME);
+		IRIS_LOGE("%s(), failed to request: %s", __func__,
+                                IRIS_FIRMWARE_NAME);
+		goto load_done;
 	}
 
-load_ccf_only:
+	if (flag == LOAD_CALIBRATED_OR_GOLDEN)
+		goto load_calibrated;
+	else if (flag == LOAD_GOLDEN_ONLY)
+		goto load_golden;
+
+load_calibrated:
 	// Load "iris7_ccf1.fw".
-	if (flag == LOAD_CALIBRATED_OR_GOLDEN || flag == LOAD_CALIBRATED_ONLY) {
-		// Load calibrated firmware.
-		strlcpy(ccf1_name, IRIS_CCF1_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf1_fw, ccf1_name);
-		if (ret && flag == LOAD_CALIBRATED_OR_GOLDEN) {
-			// Load golden firmware.
-			if (pcfg->ccf1_name)
-				strlcpy(ccf1_name, pcfg->ccf1_name, MAX_FW_NAME_LEN);
-			else
-				strlcpy(ccf1_name, IRIS_CCF1_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-			ret = iris_request_firmware(&ccf1_fw, ccf1_name);
-		}
-	} else {
-		// Load golden firmware.
-		if (pcfg->ccf1_name)
-			strlcpy(ccf1_name, pcfg->ccf1_name, MAX_FW_NAME_LEN);
-		else
-			strlcpy(ccf1_name, IRIS_CCF1_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf1_fw, ccf1_name);
-	}
-
+	strlcpy(ccf1_name, IRIS_CCF1_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	ret = iris_request_firmware(&ccf1_fw, ccf1_name);
 	if (!ret) {
 		firmware_state |= (1<<1);
 		data[1].buf = ccf1_fw->data;
 		data[1].size = ccf1_fw->size;
-		IRIS_LOGI("%s(%d), request name: %s, size: %u.",
+		IRIS_LOGI("%s(%d), request calibrated fw, name: %s, size: %u.",
 			__func__, __LINE__, ccf1_name, data[1].size);
 	} else {
-		IRIS_LOGE("%s(), failed to request: %s", __func__, ccf1_name);
-	}
-
-	// Load "iris7_ccf2.fw".
-	if (flag == LOAD_CALIBRATED_OR_GOLDEN || flag == LOAD_CALIBRATED_ONLY) {
-		// Load calibrated firmware.
-		strlcpy(ccf2_name, IRIS_CCF2_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf2_fw, ccf2_name);
-		if (ret && flag == LOAD_CALIBRATED_OR_GOLDEN) {
-			// Load golden firmware.
-			if (pcfg->ccf2_name)
-				strlcpy(ccf2_name, pcfg->ccf2_name, MAX_FW_NAME_LEN);
-			else
-				strlcpy(ccf2_name, IRIS_CCF2_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-			ret = iris_request_firmware(&ccf2_fw, ccf2_name);
+		if (flag == LOAD_CALIBRATED_OR_GOLDEN) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load golden", __func__, ccf1_name);
+			goto load_golden;
+		} else if (flag == LOAD_CALIBRATED_ONLY) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load done", __func__, ccf1_name);
+			goto load_done;
 		}
-	} else {
-		// Load golden firmware.
-		if (pcfg->ccf2_name)
-			strlcpy(ccf2_name, pcfg->ccf2_name, MAX_FW_NAME_LEN);
-		else
-			strlcpy(ccf2_name, IRIS_CCF2_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf2_fw, ccf2_name);
 	}
+			// Load golden firmware.
+	// Load "iris7_ccf2.fw".
+	strlcpy(ccf2_name, IRIS_CCF2_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	ret = iris_request_firmware(&ccf2_fw, ccf2_name);
 	if (!ret) {
 		firmware_state |= (1<<2);
 		data[2].buf = ccf2_fw->data;
 		data[2].size = ccf2_fw->size;
+		IRIS_LOGI("%s(%d), request calibrated fw, name: %s, size: %u.",
+			__func__, __LINE__, ccf2_name, data[2].size);
 	} else {
-		IRIS_LOGE("%s(), failed to request: %s", __func__, ccf2_name);
-	}
-
-	// Load ccf3b.fw/ccf3.fw
-	if (flag == LOAD_CALIBRATED_OR_GOLDEN || flag == LOAD_CALIBRATED_ONLY) {
-		// Load calibrated firmware.
-		strlcpy(ccf3_name, IRIS_CCF3_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf3_fw, ccf3_name);
-		if (ret && flag == LOAD_CALIBRATED_OR_GOLDEN) {
-			// Load golden firmware.
-			if (pcfg->ccf3_name)
-				strlcpy(ccf3_name, pcfg->ccf3_name, MAX_FW_NAME_LEN);
-			else
-				strlcpy(ccf3_name, IRIS_CCF3_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-			ret = iris_request_firmware(&ccf3_fw, ccf3_name);
+		if (flag == LOAD_CALIBRATED_OR_GOLDEN) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load golden", __func__, ccf2_name);
+			goto load_golden;
+		} else if (flag == LOAD_CALIBRATED_ONLY) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load done", __func__, ccf2_name);
+			goto load_done;
 		}
-
-	} else {
-		// Load golden firmware.
-		if (pcfg->ccf3_name)
-			strlcpy(ccf3_name, pcfg->ccf3_name, MAX_FW_NAME_LEN);
-		else
-			strlcpy(ccf3_name, IRIS_CCF3_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf3_fw, ccf3_name);
 	}
 
+	// Load "iris7_ccf3.fw".
+	strlcpy(ccf3_name, IRIS_CCF3_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	ret = iris_request_firmware(&ccf3_fw, ccf3_name);
+	if (!ret) {
+		//Temporary modify for lut load, will replace a determined value after usecase fixed
+		const uint32_t ccf3_tail_size = 0;
+		uint32_t ccf3_data_size = 0;
+
+		temp_flag = ((ccf3_fw->size - ccf3_tail_size)
+			>= ((CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP)) ? 1 : 0;
+		if (temp_flag) {
+			firmware_state |= (1<<3);
+			ccf3_data_size = ccf3_fw->size;
+			temp_flag &= iris_crst_coef_check(ccf3_fw->data, ccf3_fw->size);
+			IRIS_LOGI("%s(%d), request calibrated FW, name: %s, size: %u.",
+				__func__, __LINE__, ccf3_name, ccf3_data_size);
+		}
+	}
+	if (ret || !temp_flag) {
+		if (!temp_flag) {
+			IRIS_LOGE("%s(), invalid format for firmware %s",
+				__func__, ccf3_name);
+		}
+		if (flag == LOAD_CALIBRATED_OR_GOLDEN) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load golden", __func__, ccf3_name);
+			goto load_golden;
+		} else if (flag == LOAD_CALIBRATED_ONLY) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load done", __func__, ccf3_name);
+			goto load_done;
+		}
+	}
+
+	// Load "iris7_ccf4.fw".
+	strlcpy(ccf4_name, IRIS_CCF4_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	ret = iris_request_firmware(&ccf4_fw, ccf4_name);
+	if (ret) {
+		// Load golden firmware.
+		strlcpy(ccf4_name, IRIS_CCF4_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+		ret = iris_request_firmware(&ccf4_fw, ccf4_name);
+	}
+	if (!ret) {
+		firmware_state |= (1<<4);
+		data[3].buf = ccf4_fw->data;
+		data[3].size = ccf4_fw->size;
+		IRIS_LOGI("%s(%d), request calibrated fw, name: %s, size: %u.",
+			__func__, __LINE__, ccf4_name, data[3].size);
+	} else {
+		if (flag == LOAD_CALIBRATED_OR_GOLDEN) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load gelden", __func__, ccf4_name);
+			goto load_golden;
+		} else if (flag == LOAD_CALIBRATED_ONLY) {
+			IRIS_LOGE("%s(), failed to request calibrated FW: %s , goto load done", __func__, ccf4_name);
+			goto load_done;
+		}
+	}
+
+	if (firmware_state == 0x1f) {
+		fw_ccf_status = LOAD_CALIBRATED_FW;
+		goto load_done;
+	}
+
+load_golden:
+	firmware_state = firmware_state & 0x1;
+
+	// Load golden ccf1.fw firmware.
+	if (pcfg->ccf1_name)
+		strlcpy(ccf1_name, pcfg->ccf1_name, MAX_FW_NAME_LEN);
+	else
+		strlcpy(ccf1_name, IRIS_CCF1_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	iris_release_firmware(&ccf1_fw);
+	ret = iris_request_firmware(&ccf1_fw, ccf1_name);
+	if (!ret) {
+		firmware_state |= (1<<1);
+		data[1].buf = ccf1_fw->data;
+		data[1].size = ccf1_fw->size;
+		IRIS_LOGI("%s(%d), request golden FW, name: %s, size: %u.",
+			__func__, __LINE__, ccf1_name, data[1].size);
+	} else {
+		IRIS_LOGE("%s(), failed to request golden FW: %s", __func__, ccf1_name);
+	}
+
+	// Load golden ccf2.fw firmware.
+	if (pcfg->ccf2_name)
+		strlcpy(ccf2_name, pcfg->ccf2_name, MAX_FW_NAME_LEN);
+	else
+		strlcpy(ccf2_name, IRIS_CCF2_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	iris_release_firmware(&ccf2_fw);
+	ret = iris_request_firmware(&ccf2_fw, ccf2_name);
+	if (!ret) {
+		firmware_state |= (1<<2);
+		data[2].buf = ccf2_fw->data;
+		data[2].size = ccf2_fw->size;
+		IRIS_LOGI("%s(%d), request golden FW, name: %s, size: %u.",
+			__func__, __LINE__, ccf2_name, data[2].size);
+	} else {
+		IRIS_LOGE("%s(), failed to request golden FW: %s", __func__, ccf2_name);
+	}
+
+	// Load golden ccf3.fw firmware.
+	if (pcfg->ccf3_name)
+		strlcpy(ccf3_name, pcfg->ccf3_name, MAX_FW_NAME_LEN);
+	else
+		strlcpy(ccf3_name, IRIS_CCF3_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	iris_release_firmware(&ccf3_fw);
+	ret = iris_request_firmware(&ccf3_fw, ccf3_name);
 	if (!ret) {
 		//Temporary modify for lut load, will replace a determined value after usecase fixed
 		const uint32_t ccf3_tail_size = 0;
@@ -513,48 +580,34 @@ load_ccf_only:
 
 		if ((ccf3_fw->size - ccf3_tail_size) >= ((CRSTK_COEF_SIZE + CCT_VALUE_SIZE) * CRSTK_COEF_GROUP)) {
 			firmware_state |= (1<<3);
-//			data[3].buf = ccf3_fw->data;
-//			data[3].size = ccf3_fw->size;
 			ccf3_data_size = ccf3_fw->size;
 			iris_crst_coef_check(ccf3_fw->data, ccf3_fw->size);
-			IRIS_LOGI("%s(%d), request name: %s, size: %u.",
+			IRIS_LOGI("%s(%d), request golden FW, name: %s, size: %u.",
 				__func__, __LINE__, ccf3_name, ccf3_data_size);
 		} else {
 			IRIS_LOGE("%s(), invalid format for firmware %s",
 				__func__, ccf3_name);
 		}
 	} else {
-		IRIS_LOGE("%s(), failed to request %s",
-			__func__, ccf3_name);
+		IRIS_LOGE("%s(), failed to request golden FW: %s", __func__, ccf3_name);
 	}
 
-	// Load "iris7_ccf4.fw".
-	if (flag == LOAD_CALIBRATED_OR_GOLDEN || flag == LOAD_CALIBRATED_ONLY) {
-		// Load calibrated firmware.
-		strlcpy(ccf4_name, IRIS_CCF4_CALIBRATED_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf4_fw, ccf4_name);
-		if (ret /*&& flag == LOAD_CALIBRATED_OR_GOLDEN*/) {
-			// Load golden firmware.
-			strlcpy(ccf4_name, IRIS_CCF4_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-			ret = iris_request_firmware(&ccf4_fw, ccf4_name);
-		}
-	} else {
-		// Load golden firmware.
-		strlcpy(ccf4_name, IRIS_CCF4_FIRMWARE_NAME, MAX_FW_NAME_LEN);
-		ret = iris_request_firmware(&ccf4_fw, ccf4_name);
-	}
-
+	// Load golden ccf4.fw firmware.
+	strlcpy(ccf4_name, IRIS_CCF4_FIRMWARE_NAME, MAX_FW_NAME_LEN);
+	iris_release_firmware(&ccf4_fw);
+	ret = iris_request_firmware(&ccf4_fw, ccf4_name);
 	if (!ret) {
 		firmware_state |= (1<<4);
 		data[3].buf = ccf4_fw->data;
 		data[3].size = ccf4_fw->size;
-		IRIS_LOGI("%s(%d), request name: %s, size: %u.",
+		IRIS_LOGI("%s(%d), request golden FW, name: %s, size: %u.",
 			__func__, __LINE__, ccf4_name, data[3].size);
 	} else {
-		IRIS_LOGE("%s(), failed to request: %s", __func__, ccf4_name);
+		IRIS_LOGE("%s(), failed to request golden FW: %s", __func__, ccf4_name);
 	}
+	fw_ccf_status = LOAD_GOLDEN_FW;
 
-
+load_done:
 	spin_lock(&fw_status_lock);
 	fw_calibrated_status = fw_ccf_status;
 	fw_loaded_status = (firmware_state == 0x1f ? FIRMWARE_LOAD_SUCCESS : FIRMWARE_LOAD_FAIL);
@@ -563,7 +616,7 @@ load_ccf_only:
 			__func__,
 			fw_loaded_status == FIRMWARE_LOAD_SUCCESS ? "success" : "fail",
 			firmware_state);
-	if (firmware_state != 0) {
+	if (fw_loaded_status == FIRMWARE_LOAD_SUCCESS) {
 		mutex_lock(&fw_attach_cmd_lock);
 		ret = iris_attach_cmd_to_ipidx(data, (sizeof(data))/(sizeof(data[0])),
 				pip_index);
@@ -582,8 +635,8 @@ load_ccf_only:
 	iris_release_firmware(&ccf4_fw);
 
 	return ret;
-}
 
+}
 /*add lut cmds to bufs for sending*/
 static void _iris_prepare_lut_cmds(struct iris_ip_opt *popt)
 {

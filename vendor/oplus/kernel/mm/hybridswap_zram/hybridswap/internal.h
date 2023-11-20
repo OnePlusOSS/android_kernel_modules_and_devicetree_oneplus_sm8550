@@ -42,13 +42,30 @@ void hybridswap_loglevel_set(int level);
 int hybridswap_loglevel(void);
 
 #define DUMP_STACK_ON_ERR 0
-#define pt(l, f, ...)	pr_err(" <%d>[%s:%d] [%s:%d]: "f, l, \
-			       current->comm, current->tgid, \
-			       __func__, __LINE__, ##__VA_ARGS__)
-static inline void pr_none(void) {}
-#define hybp(l, f, ...) do {\
-	(l <= hybridswap_loglevel()) ? pt(l, f, ##__VA_ARGS__) : pr_none();\
-	if (DUMP_STACK_ON_ERR && l == HS_LOG_ERR) dump_stack();\
+
+static inline char loglvl_to_char(int l)
+{
+	switch (l) {
+	case HS_LOG_ERR:
+		return 'E';
+	case HS_LOG_WARN:
+		return 'W';
+	case HS_LOG_INFO:
+		return 'I';
+	case HS_LOG_DEBUG:
+		return 'D';
+	}
+	return '?';
+}
+
+#define hybp(l, f, ...) do {						\
+	if (l <= hybridswap_loglevel())					\
+		printk(KERN_INFO "%s %5d %5d %c %-16s: %s:%d "f,	\
+		       "HYB_ZRAM", current->tgid, current->pid,		\
+		       loglvl_to_char(l), current->comm, __func__,	\
+		       __LINE__,  ##__VA_ARGS__);                       \
+	if (DUMP_STACK_ON_ERR && l == HS_LOG_ERR)			\
+		dump_stack();						\
 } while (0)
 
 #define log_err(f, ...)	hybp(HS_LOG_ERR, f, ##__VA_ARGS__)
@@ -532,24 +549,37 @@ static inline bool hybridswap_reclaim_in_enable(void) { return false; }
 #endif
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-extern atomic_long_t fault_out_pause;
-extern atomic_long_t fault_out_pause_cnt;
-extern struct cftype mem_cgroup_swapd_legacy_files[];
-extern bool zram_watermark_ok(void);
-extern void wake_all_swapd(void);
-extern void alloc_pages_slowpath_hook(void *data, gfp_t gfp_mask,
-        unsigned int order, unsigned long delta);
-extern void rmqueue_hook(void *data, struct zone *preferred_zone,
-	struct zone *zone, unsigned int order, gfp_t gfp_flags,
-	unsigned int alloc_flags, int migratetype);
-extern void __init swapd_pre_init(void);
-extern void swapd_pre_deinit(void);
-extern void update_swapd_memcg_param(struct mem_cgroup *memcg);
-extern bool free_zram_is_ok(void);
-extern unsigned long get_nr_zram_total(void);
-extern int swapd_init(struct zram *zram);
-extern void swapd_exit(void);
-extern bool hybridswap_swapd_enabled(void);
+struct hybridswapd_operations {
+	struct cftype *memcg_legacy_files;
+	atomic_long_t *fault_out_pause;
+	atomic_long_t *fault_out_pause_cnt;
+	atomic_t *swapd_pause;
+
+	void (*pre_init)(void);
+	void (*pre_deinit)(void);
+
+	int (*init)(struct zram **zram);
+	void (*deinit)(void);
+	bool (*enabled)(void);
+
+	unsigned long (*zram_total_pages)(void);
+	unsigned long (*zram_used_pages)(void);
+	unsigned long (*zram_compressed_pages)(void);
+
+	bool (*free_zram_is_ok)(void);
+	bool (*zram_watermark_ok)(void);
+
+	void (*wakeup_kthreads)(void);
+	void (*update_memcg_param)(struct mem_cgroup *memcg);
+
+	void (*vh_alloc_pages_slowpath)(void *data, gfp_t gfp_flags,
+				unsigned int order, unsigned long delta);
+	void (*vh_tune_scan_type)(void *data, char *scan_balance);
+};
+extern struct hybridswapd_operations *hybridswapd_ops;
+
+extern void hybridswapd_ops_init(struct hybridswapd_operations *ops);
+extern void hybridswapd_chp_ops_init(struct hybridswapd_operations *ops);
 #else
 static inline bool hybridswap_swapd_enabled(void) { return false; }
 #endif

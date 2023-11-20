@@ -27,6 +27,9 @@
 #elif defined(CONFIG_OPLUS_KEVENT_UPLOAD)
 #include <linux/oplus_kevent.h>
 #endif
+#ifndef CONFIG_DISABLE_OPLUS_FUNCTION
+#include <soc/oplus/system/oplus_project.h>
+#endif
 
 #include <oplus_chg.h>
 #include <oplus_chg_module.h>
@@ -614,6 +617,8 @@ static struct flag_reason_table track_flag_reason_table[] = {
 	{ TRACK_NOTIFY_FLAG_PARALLEL_UNBALANCE_ABNORMAL, "ParallelUnbalance" },
 	{ TRACK_NOTIFY_FLAG_MOS_ERROR_ABNORMAL, "MosError" },
 	{ TRACK_NOTIFY_FLAG_HK_ABNORMAL, "HouseKeepingAbnormal" },
+	{ TRACK_NOTIFY_FLAG_UFCS_IC_ABNORMAL, "UFCSICAbnormal" },
+	{ TRACK_NOTIFY_FLAG_ADAPTER_ABNORMAL, "AdapterAbnormal" },
 
 	{ TRACK_NOTIFY_FLAG_UFCS_ABNORMAL, "UfcsAbnormal" },
 	{ TRACK_NOTIFY_FLAG_COOLDOWN_ABNORMAL, "CoolDownAbnormal" },
@@ -1666,6 +1671,14 @@ static int oplus_chg_track_parse_dt(struct oplus_chg_track *track_dev)
 	rc = of_property_count_elems_of_size(node, "track,olc_config", sizeof(u64));
 	if (rc < 0) {
 		chg_err("Count track_olc_config failed, rc=%d\n", rc);
+#ifndef CONFIG_DISABLE_OPLUS_FUNCTION
+		if (get_eng_version() == PREVERSION) {
+			chg_err("preversion open SocJump NoCharging FastChgBreak olc config\n");
+			track_dev->track_cfg.exception_data.olc_config[0] = 0x2;
+			track_dev->track_cfg.exception_data.olc_config[2] = 0x1;
+			track_dev->track_cfg.exception_data.olc_config[4] = 0x1;
+		}
+#endif
 	} else {
 		length = rc;
 		if (length > OLC_CONFIG_NUM_MAX)
@@ -3107,7 +3120,7 @@ static int oplus_chg_track_cal_no_charging_stats(
 		if (no_charging_state == true) {
 			if (monitor->otg_enable)
 				otg_online_cnt++;
-			else if (monitor->vbat_mv >= monitor->wls_vbus_mv)
+			else if (monitor->vbat_mv >= monitor->wired_vbus_mv)
 				vbatt_leak_cnt++;
 		} else {
 			otg_online_cnt = 0;
@@ -3125,7 +3138,7 @@ static int oplus_chg_track_cal_no_charging_stats(
 					TRACK_NOTIFY_FLAG_NO_CHARGING_VBATT_LEAK;
 	if (track_status->debug_no_charging)
 		track_chip->no_charging_trigger.flag_reason =
-					track_status->debug_no_charging;
+					track_status->debug_no_charging + TRACK_NOTIFY_FLAG_NO_CHARGING_FIRST - 1;
 
 
 	return 0;

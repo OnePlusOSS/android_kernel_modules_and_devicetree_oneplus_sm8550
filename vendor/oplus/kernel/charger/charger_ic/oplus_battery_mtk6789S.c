@@ -144,6 +144,7 @@ extern void wusb3801_set_cc_open(struct tcpc_device *tcpc);
 extern void wusb3801_set_cc_open_recover(struct tcpc_device *tcpc);
 extern void sgm7220_set_sinkonly(struct tcpc_device *tcpc);
 extern void wusb3801_set_sinkonly(struct tcpc_device *tcpc);
+static int oplus_chg_get_battery_btb_temp(void);
 
 int con_volt_6789[] = {
 	1760,
@@ -6921,7 +6922,11 @@ int oplus_get_chargeric_temp(void)
 
 int oplus_chg_get_battery_btb_temp_cal(void)
 {
-	return pinfo->battery_btb_temp_cal;
+	if (oplus_ntc_ctrl_is_support()) {
+		return pinfo->battery_btb_temp_cal;
+	} else {
+		return oplus_chg_get_battery_btb_temp();
+	}
 }
 
 static int oplus_chg_get_chargeric_temp_val(void)
@@ -6961,7 +6966,7 @@ static int oplus_chg_get_battery_btb_temp(void)
 
 	if (!pinfo || !pinfo->charger_id_chan|| IS_ERR(pinfo->charger_id_chan)) {
 		chg_err("null pinfo or no charger_id_channel\n");
-		return TEMP_25C;
+		return TEMP_25C / 10;
 	}
 
 	if (!is_param_init) {

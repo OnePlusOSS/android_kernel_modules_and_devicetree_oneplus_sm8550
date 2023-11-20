@@ -668,6 +668,9 @@ int oplus_temp_compensation_cmd_set(void *dsi_panel, unsigned int setting_mode)
 	static unsigned int last_dbv_index = 0;
 	static unsigned int last_temp_index = 0;
 	static unsigned int last_bl_lvl = 0;		/* Force sending temp compensation cmd when booting up */
+	static unsigned int onepulse_enable_last = 0;
+	unsigned int onepulse_enable_changed = 0;
+	unsigned int onepulse_used = 0;
 	struct dsi_panel *panel = dsi_panel;
 	struct dsi_cmd_desc *cmds = NULL;
 	struct LCM_setting_table temp_compensation_cmd[50] = {0};
@@ -732,12 +735,18 @@ int oplus_temp_compensation_cmd_set(void *dsi_panel, unsigned int setting_mode)
 
 	temp_index = oplus_temp_compensation_get_temp_index(ntc_temp);
 
+	onepulse_enable_changed = oplus_panel_pwm_onepulse_is_enabled(panel) != onepulse_enable_last;
+	onepulse_enable_last = oplus_panel_pwm_onepulse_is_enabled(panel);
+	onepulse_used = oplus_panel_pwm_onepulse_is_used(panel);
+	TEMP_COMPENSATION_DEBUG("onepulse_enable:%u,changed:%u,used:%u\n", onepulse_enable_last, onepulse_enable_changed, onepulse_used);
+
 	TEMP_COMPENSATION_DEBUG("last_bl_lvl:%u,bl_lvl:%u,last_dbv_index:%u,dbv_index:%u,shell_temp:%d,ntc_temp:%d,last_temp_index:%u,temp_index:%u\n",
 			last_bl_lvl, bl_lvl, last_dbv_index, dbv_index, oplus_temp_compensation_get_shell_temp(), ntc_temp,
 				last_temp_index, temp_index);
 
 	if ((last_dbv_index != dbv_index) || (last_temp_index != temp_index) || (!last_bl_lvl && bl_lvl)
-			|| (setting_mode == OPLUS_TEMP_COMPENSATION_ESD_SETTING) || (setting_mode == OPLUS_TEMP_COMPENSATION_FIRST_HALF_FRAME_SETTING)) {
+			|| (setting_mode == OPLUS_TEMP_COMPENSATION_ESD_SETTING) || (setting_mode == OPLUS_TEMP_COMPENSATION_FIRST_HALF_FRAME_SETTING)
+			|| onepulse_enable_changed) {
 		if (((refresh_rate == 60) && (setting_mode == OPLUS_TEMP_COMPENSATION_BACKLIGHT_SETTING)
 			&& (bl_lvl != 0) && (bl_lvl != 1)) || oplus_temp_compensation_wait_for_vsync_set) {
 			p_oplus_temp_compensation_params->need_to_set_in_first_half_frame = true;
@@ -746,28 +755,95 @@ int oplus_temp_compensation_cmd_set(void *dsi_panel, unsigned int setting_mode)
 												p_oplus_temp_compensation_params->need_to_set_in_first_half_frame);
 		} else {
 			for (i = 0; i < p_oplus_temp_compensation_params->reg_repeat; i++) {
-				temp_compensation_cmd[2].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][0];
-				temp_compensation_cmd[4].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][1];
-				temp_compensation_cmd[6].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][2];
-				temp_compensation_cmd[12].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][5];
-				temp_compensation_cmd[14].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][6];
-				temp_compensation_cmd[16].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][7];
-			}
-
-			for (i = 0; i < 4; i++) {
-				if (oplus_panel_pwm_turbo_is_enabled(panel)) {
-					temp_compensation_cmd[25].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][21+i];
+				/*
+				 * the left side is cmd register
+				 * the right side is dtsi data, it is 3-dimen array selected by current brightness and temperature
+				 * cmd register 2 4 6 is low freq 120HZ EM Duty, cmd register 12 14 16 is high freq 120HZ EM Duty
+				 * dtsi data 0 1 2 is low  freq 120HZ EM Duty
+				 * dtsi data 5 6 7 is high freq 120HZ EM Duty if not 1pulse, if 1pulse, it is REUSED as low 120HZ EM Duty of 1pulse
+				 * cmd register len is 4, dtsi data will be repeated reg_repeat(3 or 4) times to set cmd register
+				 * when 1pulse support
+				 *  cmd register 12 14 16 is seted 0
+				 *  if onepulse_used cmd register 2 4 6 is seted from dtsi data 5 6 7, else seted from dtsi data 0 1 2
+				 * when 1pulse NOT support
+				 *  cmd register 2 4 6 is seted from dtsi data 0 1 2
+				 *  cmd register 12 14 16 is seted from dtsi data 5 6 7
+				 */
+				if (panel->oplus_priv.pwm_onepulse_support) {
+					if (onepulse_used) {
+						temp_compensation_cmd[2].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][5];
+						temp_compensation_cmd[4].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][6];
+						temp_compensation_cmd[6].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][7];
+					} else {
+						temp_compensation_cmd[2].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][0];
+						temp_compensation_cmd[4].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][1];
+						temp_compensation_cmd[6].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][2];
+					}
+					temp_compensation_cmd[12].para_list[i+1] = 0;
+					temp_compensation_cmd[14].para_list[i+1] = 0;
+					temp_compensation_cmd[16].para_list[i+1] = 0;
 				} else {
-					temp_compensation_cmd[25].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][17+i];
+					temp_compensation_cmd[2].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][0];
+					temp_compensation_cmd[4].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][1];
+					temp_compensation_cmd[6].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][2];
+					temp_compensation_cmd[12].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][5];
+					temp_compensation_cmd[14].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][6];
+					temp_compensation_cmd[16].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][7];
 				}
 			}
 
 			for (i = 0; i < 3; i++) {
+				/*
+				 * the left side is cmd register
+				 * the right side is dtsi data, it is 3-dimen array selected by current brightness and temperature
+				 * cmd register 8 10 is low freq 90HZ EM Duty, dtsi data 3 4 is low freq 90HZ EM Duty
+				 * cmd register 20 is low freq 90HZ Vref2, dtsi data 11 is low freq 90HZ Vref2
+				 * cmd register 18 is low freq 120HZ Vref2, cmd register 22 is high freq 120HZ Vref2
+				 * dtsi data 8 is low  freq 120HZ Vref2
+				 * dtsi data 14 is high freq 120HZ Vref2 if not 1pulse, if 1pulse, it is REUSED as low freq 120HZ Vref2 of 1pulse
+				 * cmd register len is 4, for register 8 10, dtsi data will be repeated 3 times to set cmd register
+				 * cmd register len is 3, for register 20 18 22, dtsi data will be picked 3 len data to set cmd register
+				 * when 1pulse support
+				 *  cmd register 22 is seted 0
+				 *  if onepulse_used cmd register 18 is seted from dtsi data 14-16, else seted from dtsi data 8-10
+				 * when 1pulse NOT support
+				 *  cmd register 18 is seted from dtsi data 8-10
+				 *  cmd register 22 is seted from dtsi data 14-16
+				 */
 				temp_compensation_cmd[8].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][3];
 				temp_compensation_cmd[10].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][4];
-				temp_compensation_cmd[18].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][8+i];
 				temp_compensation_cmd[20].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][11+i];
-				temp_compensation_cmd[22].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][14+i];
+				if (panel->oplus_priv.pwm_onepulse_support) {
+					if (onepulse_used) {
+						temp_compensation_cmd[18].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][14+i];
+					} else {
+						temp_compensation_cmd[18].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][8+i];
+					}
+					temp_compensation_cmd[22].para_list[i+1] = 0;
+				} else {
+					temp_compensation_cmd[18].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][8+i];
+					temp_compensation_cmd[22].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][14+i];
+				}
+			}
+
+			for (i = 0; i < 4; i++) {
+				/*
+				 * the left side is cmd register
+				 * the right side is dtsi data, it is 3-dimen array selected by current brightness and temperature
+				 * cmd register 25 is Vdata
+				 * dtsi data 17-20 is low  freq Vdata
+				 * dtsi data 21-24 is high freq Vdata if not 1pulse, if 1pulse, it is REUSED as low freq Vdata of 1pulse
+				 * cmd register len is 4, dtsi data will be picked 4 len data to set cmd register
+				 * when pwm_turbo or onepulse_used
+				 *  cmd register 25 is seted from dtsi data 21-24
+				 * when else
+				 *  cmd register 25 is seted from dtsi data 17-20
+				 */
+				if (oplus_panel_pwm_turbo_is_enabled(panel) || onepulse_used) {
+					temp_compensation_cmd[25].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][21+i];
+				} else {
+					temp_compensation_cmd[25].para_list[i+1] = p_oplus_temp_compensation_params->data[dbv_index][temp_index][17+i];
+				}
 			}
 
 			TEMP_COMPENSATION_INFO("refresh_rate:%u,setting_mode:%u\n", refresh_rate, setting_mode);

@@ -13,6 +13,8 @@ obj-$(CONFIG_PROCESS_RECLAIM_ENHANCE)	+= process_reclaim/
 obj-$(CONFIG_DUMP_TASKS_MEM)	+= dump_tasks_mem/
 #endif /* OPLUS_FEATURE_MEMLEAK_DETECT */
 
+obj-$(CONFIG_THP_ZSMALLOC) += thp_zsmalloc/
+
 #ifdef OPLUS_FEATURE_HYBRIDSWAP_ZRAM
 obj-$(CONFIG_HYBRIDSWAP_ZRAM) += hybridswap_zram/
 #endif

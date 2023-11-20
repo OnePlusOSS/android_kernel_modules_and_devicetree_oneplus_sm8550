@@ -266,6 +266,7 @@ enum usb_property_id {
 	USB_PPS_VOOCPHY_ENABLE,
 	USB_IN_STATUS,
 	USB_GET_BATT_CURR,
+	USB_PPS_FORCE_SVOOC,
 #endif /*OPLUS_FEATURE_CHG_BASIC*/
 	USB_PROP_MAX,
 };
@@ -516,6 +517,7 @@ struct battery_chg_dev {
 	struct delayed_work ctrl_lcm_frequency;
 /*#endif*/
 	struct delayed_work	oem_lcm_en_check_work;
+	struct delayed_work	apsd_force_svooc_work;
 	u32			oem_misc_ctl_data;
 	bool			oem_usb_online;
 	struct delayed_work	adsp_voocphy_err_work;
@@ -533,6 +535,7 @@ struct battery_chg_dev {
 	bool 				chg_en;
 	bool					cid_status;
 	bool					qc_enable_status;
+	bool					force_svooc;
 
 	struct delayed_work status_keep_clean_work;
 	struct delayed_work status_keep_delay_unlock_work;
@@ -577,6 +580,7 @@ struct battery_chg_dev {
 	struct mutex    bcc_read_buffer_lock;
 	struct completion    bcc_read_ack;
 	struct oem_read_buffer_resp_msg  bcc_read_buffer_dump;
+	bool gauge_data_initialized;
 	int otg_scheme;
 	int otg_boost_src;
 	int otg_curr_limit_max;
@@ -620,6 +624,7 @@ struct battery_chg_dev {
 #endif
 	/* To track the driver initialization status */
 	bool				initialized;
+	bool plugin_already_run;
 };
 /**********************************************************************
  **********************************************************************/

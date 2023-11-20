@@ -219,6 +219,7 @@ static int hl7138_slave_init_device(struct oplus_voocphy_manager *chip)
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_11, 0xEC);	/* ovp:90mV */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_08, 0x3C);	/* VBAT_OVP:4.56	4.56+0.09*/
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0E, 0x32);	/* IBUS_OCP:3.5A      ocp:100mA */
+	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0F, 0x60);	/* IBUS_OCP:3.5A      ocp:250mA */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_02, 0xE1);	/* mask all INT_FLAG */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_10, 0xFC);	/* Dis IIN_REG; */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_12, 0x05);	/* Fsw=500KHz;07->12; */
@@ -335,10 +336,12 @@ static int hl7138_slave_svooc_hw_setting(struct oplus_voocphy_manager *chip)
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0B, 0x88);	/* VBUS_OVP:12V */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0C, 0x0F);	/* VIN_OVP:10.2V */
 
-	if (chip->high_curr_setting)
+	if (chip->high_curr_setting) {
 		hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0E, 0xB2);	/* disable OCP */
-	else
+	} else {
 		hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0E, 0x32);	/* IBUS_OCP:3.6A,UCP_DEB=5ms */
+		hl7138_slave_write_byte(chip->slave_client, HL7138_REG_0F, 0x60);	/* IBUS_OCP:3.5A      ocp:250mA */
+	}
 
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_14, 0x08);	/* WD:1000ms */
 	hl7138_slave_write_byte(chip->slave_client, HL7138_REG_15, 0x00);	/* enter cp mode */

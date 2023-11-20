@@ -39,6 +39,7 @@
 #include "../charger_ic/oplus_switching.h"
 #include "../oplus_chg_module.h"
 #include "oplus_cp_intf.h"
+#include "../oplus_pps.h"
 
 static struct oplus_voocphy_manager *oplus_voocphy_mg = NULL;
 static struct mutex i2c_rw_lock;
@@ -92,6 +93,7 @@ static int __sc8547_read_byte(struct i2c_client *client, u8 reg, u8 *data)
 	chip = i2c_get_clientdata(client);
 	ret = i2c_smbus_read_byte_data(client, reg);
 	if (ret < 0) {
+		oplus_pps_notify_master_cp_error();
 		sc8547_i2c_error(true);
 		pr_err("i2c read fail: can't read from reg 0x%02X\n", reg);
 		sc8547_track_upload_i2c_err_info(chip, ret, reg);
@@ -111,6 +113,7 @@ static int __sc8547_write_byte(struct i2c_client *client, u8 reg, u8 val)
 	chip = i2c_get_clientdata(client);
 	ret = i2c_smbus_write_byte_data(client, reg, val);
 	if (ret < 0) {
+		oplus_pps_notify_master_cp_error();
 		sc8547_i2c_error(true);
 		pr_err("i2c write fail: can't write 0x%02X to reg 0x%02X: %d\n",
 		       val, reg, ret);
@@ -176,6 +179,7 @@ static s32 sc8547_read_word(struct i2c_client *client, u8 reg)
 	mutex_lock(&i2c_rw_lock);
 	ret = i2c_smbus_read_word_data(client, reg);
 	if (ret < 0) {
+		oplus_pps_notify_master_cp_error();
 		sc8547_i2c_error(true);
 		pr_err("i2c read word fail: can't read reg:0x%02X \n", reg);
 		sc8547_track_upload_i2c_err_info(chip, ret, reg);
@@ -196,6 +200,7 @@ static s32 sc8547_write_word(struct i2c_client *client, u8 reg, u16 val)
 	mutex_lock(&i2c_rw_lock);
 	ret = i2c_smbus_write_word_data(client, reg, val);
 	if (ret < 0) {
+		oplus_pps_notify_master_cp_error();
 		sc8547_i2c_error(true);
 		pr_err("i2c write word fail: can't write 0x%02X to reg:0x%02X \n", val, reg);
 		sc8547_track_upload_i2c_err_info(chip, ret, reg);
@@ -1870,19 +1875,19 @@ irqreturn_t sc8547_protect_interrupt_handler(struct oplus_voocphy_manager *chip)
 		pr_err("SC8547_REG_0F failed ret=%d\n", ret);
 		return 0;
 	}
-	flag.ibus_ucp = (value & SC8547_IBUS_UCP_FALL_FLAG_MASK) >>
+	flag.value_bit.ibus_ucp = (value & SC8547_IBUS_UCP_FALL_FLAG_MASK) >>
 		   SC8547_IBUS_UCP_FALL_FLAG_SHIFT;
-	flag.ibus_ocp = (value & SC8547_IBUS_OCP_FLAG_MASK) >>
+	flag.value_bit.ibus_ocp = (value & SC8547_IBUS_OCP_FLAG_MASK) >>
 		   SC8547_IBUS_OCP_FLAG_SHIFT;
-	flag.vbus_ovp = (value & SC8547_VBUS_OVP_FLAG_MASK) >>
+	flag.value_bit.vbus_ovp = (value & SC8547_VBUS_OVP_FLAG_MASK) >>
 		   SC8547_VBUS_OVP_FLAG_SHIFT;
-	flag.ibat_ocp = (value & SC8547_IBAT_OCP_FLAG_MASK) >>
+	flag.value_bit.ibat_ocp = (value & SC8547_IBAT_OCP_FLAG_MASK) >>
 		   SC8547_IBAT_OCP_FLAG_SHIFT;
-	flag.vbat_ovp = (value & SC8547_VBAT_OVP_FLAG_MASK) >>
+	flag.value_bit.vbat_ovp = (value & SC8547_VBAT_OVP_FLAG_MASK) >>
 		   SC8547_VBAT_OVP_FLAG_SHIFT;
-	flag.vout_ovp = (value & SC8547_VOUT_OVP_FLAG_MASK) >>
+	flag.value_bit.vout_ovp = (value & SC8547_VOUT_OVP_FLAG_MASK) >>
 		   SC8547_VOUT_OVP_FLAG_SHIFT;
-	pr_err("%s SC8547_REG_0F[0x%x] flag = %d\n", __func__, value, flag);
+	pr_err("%s SC8547_REG_0F[0x%x] flag = 0x%02x\n", __func__, value, flag.value);
 
 	oplus_pps_device_protect_irq_callback(flag);
 

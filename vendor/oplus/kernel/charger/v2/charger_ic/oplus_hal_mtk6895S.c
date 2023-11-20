@@ -5267,7 +5267,7 @@ static int mtk_chg_get_vbus_collapse_status(struct oplus_chg_ic_dev *ic_dev, boo
 	return -ENOTSUPP;
 }
 
-static int mtk_chg_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
+static int mtk_chg_get_typec_role(struct oplus_chg_ic_dev *ic_dev,
 					enum oplus_chg_typec_port_role_type *mode)
 {
 	struct mtk_charger *chip;
@@ -5299,6 +5299,38 @@ static int mtk_chg_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
 		break;
 	case TYPEC_ROLE_UNKNOWN:
 	case TYPEC_ROLE_NR:
+	default:
+		*mode = TYPEC_PORT_ROLE_INVALID;
+		break;
+	}
+	return 0;
+}
+
+
+static int mtk_chg_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
+					enum oplus_chg_typec_port_role_type *mode)
+{
+	struct mtk_charger *chip;
+	uint8_t typec_state;
+
+	if (!ic_dev || !pinfo || !pinfo->tcpc) {
+		chg_err("[%s]: g_oplus_chip not ready!\n", __func__);
+		return -ENODEV;
+	}
+	chip = oplus_chg_ic_get_drvdata(ic_dev);
+
+	typec_state = tcpm_inquire_typec_attach_state(pinfo->tcpc);
+
+	switch(typec_state) {
+	case TYPEC_ATTACHED_SNK:
+	case TYPEC_ATTACHED_DBGACC_SNK:
+		*mode = TYPEC_PORT_ROLE_SNK;
+		break;
+	case TYPEC_ATTACHED_SRC:
+	case TYPEC_ATTACHED_CUSTOM_SRC:
+	case TYPEC_ATTACHED_NORP_SRC:
+		*mode = TYPEC_PORT_ROLE_SRC;
+		break;
 	default:
 		*mode = TYPEC_PORT_ROLE_INVALID;
 		break;
@@ -5707,6 +5739,10 @@ static void *oplus_chg_get_func(struct oplus_chg_ic_dev *ic_dev,
 	case OPLUS_IC_FUNC_BUCK_GET_BATT_BTB_TEMP:
 		func = OPLUS_CHG_IC_FUNC_CHECK(OPLUS_IC_FUNC_BUCK_GET_BATT_BTB_TEMP,
 					       mtk_chg_get_batt_btb_temp);
+		break;
+	case OPLUS_IC_FUNC_GET_TYPEC_ROLE:
+		func = OPLUS_CHG_IC_FUNC_CHECK(OPLUS_IC_FUNC_GET_TYPEC_ROLE,
+					       mtk_chg_get_typec_role);
 		break;
 	default:
 		chg_err("this func(=%d) is not supported\n", func_id);

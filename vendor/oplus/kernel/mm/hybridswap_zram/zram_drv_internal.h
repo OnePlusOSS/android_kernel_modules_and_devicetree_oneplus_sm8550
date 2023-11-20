@@ -5,6 +5,23 @@
 #define BIT(nr)		(1lu << (nr))
 #endif
 
+enum {
+	ZRAM_TYPE_BASEPAGE,
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+	ZRAM_TYPE_CHP,
+#endif
+	ZRAM_TYPE_MAX,
+};
+
+enum {
+	ZRAM_STATE_TOTAL,
+	ZRAM_STATE_USED,
+	ZRAM_STATE_SAME_PAGE,
+	ZRAM_STATE_COMPRESSED_PAGE,
+};
+
+extern struct zram *zram_arr[ZRAM_TYPE_MAX];
+
 #define zram_slot_lock(zram, index) (bit_spin_lock(ZRAM_LOCK, &zram->table[index].flags))
 
 #define zram_slot_unlock(zram, index) (bit_spin_unlock(ZRAM_LOCK, &zram->table[index].flags))
@@ -32,4 +49,11 @@
 	zram->table[index].flags = (flags << ZRAM_FLAG_SHIFT) | size; \
 } while(0)
 
+extern bool chp_supported;
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+extern struct huge_page_pool *chp_pool;
+#endif
+
+extern inline bool is_chp_zram(struct zram *zram);
+extern inline unsigned long zram_page_state(struct zram *zram, int type);
 #endif

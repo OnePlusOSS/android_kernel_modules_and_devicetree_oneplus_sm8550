@@ -498,6 +498,14 @@ static long fp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
             pr_info("%s FP_IOC_RESET_GPIO_CTL_HIGH\n", __func__);
             fp_reset_gpio_ctl(fp_dev, 1);
             break;
+        case FP_IOC_IRQ_GPIO_CTL_HIGH:
+            pr_info("%s FP_IOC_IRQ_GPIO_CTL_HIGH\n", __func__);
+            gpio_set_value(fp_dev->irq_gpio, 1);
+            break;
+        case FP_IOC_IRQ_GPIO_CTL_LOW:
+            pr_info("%s FP_IOC_IRQ_GPIO_CTL_LOW\n", __func__);
+            gpio_set_value(fp_dev->irq_gpio, 0);
+            break;
         default:
             pr_warn("unsupport cmd:0x%x\n", cmd);
             break;

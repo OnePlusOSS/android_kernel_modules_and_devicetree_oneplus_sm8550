@@ -1021,7 +1021,6 @@ static ssize_t battery_log_head_show(struct device *dev, struct device_attribute
 	}
 
 	if (oplus_battery_log_support() != true) {
-		chg_err("this proect dont support read battery log\n");
 		return -ENODEV;
 	}
 
@@ -1041,7 +1040,6 @@ static ssize_t battery_log_content_show(struct device *dev, struct device_attrib
 	}
 
 	if (oplus_battery_log_support() != true) {
-		chg_err("this proect dont support read battery log\n");
 		return -ENODEV;
 	}
 

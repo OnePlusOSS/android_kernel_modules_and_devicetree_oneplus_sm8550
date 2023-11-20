@@ -4278,7 +4278,6 @@ void dp_monitor_peer_telemetry_stats(struct dp_peer *peer,
 #endif
 
 /**
-<<<<<<< HEAD
  * dp_monitor_is_tx_cap_enabled() - get tx-cature enabled/disabled
  * @peer: DP peer handle
  *

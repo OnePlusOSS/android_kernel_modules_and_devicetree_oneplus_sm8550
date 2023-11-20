@@ -696,9 +696,16 @@ int iris_configure(u32 display, u32 type, u32 value)
 	int rc = 0;
 	ktime_t ktime = 0;
 
-	IRIS_LOGI("%s(), display: %u, type: 0x%04x(%u), value: %#x(%u), current Iris mode: %d",
-			__func__,
-			display, type, type, value, value, pcfg->abyp_ctrl.abypass_mode);
+	if (type == IRIS_OSD_AUTOREFRESH || type == IRIS_OSD_OVERFLOW_ST) {
+		IRIS_LOGV("%s(), display: %u, type: 0x%04x(%u), value: %#x(%u), current Iris mode: %d",
+				__func__,
+				display, type, type, value, value, pcfg->abyp_ctrl.abypass_mode);
+	} else {
+		IRIS_LOGI("%s(), display: %u, type: 0x%04x(%u), value: %#x(%u), current Iris mode: %d",
+				__func__,
+				display, type, type, value, value, pcfg->abyp_ctrl.abypass_mode);
+	}
+
 	if (!_iris_is_valid_type(display, type, value))
 		return -EPERM;
 
@@ -1143,7 +1150,7 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 				pcfg->pt_sr_enable = values[0];
 				iris_sr_level_set(PT_MODE, values[3], values[4], values[5], values[6]);
 				iris_pt_sr_set(values[0], values[1], values[2]);
-				iris_sdr2hdr_set_degain();
+				iris_sdr2hdr_set_degain(PT_MODE);
 			}
 		} else {
 			IRIS_LOGW("SR alreay enabled or disabled");
@@ -1353,7 +1360,7 @@ int iris_configure_get(u32 display, u32 type, u32 count, u32 *values)
 		// mutex_unlock(&pcfg->panel->panel_lock);
 		break;
 	case IRIS_DBG_TARGET_REGADDR_VALUE_GET:
-		IRIS_LOGI("%s:%d, pcfg->abyp_ctrl.abypass_mode = %d",
+		IRIS_LOGV("%s:%d, pcfg->abyp_ctrl.abypass_mode = %d",
 				__func__, __LINE__,
 				pcfg->abyp_ctrl.abypass_mode);
 		if ((pcfg->abyp_ctrl.abypass_mode == ANALOG_BYPASS_MODE) && (adb_type == 0))
@@ -1674,13 +1681,22 @@ int iris_configure_get(u32 display, u32 type, u32 count, u32 *values)
 		}
 		mutex_unlock(&pcfg->panel->panel_lock);
 		break;
+	case IRIS_FW_UPDATE:
+		*values = fw_calibrated_status;
+		break;
 	default:
 		return -EFAULT;
 	}
 
-	IRIS_LOGI("%s(), type: 0x%04x(%d), value: %d",
-			__func__,
-			type, type, *values);
+	if (type == IRIS_OSD_AUTOREFRESH || type == IRIS_OSD_OVERFLOW_ST || type == IRIS_DBG_TARGET_REGADDR_VALUE_GET) {
+		IRIS_LOGV("%s(), type: 0x%04x(%d), value: %d",
+				__func__,
+				type, type, *values);
+	} else {
+		IRIS_LOGI("%s(), type: 0x%04x(%d), value: %d",
+				__func__,
+				type, type, *values);
+	}
 	return 0;
 }
 

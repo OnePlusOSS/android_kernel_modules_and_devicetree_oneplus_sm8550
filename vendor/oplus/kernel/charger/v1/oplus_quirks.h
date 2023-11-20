@@ -6,7 +6,7 @@
 #ifndef _OPLUS_QUIRKS_H_
 #define _OPLUS_QUIRKS_H_
 
-#define PLUGINFO_MAX_NUM                12
+#define PLUGINFO_MAX_NUM                11
 #define ABNORMAL_DISCONNECT_INTERVAL    1500
 #define KEEP_CONNECT_TIME_OUT           80*1000
 #define PPS_CONNECT_ERROR_COUNT_LEVEL_1 3

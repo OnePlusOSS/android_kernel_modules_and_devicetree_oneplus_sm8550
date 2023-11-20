@@ -179,7 +179,10 @@ struct dsi_panel_oplus_privite {
 	bool gpio_pre_on;
 	bool pinctrl_enabled;
 	bool pwm_switch_support;
+	bool pwm_onepulse_support;
+	bool pwm_onepulse_enabled;
 	bool dynamic_demua_support;
+
 /********************************************
 	fp_type usage:
 	bit(0):lcd capacitive fingerprint(aod/fod are not supported)
@@ -225,6 +228,7 @@ struct dsi_backlight_config {
 	u32 global_hbm_threshold;
 	bool global_hbm_scale_mapping;
 	u32 pwm_bl_threshold;
+	u32 pwm_bl_onepulse_threshold;
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 	/* current brightness value */

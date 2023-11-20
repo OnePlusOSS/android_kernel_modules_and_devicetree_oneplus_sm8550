@@ -497,6 +497,7 @@ static unsigned long lowmem_dbg_scan(struct shrinker *s, struct shrink_control *
 	struct lowmem_dbg_cfg *cfg = &g_cfg;
 	long available;
 	u64 now;
+	unsigned long gpu;
 
 	if (atomic_inc_return(&atomic_lmk) > 1) {
 		atomic_dec(&atomic_lmk);
@@ -509,7 +510,8 @@ static unsigned long lowmem_dbg_scan(struct shrinker *s, struct shrink_control *
 	cfg->last_jiffies = now;
 
 	available = si_mem_available();
-	if (available > cfg->watermark_low)
+	gpu = read_mtrack_mem_usage(MTRACK_GPU, MTRACK_GPU_TOTAL);
+	if ((available > cfg->watermark_low) && (gpu < PAGES(SZ_4G)))
 		goto done;
 
 	schedule_work(&lowmem_dbg_work);

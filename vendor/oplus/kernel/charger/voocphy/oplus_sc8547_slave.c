@@ -577,6 +577,13 @@ static int sc8547_slave_hw_setting(struct oplus_voocphy_manager *chip, int reaso
 static int sc8547_slave_reset_voocphy(struct oplus_voocphy_manager *chip)
 {
 	sc8547_slave_set_chg_enable(chip, false);
+	if(ic_sc8547a) {
+		/* sc8547b need disable WDT when exit charging, to avoid after WDT time out.
+		IF time out, sc8547b will trigger interrupt frequently.
+		in addition, sc8547 and sc8547b WDT will disable when disable CP */
+		sc8547_slave_update_bits(chip->slave_client, SC8547_REG_09,
+				 	 SC8547_WATCHDOG_MASK, SC8547_WATCHDOG_DIS);
+	}
 	sc8547_slave_hw_setting(chip, SETTING_REASON_RESET);
 
 	return VOOCPHY_SUCCESS;

@@ -1743,8 +1743,7 @@ static int __cam_req_mgr_check_sync_req_is_ready(
 		 * Only skip the frames if current frame sync with
 		 * next frame of sync link.
 		 */
-		if (link->sof_timestamp - sync_link->sof_timestamp >
-			sync_frame_duration / 2)
+		if (sof_timestamp_delta > sync_frame_duration / 2)
 			link->sync_link_sof_skip = true;
 		return -EINVAL;
 	} else if (!ready) {

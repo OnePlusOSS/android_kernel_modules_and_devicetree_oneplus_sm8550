@@ -99,6 +99,8 @@ static const struct panel_ioctl_desc panel_ioctls[] = {
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_FP_TYPE, oplus_ofp_get_fp_type),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_SET_PWM_TURBO, oplus_display_panel_set_pwm_turbo),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_PWM_TURBO, oplus_display_panel_get_pwm_turbo),
+	PANEL_IOCTL_DEF(PANEL_IOCTL_SET_PWM_PULSE, oplus_display_panel_set_pwm_pulse),
+	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_PWM_PULSE, oplus_display_panel_get_pwm_pulse),
 };
 
 int oplus_display_fix_apollo_level(void)
@@ -223,7 +225,7 @@ static int oplus_export_dmabuf(int buf_size)
 	}
 
 	bl_addr = (char *)vaddr;
-	sprintf(bl_addr, "dma test!");
+	scnprintf(bl_addr, PAGE_SIZE, "dma test!");
 
 	oplus_exp_info.ops = &oplus_dmabuf_ops;
 	oplus_exp_info.size = page_order*PAGE_SIZE;

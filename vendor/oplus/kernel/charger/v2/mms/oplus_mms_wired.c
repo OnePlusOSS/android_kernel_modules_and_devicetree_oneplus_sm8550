@@ -1967,7 +1967,7 @@ static int oplus_usbtemp_monitor_main(void *data)
 	struct oplus_mms_wired *chip = data;
 	static int log_count = 0;
 	struct oplus_usbtemp_spec_config *spec = &chip->usbtemp_spec;
-	int batt_temp = chip->batt_realy_temp;
+	int batt_temp = 0;
 
 	chg_info("[oplus_usbtemp_monitor_main]:run first!");
 	spec = &chip->usbtemp_spec;
@@ -1978,6 +1978,7 @@ static int oplus_usbtemp_monitor_main(void *data)
 		}
 		oplus_wired_get_usb_temp_volt(&chip->usbtemp_volt_l, &chip->usbtemp_volt_r);
 		oplus_wired_get_usb_temp(&chip->usb_temp_l, &chip->usb_temp_r);
+		batt_temp = chip->batt_realy_temp;
 		if ((chip->usb_temp_l < USB_50C) && (chip->usb_temp_r < USB_50C)) { /*get vbus when usbtemp < 50C*/
 			vbus_volt = oplus_wired_get_vbus();
 		} else {

@@ -38,12 +38,6 @@ static struct proc_dir_entry *dynamic_swappiness_entry;
 static int g_hybridswapd_swappiness = 200;
 static struct proc_dir_entry *para_entry;
 
-#ifdef CONFIG_HYBRIDSWAP_SWAPD
-typedef bool (*free_swap_is_low_func)(void);
-free_swap_is_low_func free_swap_is_low_fp = NULL;
-EXPORT_SYMBOL(free_swap_is_low_fp);
-#endif
-
 static int g_kswapd_pid = -1;
 #define KSWAPD_COMM "kswapd0"
 
@@ -73,12 +67,6 @@ static void zo_set_swappiness(void *data, int *swappiness)
 		*swappiness = tune_dynamic_swappines();
 #else
 		*swappiness = g_swappiness;
-#endif
-#ifdef CONFIG_HYBRIDSWAP_SWAPD
-	} else if (strncmp(current->comm, "hybridswapd:", sizeof("hybridswapd:") - 1) == 0) {
-		*swappiness = g_hybridswapd_swappiness;
-		if (free_swap_is_low_fp && free_swap_is_low_fp())
-			*swappiness = 0;
 #endif
 	} else
 		*swappiness = g_direct_swappiness;

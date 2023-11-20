@@ -235,6 +235,12 @@ struct explorer_plat_data {
 	u32 cc_cmd_drive_strength; /* explorer cc cmd drive strength */
 	u32 cc_data_drive_strength; /* explorer cc cmd drive strength */
 	uintptr_t status;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
+        struct wake_lock suspend_lock;
+#else
+        struct wakeup_source *suspend_ws;
+#endif
+
 };
 
 int explorer_send_uevent(struct explorer_plat_data *epd, char *uevent_buf);

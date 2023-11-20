@@ -207,6 +207,10 @@ retry:
 			}
 		}
 
+		/* If an ux thread running on this CPU, drop it! */
+		if (oplus_get_ux_state(rq->curr) & SCHED_ASSIST_UX_MASK)
+			continue;
+
 		if (orq_has_ux_tasks(orq))
 			continue;
 

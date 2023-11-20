@@ -3,7 +3,7 @@
  * Copyright (C) 2020-2022 Oplus. All rights reserved.
  */
 
-#define pr_fmt(fmt) "[HYBRIDSWAP]" fmt
+#define pr_fmt(fmt) "[HYB_ZRAM]" fmt
 
 #include <linux/slab.h>
 #include <linux/cpu.h>
@@ -17,6 +17,9 @@
 #include "../zram_drv_internal.h"
 #include "internal.h"
 #include "hybridswap.h"
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+#include "chp_ext.h"
+#endif /* CONFIG_OPLUS_FEATURE_SCHED_ASSIST */
 
 static const char *swapd_text[NR_EVENT_ITEMS] = {
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
@@ -42,19 +45,13 @@ static const char *swapd_text[NR_EVENT_ITEMS] = {
 #endif
 };
 
-enum scan_balance {
-	SCAN_EQUAL,
-	SCAN_FRACT,
-	SCAN_ANON,
-	SCAN_FILE,
-};
-
 static int log_level = HYB_MAX;
 static struct kmem_cache *hybridswap_cache;
 static struct list_head score_head;
 static DEFINE_SPINLOCK(score_list_lock);
 static DEFINE_MUTEX(hybridswap_enable_lock);
 static bool hybridswap_enabled = false;
+struct hybridswapd_operations *hybridswapd_ops;
 
 DEFINE_MUTEX(reclaim_para_lock);
 DEFINE_PER_CPU(struct swapd_event_state, swapd_event_states);
@@ -117,9 +114,11 @@ ssize_t hybridswap_vmstat_show(struct device *dev,
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
 	len += snprintf(buf + len, PAGE_SIZE - len, "%-32s %12lu\n",
-			"fault_out_pause", atomic_long_read(&fault_out_pause));
+			"fault_out_pause",
+			atomic_long_read(hybridswapd_ops->fault_out_pause));
 	len += snprintf(buf + len, PAGE_SIZE - len, "%-32s %12lu\n",
-			"fault_out_pause_cnt", atomic_long_read(&fault_out_pause_cnt));
+			"fault_out_pause_cnt",
+			atomic_long_read(hybridswapd_ops->fault_out_pause_cnt));
 #endif
 
 	for (;i < NR_EVENT_ITEMS; i++) {
@@ -203,28 +202,6 @@ memcg_hybs_t *hybridswap_cache_alloc(struct mem_cgroup *memcg, bool atomic)
 	return hybs;
 }
 
-#ifdef CONFIG_HYBRIDSWAP_SWAPD
-static void tune_scan_type_hook(void *data, char *scan_balance)
-{
-	/*hybrid swapd,scan anon only*/
-	if (current_is_swapd()) {
-		*scan_balance = SCAN_ANON;
-		return;
-	}
-
-#ifdef CONFIG_HYBRIDSWAP_CORE
-	if (unlikely(!hybridswap_core_enabled()))
-		return;
-
-	/*real zram full, scan file only*/
-	if (!free_zram_is_ok()) {
-		*scan_balance = SCAN_FILE;
-		return;
-	}
-#endif
-}
-#endif
-
 static void mem_cgroup_alloc_hook(void *data, struct mem_cgroup *memcg)
 {
 	if (memcg->android_oem_data1[0])
@@ -251,7 +228,7 @@ void memcg_app_score_update(struct mem_cgroup *target)
 	unsigned long flags;
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	update_swapd_memcg_param(target);
+	hybridswapd_ops->update_memcg_param(target);
 #endif
 	spin_lock_irqsave(&score_list_lock, flags);
 	list_for_each(pos, &score_head) {
@@ -287,6 +264,26 @@ static void mem_cgroup_css_offline_hook(void *data,
 	css_put(css);
 }
 
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+#if IS_ENABLED(CONFIG_OPLUS_FEATURE_SCHED_ASSIST)
+extern bool test_task_ux(struct task_struct *task);
+#else
+static inline bool test_task_ux(struct task_struct *task)
+{
+	return false;
+}
+#endif /* CONFIG_OPLUS_FEATURE_SCHED_ASSIST */
+
+static void pcplist_add_cma_pages_bypass_hook(void *unused, int migratetype,
+					      bool *ok)
+{
+	if (migratetype == CHP_VH_FREE_ZRAM_IS_OK)
+		*ok = hybridswapd_ops->free_zram_is_ok();
+	else if (migratetype == CHP_VH_CURRENT_IS_UX)
+		*ok = test_task_ux(current);
+}
+#endif /* CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM */
+
 #define REGISTER_HOOK(name) do {\
 	rc = register_trace_android_vh_##name(name##_hook, NULL);\
 	if (rc) {\
@@ -313,14 +310,26 @@ static int register_all_hooks(void)
 	REGISTER_HOOK(mem_cgroup_css_online);
 	/* mem_cgroup_css_offline_hook */
 	REGISTER_HOOK(mem_cgroup_css_offline);
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+	REGISTER_HOOK(pcplist_add_cma_pages_bypass);
+#endif
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
 	/* For GKI reason we use alloc_pages_slowpath_hook rather than rmqueue_hook. Both are fine. */
 	/* rmqueue_hook */
 	/* REGISTER_HOOK(rmqueue); */
 	/* alloc_pages_slowpath_hook */
-	REGISTER_HOOK(alloc_pages_slowpath);
+	rc = register_trace_android_vh_alloc_pages_slowpath(hybridswapd_ops->vh_alloc_pages_slowpath, NULL);
+	if (rc) {
+		log_err("register alloc_pages_slowpath_hook failed\n");
+		goto err_out_alloc_pages_slowpath;
+	}
+
 	/* tune_scan_type_hook */
-	REGISTER_HOOK(tune_scan_type);
+	rc = register_trace_android_vh_tune_scan_type(hybridswapd_ops->vh_tune_scan_type, NULL);
+	if (rc) {
+		log_err("register tune_scan_type_hook failed\n");
+		goto err_out_tune_scan_type;
+	}
 #endif
 #ifdef CONFIG_HYBRIDSWAP_CORE
 	/* mem_cgroup_id_remove_hook */
@@ -333,12 +342,16 @@ static int register_all_hooks(void)
 ERROR_OUT(mem_cgroup_id_remove):
 #endif
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	UNREGISTER_HOOK(tune_scan_type);
+	unregister_trace_android_vh_tune_scan_type(hybridswapd_ops->vh_tune_scan_type, NULL);
 ERROR_OUT(tune_scan_type):
 	/* UNREGISTER_HOOK(rmqueue);
 ERROR_OUT(rmqueue): */
-	UNREGISTER_HOOK(alloc_pages_slowpath);
+	unregister_trace_android_vh_alloc_pages_slowpath(hybridswapd_ops->vh_alloc_pages_slowpath, NULL);
 ERROR_OUT(alloc_pages_slowpath):
+#endif
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+	UNREGISTER_HOOK(pcplist_add_cma_pages_bypass);
+err_out_pcplist_add_cma_pages_bypass:
 #endif
 	UNREGISTER_HOOK(mem_cgroup_css_offline);
 ERROR_OUT(mem_cgroup_css_offline):
@@ -361,48 +374,41 @@ static void unregister_all_hook(void)
 	UNREGISTER_HOOK(mem_cgroup_id_remove);
 #endif
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	/* UNREGISTER_HOOK(rmqueue); */
-	UNREGISTER_HOOK(alloc_pages_slowpath);
-	UNREGISTER_HOOK(tune_scan_type);
+	unregister_trace_android_vh_tune_scan_type(hybridswapd_ops->vh_tune_scan_type, NULL);
+	unregister_trace_android_vh_alloc_pages_slowpath(hybridswapd_ops->vh_alloc_pages_slowpath, NULL);
 #endif
+}
+
+/* idx can be of type enum memcg_stat_item or node_stat_item. */
+static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
+{
+	long x = 0;
+	int cpu;
+
+	for_each_possible_cpu(cpu)
+		x += per_cpu(memcg->vmstats_percpu->state[idx], cpu);
+#ifdef CONFIG_SMP
+	if (x < 0)
+		x = 0;
+#endif
+	return x;
 }
 
 unsigned long memcg_anon_pages(struct mem_cgroup *memcg)
 {
-	struct lruvec *lruvec = NULL;
-	struct mem_cgroup_per_node *mz = NULL;
-	if (!memcg)
+	if (unlikely(!memcg))
 		return 0;
 
-	mz = memcg->nodeinfo[0];
-	if (!mz)
-		return 0;
-
-	lruvec = &mz->lruvec;
-	if (!lruvec)
-		return 0;
-
-	return (lruvec_page_state(lruvec, NR_ACTIVE_ANON) +
-			lruvec_page_state(lruvec, NR_INACTIVE_ANON));
+	return (memcg_page_state_local(memcg, NR_ACTIVE_ANON) +
+		memcg_page_state_local(memcg, NR_INACTIVE_ANON));
 }
 
 static unsigned long memcg_inactive_anon_pages(struct mem_cgroup *memcg)
 {
-	struct lruvec *lruvec = NULL;
-	struct mem_cgroup_per_node *mz = NULL;
-
 	if (!memcg)
 		return 0;
 
-	mz = memcg->nodeinfo[0];
-	if (!mz)
-		return 0;
-
-	lruvec = &mz->lruvec;
-	if (!lruvec)
-		return 0;
-
-	return lruvec_page_state(lruvec, NR_INACTIVE_ANON);
+	return memcg_page_state_local(memcg, NR_INACTIVE_ANON);
 }
 
 static ssize_t mem_cgroup_force_shrink_anon(struct kernfs_open_file *of,
@@ -787,7 +793,7 @@ static struct cftype mem_cgroup_hybridswap_legacy_files[] = {
 	{ }, /* terminate */
 };
 
-static int hybridswap_enable(struct zram *zram)
+static int hybridswap_enable(struct zram **zram_arr)
 {
 	int ret = 0;
 
@@ -797,30 +803,32 @@ static int hybridswap_enable(struct zram *zram)
 	}
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	ret = swapd_init(zram);
+	ret = hybridswapd_ops->init(zram_arr);
 	if (ret)
 		return ret;
 #endif
 
-#ifdef CONFIG_HYBRIDSWAP_CORE
-	ret = hybridswap_core_enable();
-	if (ret)
-		goto hybridswap_core_enable_fail;
+#if defined(CONFIG_HYBRIDSWAP_CORE)
+	if (!chp_supported) {
+		ret = hybridswap_core_enable();
+		if (ret)
+			goto hybridswap_core_enable_fail;
+	}
 #endif
 	hybridswap_enabled = true;
 
 	return 0;
 
-#ifdef CONFIG_HYBRIDSWAP_CORE
+#if defined(CONFIG_HYBRIDSWAP_CORE)
 hybridswap_core_enable_fail:
 #endif
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	swapd_exit();
+	hybridswapd_ops->deinit();
 #endif
 	return ret;
 }
 
-static void hybridswap_disable(struct zram * zram)
+static void hybridswap_disable(struct zram **zram)
 {
 	if (!hybridswap_enabled) {
 		log_warn("enabled is false\n");
@@ -832,7 +840,7 @@ static void hybridswap_disable(struct zram * zram)
 #endif
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	swapd_exit();
+	hybridswapd_ops->deinit();
 #endif
 	hybridswap_enabled = false;
 }
@@ -843,9 +851,33 @@ ssize_t hybridswap_enable_show(struct device *dev,
 	int len = snprintf(buf, PAGE_SIZE, "hybridswap %s reclaim_in %s swapd %s\n",
 			hybridswap_core_enabled() ? "enable" : "disable",
 			hybridswap_reclaim_in_enable() ? "enable" : "disable",
-			hybridswap_swapd_enabled() ? "enable" : "disable");
+			hybridswapd_ops->enabled() ? "enable" : "disable");
 
 	return len;
+}
+
+ssize_t hybridswap_swapd_pause_store(struct device *dev,
+				     struct device_attribute *attr,
+				     const char *buf, size_t len)
+{
+	char *type_buf = NULL;
+	bool val;
+
+	type_buf = strstrip((char *)buf);
+	if (kstrtobool(type_buf, &val))
+		return -EINVAL;
+	atomic_set(hybridswapd_ops->swapd_pause, val);
+	return len;
+}
+
+ssize_t hybridswap_swapd_pause_show(struct device *dev,
+				    struct device_attribute *attr, char *buf)
+{
+	ssize_t size = 0;
+
+	size += scnprintf(buf + size, PAGE_SIZE - size,
+			  "%d\n", atomic_read(hybridswapd_ops->swapd_pause));
+	return size;
 }
 
 ssize_t hybridswap_enable_store(struct device *dev,
@@ -867,9 +899,9 @@ ssize_t hybridswap_enable_store(struct device *dev,
 	mutex_lock(&hybridswap_enable_lock);
 	zram = dev_to_zram(dev);
 	if (val == 0)
-		hybridswap_disable(zram);
+		hybridswap_disable(zram_arr);
 	else
-		ret = hybridswap_enable(zram);
+		ret = hybridswap_enable(zram_arr);
 	mutex_unlock(&hybridswap_enable_lock);
 
 	if (ret == 0)
@@ -901,16 +933,30 @@ int __init hybridswap_pre_init(void)
 	}
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
+	hybridswapd_ops = kzalloc(sizeof(struct hybridswapd_operations),
+				  GFP_KERNEL);
+	if (!hybridswapd_ops)
+		goto error_out;
+
+#ifdef CONFIG_CONT_PTE_HUGEPAGE_64K_ZRAM
+	if (chp_supported && chp_pool) {
+		log_info("init for hybridswapd_chp_ops");
+		hybridswapd_chp_ops_init(hybridswapd_ops);
+	} else {
+		log_info("init for hybridswapd_ops");
+		hybridswapd_ops_init(hybridswapd_ops);
+	}
+#else
+	hybridswapd_ops_init(hybridswapd_ops);
+#endif
+	hybridswapd_ops->pre_init();
+
 	ret = cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
-			mem_cgroup_swapd_legacy_files);
+					hybridswapd_ops->memcg_legacy_files);
 	if (ret) {
 		log_info("add mem_cgroup_swapd_legacy_files failed!\n");
-		goto error_out;
+		goto fail_out;
 	}
-#endif
-
-#ifdef CONFIG_HYBRIDSWAP_SWAPD
-	swapd_pre_init();
 #endif
 	ret = register_all_hooks();
 	if (ret)
@@ -921,7 +967,8 @@ int __init hybridswap_pre_init(void)
 
 fail_out:
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	swapd_pre_deinit();
+	hybridswapd_ops->pre_deinit();
+	kfree(hybridswapd_ops);
 #endif
 error_out:
 	if (hybridswap_cache) {
@@ -936,7 +983,7 @@ void __exit hybridswap_exit(void)
 	unregister_all_hook();
 
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-	swapd_pre_deinit();
+	hybridswapd_ops->pre_deinit();
 #endif
 
 	if (hybridswap_cache) {

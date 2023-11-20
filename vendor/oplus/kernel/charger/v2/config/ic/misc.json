@@ -2,6 +2,17 @@
     "type": "ic_cfg",
     "name": "misc",
     "max": 100,
+    "enum_list": [
+        {
+            "name": "oplus_dpdm_switch_mode",
+            "list": [
+                "DPDM_SWITCH_TO_AP",
+                "DPDM_SWITCH_TO_VOOC",
+                "DPDM_SWITCH_TO_UFCS",
+                "DPDM_SWITCH_TO_HEADPHONE"
+            ]
+        }
+    ],
     "list": [
         {
             "lable": "OPLUS_IC_FUNC_GET_CHARGER_CYCLE",
@@ -437,17 +448,17 @@
         {
             "lable": "OPLUS_IC_FUNC_SET_TYPEC_MODE",
             "desc": {
-                "zh": "设置当前的typec mode"
+                "zh": "设置当前的typec mode，既设备的接入状态"
             },
             "auto_debug_code": true,
             "parameter_list": ["enum oplus_chg_typec_port_role_type"],
             "parameter_desc": [
                 {
-                    "range": "0-7",
+                    "range": "1-2",
                     "type": "in",
                     "desc": {
-                        "zh": "0:drp, 1:sink, 2:source, 3:try sink, 4:try source, 5:disable, 6:enable, 7:invalid",
-                        "en": "0:drp, 1:sink, 2:source, 3:try sink, 4:try source, 5:disable, 6:enable, 7:invalid"
+                        "zh": "1:sink, 2:source",
+                        "en": "1:sink, 2:source"
                     }
                 }
             ],
@@ -943,8 +954,105 @@
                     }
                 }
             }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_SET_DPDM_SWITCH_MODE",
+            "desc": {
+                "zh": "设置dpdm开关所处的模式"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["enum oplus_dpdm_switch_mode"],
+            "parameter_desc": [
+                {
+                    "range": "0-*",
+                    "type": "in",
+                    "desc": {
+                        "zh": "0: ap, 1: vooc, 2: ufcs"
+                    }
+                }
+            ],
+            "vict": {
+                "read": false,
+                "write": {
+                    "cmd": "vict -f {id} -S{val} vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                },
+                "overwrite": {
+                    "cmd": "vict -f {id} -O {val} vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                }
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_GET_DPDM_SWITCH_MODE",
+            "desc": {
+                "zh": "获取dpdm开关所处的模式"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["enum oplus_dpdm_switch_mode *"],
+            "parameter_desc": [
+                {
+                    "range": "0-*",
+                    "type": "out",
+                    "desc": {
+                        "zh": "0: ap, 1: vooc, 2: ufcs"
+                    }
+                }
+            ],
+            "vict": {
+                "read": {
+                    "cmd": "vict -f {id} -G vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                },
+                "write": false,
+                "overwrite": {
+                    "cmd": "vict -f {id} -O {val} vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                }
+            }
+        },
+        {
+            "lable": "OPLUS_IC_FUNC_GET_TYPEC_ROLE",
+            "desc": {
+                "zh": "获取当前的typec role, typec设置的模式"
+            },
+            "auto_debug_code": true,
+            "parameter_list": ["enum oplus_chg_typec_port_role_type *"],
+            "parameter_desc": [
+                {
+                    "range": "0-7",
+                    "type": "out",
+                    "desc": {
+                        "zh": "0:drp, 1:sink, 2:source, 3:try sink, 4:try source, 5:disable, 6:enable, 7:invalid",
+                        "en": "0:drp, 1:sink, 2:source, 3:try sink, 4:try source, 5:disable, 6:enable, 7:invalid"
+                    }
+                }
+            ],
+            "vict": {
+                "read": {
+                    "cmd": "vict -f {id} -G vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                },
+                "write": false,
+                "overwrite": {
+                    "cmd": "vict -f {id} -O {val} vic-*",
+                    "desc": {
+                        "zh": "N/A"
+                    }
+                }
+            }
         }
     ],
 
-    "version": "V1.1:29:ac8dbe097a0a0f46c17df4dfd954d2f45fa43260bfc6781840c1d3b40b5ef4b0"
+    "version": "V1.3:32:cc182ac293a6254de31adc42edb0ebbdbba104990b6a118c31bf635521dcaa65"
 }

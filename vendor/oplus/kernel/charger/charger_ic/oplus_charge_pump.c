@@ -683,7 +683,7 @@ static int charge_pump_read_func(struct seq_file *s, void *v)
 
 static ssize_t proc_charge_pump_reg_write(struct file *file, const char __user *buf, size_t count, loff_t *lo)
 {
-    char buffer[10] = {0};
+    char buffer[11] = {0};
     int addr = 0;
     int val = 0;
     struct chip_charge_pump *divider_ic = PDE_DATA(file_inode(file));
@@ -703,7 +703,7 @@ static ssize_t proc_charge_pump_reg_write(struct file *file, const char __user *
     }
 
     if (!sscanf(buffer, "0x%x:0x%x", &addr, &val)) {
-        chg_err("invalid content: '%s', length = %zd\n", buf, count);
+        chg_err("invalid content: '%s', length = %u\n", buffer, count);
         return -EFAULT;
     }
     chg_err("addr:0x%02x, val:0x%02x.\n", addr, val);

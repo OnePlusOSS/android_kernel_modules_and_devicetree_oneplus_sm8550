@@ -1,6 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
+ * Copyright (C) 2023-2023 Oplus. All rights reserved.
+ *
  * oplus_battery_log.h
  */
+
+#ifndef __OPLUS_BATTERY_LOG_H__
+#define __OPLUS_BATTERY_LOG_H__
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -19,6 +25,8 @@
 enum battery_log_device_id {
 	BATTERY_LOG_DEVICE_ID_BEGIN = 0,
 	BATTERY_LOG_DEVICE_ID_COMM_INFO = BATTERY_LOG_DEVICE_ID_BEGIN,
+	BATTERY_LOG_DEVICE_ID_VOOC,
+	BATTERY_LOG_DEVICE_ID_BUCK_IC,
 	/*BATTERY_LOG_DEVICE_ID_BQ27541,*/
 	BATTERY_LOG_DEVICE_ID_END,
 };
@@ -51,3 +59,4 @@ struct battery_log_dev {
 int battery_log_ops_register(struct battery_log_ops *ops);
 int battery_log_common_operate(int type, char *buf, int size);
 int oplus_battery_log_support(void);
+#endif/*__OPLUS_BATTERY_LOG_H__*/

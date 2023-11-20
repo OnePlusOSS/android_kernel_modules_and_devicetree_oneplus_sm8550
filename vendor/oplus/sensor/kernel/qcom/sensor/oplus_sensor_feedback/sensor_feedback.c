@@ -114,6 +114,8 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{PS_DYNAMIC_CALI_ID, "device_ps_dynamic_cali", SENSOR_DEBUG_DEVICE_TYPE},
 	{PS_ZERO_CALI_ID, "device_ps_zero_cali", SENSOR_DEBUG_DEVICE_TYPE},
 	{PS_ENABLE_FAIL_ID, "device_ps_enable_fail", SENSOR_DEBUG_DEVICE_TYPE},
+	{PS_ABNORMAL_OFFSET_CALI_ID, "device_ps_abnormal_offset_cali", SENSOR_DEBUG_DEVICE_TYPE},
+	{PS_SET_OFFSET_RETRY_ID, "device_ps_set_offset_retry", SENSOR_DEBUG_DEVICE_TYPE},
 
 
 	{ALS_INIT_FAIL_ID, "device_als_init_fail", SENSOR_DEVICE_TYPE},
@@ -124,7 +126,7 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{ALS_FIRST_REPORT_DELAY_COUNT_ID, "device_als_rpt_delay", SENSOR_DEBUG_DEVICE_TYPE},
 	{ALS_ORIGIN_DATA_TO_ZERO_ID, "device_als_to_zero", SENSOR_DEBUG_DEVICE_TYPE},
 	{ALS_CALI_DATA_ID, "device_als_cali_data", SENSOR_DEBUG_DEVICE_TYPE},
-        {ALS_CG_RPT_INFO_ID, "device_als_cg_rpt_info", SENSOR_DEBUG_DEVICE_TYPE},
+	{ALS_CG_RPT_INFO_ID, "device_als_cg_rpt_info", SENSOR_DEBUG_DEVICE_TYPE},
 
 
 	{ACCEL_INIT_FAIL_ID, "device_acc_init_fail", SENSOR_DEVICE_TYPE},

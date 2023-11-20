@@ -9469,7 +9469,6 @@ int  oplus_pps_pd_exit(void)
 {
 	msleep(100);
 	oplus_chg_set_pps_config(5000, 3000);
-	msleep(500);
 	return 0;
 }
 

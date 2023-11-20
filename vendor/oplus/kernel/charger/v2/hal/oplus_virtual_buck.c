@@ -175,7 +175,7 @@ bool test_kit_typec_port_check(void *info, char *buf, size_t len, size_t *use_si
 	}
 
 	rc = oplus_chg_ic_func(vb->ic_dev,
-			       OPLUS_IC_FUNC_GET_TYPEC_MODE,
+			       OPLUS_IC_FUNC_GET_TYPEC_ROLE,
 			       &typec_mode);
 	if (rc < 0) {
 		chg_err("can't get typec mode, rc=%d\n", rc);
@@ -3223,6 +3223,51 @@ static int oplus_chg_vb_usb_temp_check_is_support(struct oplus_chg_ic_dev *ic_de
 	return 0;
 }
 
+
+static int oplus_chg_vb_get_typec_role(struct oplus_chg_ic_dev *ic_dev,
+				       enum oplus_chg_typec_port_role_type *mode)
+{
+	struct oplus_virtual_buck_ic *vb;
+	int i;
+	int rc = 0;
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
+	struct oplus_chg_ic_overwrite_data *data;
+	const void *buf;
+#endif
+
+	if (ic_dev == NULL) {
+		chg_err("oplus_chg_ic_dev is NULL");
+		return -ENODEV;
+	}
+
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
+	data = oplus_chg_ic_get_overwrite_data(ic_dev, OPLUS_IC_FUNC_GET_TYPEC_ROLE);
+	if (unlikely(data != NULL)) {
+		buf = (const void *)data->buf;
+		if (!oplus_chg_ic_debug_data_check(buf, data->size))
+			return -EINVAL;
+		*mode = oplus_chg_ic_get_item_data(buf, 0);
+		return 0;
+	}
+#endif
+
+	vb = oplus_chg_ic_get_drvdata(ic_dev);
+	for (i = 0; i < vb->child_num; i++) {
+		if (!func_is_support(&vb->child_list[i], OPLUS_IC_FUNC_GET_TYPEC_ROLE)) {
+			rc = -ENOTSUPP;
+			continue;
+		}
+		rc = oplus_chg_ic_func(vb->child_list[i].ic_dev,
+				       OPLUS_IC_FUNC_GET_TYPEC_ROLE,
+				       mode);
+		if (rc < 0 && rc != -ENOTSUPP)
+			chg_err("child ic[%d] get typec mode error, rc=%d\n", i, rc);
+		return rc;
+	}
+
+	return rc;
+}
+
 static int oplus_chg_vb_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
 				       enum oplus_chg_typec_port_role_type *mode)
 {
@@ -3593,13 +3638,9 @@ static int oplus_chg_vb_get_otg_online_status(struct oplus_chg_ic_dev *ic_dev, i
 		typec_mode = TYPEC_PORT_ROLE_INVALID;
 	}
 
-	typec_otg = (typec_mode == TYPEC_PORT_ROLE_DRP) ||
-		    (typec_mode == TYPEC_PORT_ROLE_SRC) ||
-		    (typec_mode == TYPEC_PORT_ROLE_TRY_SNK);
+	typec_otg = (typec_mode == TYPEC_PORT_ROLE_SRC);
 	if (support_hw_detect) {
-		if (online != DISCONNECT)
-			online = online |
-				 (typec_otg ? OTG_DEV_CONNECT : DISCONNECT);
+		online = online | (typec_otg ? OTG_DEV_CONNECT : DISCONNECT);
 	} else {
 		online = online | (typec_otg ? OTG_DEV_CONNECT : DISCONNECT);
 	}
@@ -4665,6 +4706,10 @@ static void *oplus_chg_vb_get_func(struct oplus_chg_ic_dev *ic_dev, enum oplus_c
 		func = OPLUS_CHG_IC_FUNC_CHECK(OPLUS_IC_FUNC_BUCK_GET_BATT_BTB_TEMP,
 					       oplus_chg_vb_get_batt_btb_temp);
 		break;
+	case OPLUS_IC_FUNC_GET_TYPEC_ROLE:
+		func = OPLUS_CHG_IC_FUNC_CHECK(OPLUS_IC_FUNC_GET_TYPEC_ROLE, oplus_chg_vb_get_typec_role);
+		break;
+
 	default:
 		chg_err("this func(=%d) is not supported\n", func_id);
 		func = NULL;
@@ -5186,6 +5231,15 @@ static ssize_t oplus_chg_vb_get_func_data(struct oplus_chg_ic_dev *ic_dev,
 		*item_data = cpu_to_le32(*item_data);
 		rc = oplus_chg_ic_debug_data_size(1);
 		break;
+	case OPLUS_IC_FUNC_GET_TYPEC_ROLE:
+		oplus_chg_ic_debug_data_init(buf, 1);
+		item_data = oplus_chg_ic_get_item_data_addr(buf, 0);
+		rc = oplus_chg_vb_get_typec_role(ic_dev, (enum oplus_chg_typec_port_role_type *)item_data);
+		if (rc < 0)
+			break;
+		*item_data = cpu_to_le32(*item_data);
+		rc = oplus_chg_ic_debug_data_size(1);
+		break;
 	default:
 		chg_err("this func(=%d) is not supported to get\n", func_id);
 		return -ENOTSUPP;
@@ -5248,6 +5302,7 @@ enum oplus_chg_ic_func oplus_vb_overwrite_funcs[] = {
 	OPLUS_IC_FUNC_BUCK_GET_TYPEC_STATE,
 	OPLUS_IC_FUNC_BUCK_GET_USB_BTB_TEMP,
 	OPLUS_IC_FUNC_BUCK_GET_BATT_BTB_TEMP,
+	OPLUS_IC_FUNC_GET_TYPEC_ROLE,
 };
 
 #endif /* CONFIG_OPLUS_CHG_IC_DEBUG */

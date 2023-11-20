@@ -4,15 +4,40 @@
  */
 
 #include <linux/of.h>
+#include <linux/module.h>
 #include "oplus_region_check.h"
 
-#define PPS_REGION_MAX 16
+static int dbg_nvid = 0x00;
+module_param(dbg_nvid, int, 0644);
+MODULE_PARM_DESC(dbg_nvid, "debug nvid for autotest");
 
-static u8 region_id = 0x00;
-static u32 pps_region_list[PPS_REGION_MAX] = {0};
-static int pps_list_length = 0;
-static u32 pps_priority_region_list[PPS_REGION_MAX] = {0};
-static int pps_priority_list_length = 0;
+#define PPS_REGION_COUNT_MAX 16
+
+struct region_list {
+	int elem_count;
+	u32 pps_region_list[PPS_REGION_COUNT_MAX];
+};
+
+enum region_list_index {
+	PPS_SUPPORT_REGION,
+	PPS_PRIORITY_REGION,
+	REGION_INDEX_MAX,
+};
+
+static u8 region_id = 0xFF;
+
+static const char *const dts_region_id_list[REGION_INDEX_MAX] = {
+	/* support third pps, EU/JP... */
+	[PPS_SUPPORT_REGION] = "oplus,pps_region_list",
+	/* pd_svooc adapter works preferentially in pps mode, EU */
+	[PPS_PRIORITY_REGION] = "oplus,pps_priority_list",
+};
+
+static struct region_list region_list_arrry[REGION_INDEX_MAX] =
+{
+	{0, {0x00}},
+	{0, {0x00}},
+};
 
 static bool get_regionid_from_cmdline(void)
 {
@@ -37,7 +62,7 @@ static bool get_regionid_from_cmdline(void)
 			if (ret == 1)
 				region_id = temp_region & 0xFF;
 			else
-				region_id = 0;
+				region_id = 0x00;
 			chg_err("oplus_region=0x%02x\n", region_id);
 			return true;
 		}
@@ -49,51 +74,49 @@ static void oplus_parse_pps_region_list(struct oplus_chg_chip *chip)
 {
 	int len = 0;
 	int rc = 0;
+	int i = 0;
 	struct device_node *node;
 
 	node = chip->dev->of_node;
 
-	rc = of_property_count_elems_of_size(
-		node, "oplus,pps_region_list", sizeof(u32));
-	if (rc >= 0) {
-		len = rc <= PPS_REGION_MAX ? rc : PPS_REGION_MAX;
-		rc = of_property_read_u32_array(node, "oplus,pps_region_list",
-						pps_region_list, len);
-		if (rc < 0) {
-			chg_err("parse pps_region_list failed, rc=%d\n", rc);
+	for (i = 0; i < REGION_INDEX_MAX; i++) {
+		rc = of_property_count_elems_of_size(
+			node, dts_region_id_list[i], sizeof(u32));
+		if (rc >= 0) {
+			len = rc <= PPS_REGION_COUNT_MAX ? rc : PPS_REGION_COUNT_MAX;
+			rc = of_property_read_u32_array(node, dts_region_id_list[i],
+							region_list_arrry[i].pps_region_list, len);
+			if (rc < 0) {
+				len = 0;
+				chg_err("parse %s failed, rc=%d", dts_region_id_list[i], rc);
+			}
+		} else {
+			len = 0;
+			chg_err("parse %s_length failed, rc=%d", dts_region_id_list[i], rc);
 		}
-	} else {
-		len = 0;
-		chg_err("parse pps_region_list_length failed, rc=%d\n", rc);
+		region_list_arrry[i].elem_count = len;
+		for (len = 0; len < region_list_arrry[i].elem_count; len++)
+			chg_err("%s[%d]=0x%02x", dts_region_id_list[i], len,
+					region_list_arrry[i].pps_region_list[len]);
 	}
-	pps_list_length = len;
-	for (len = 0; len < pps_list_length; len++)
-		chg_err("pps_region_list[%d]=0x%08x", len, pps_region_list[len]);
-
-	rc = of_property_count_elems_of_size(
-		node, "oplus,pps_priority_list", sizeof(u32));
-	if (rc >= 0) {
-		len = rc <= PPS_REGION_MAX ? rc : PPS_REGION_MAX;
-		rc = of_property_read_u32_array(node, "oplus,pps_priority_list",
-						pps_priority_region_list, len);
-		if (rc < 0) {
-			chg_err("parse pps_region_list failed, rc=%d\n", rc);
-		}
-	} else {
-		len = 0;
-		chg_err("parse pps_region_list_length failed, rc=%d\n", rc);
-	}
-	pps_priority_list_length = len;
-	for (len = 0; len < pps_priority_list_length; len++)
-		chg_err("pps_priority_region_list[%d]=0x%08x", len, pps_priority_region_list[len]);
 }
 
-static bool find_id_in_list(u8 id, u32 *id_list, int list_length)
+static bool find_id_in_region_list(u8 id, enum region_list_index list_index)
 {
 	int index = 0;
 	u8 region_id_tmp = 0;
+	u32 * id_list = NULL;
+	int list_length = 0;
 
-	if (id == 0x00 || list_length == 0)
+	if (id == 0xFF)
+		return false;
+
+	if (list_index >= PPS_SUPPORT_REGION &&
+	    list_index < REGION_INDEX_MAX) {
+		id_list = region_list_arrry[list_index].pps_region_list;
+		list_length = region_list_arrry[list_index].elem_count;
+	}
+	if (list_length == 0 || id_list == NULL)
 		return false;
 
 	while (index < list_length) {
@@ -110,23 +133,32 @@ static bool find_id_in_list(u8 id, u32 *id_list, int list_length)
 
 bool third_pps_supported_from_nvid(void)
 {
-	return find_id_in_list(region_id, pps_region_list, pps_list_length);
+	int region_temp = 0;
+	if (dbg_nvid != 0)
+		region_temp = dbg_nvid;
+	else
+		region_temp = region_id;
+
+	return find_id_in_region_list(region_temp, PPS_SUPPORT_REGION);
 }
 
 bool third_pps_priority_than_svooc(void)
 {
-	return find_id_in_list(region_id, pps_priority_region_list, pps_priority_list_length);
+	int region_temp = 0;
+	if (dbg_nvid != 0)
+		region_temp = dbg_nvid;
+	else
+		region_temp = region_id;
+
+	return find_id_in_region_list(region_temp, PPS_PRIORITY_REGION);
 }
 
 void oplus_chg_region_check_init(struct oplus_chg_chip *chip)
 {
-	bool ret = 0;
-
 	if (chip == NULL)
 		return;
 
-	ret = get_regionid_from_cmdline();
-	if (ret)
+	if (get_regionid_from_cmdline())
 		oplus_parse_pps_region_list(chip);
 }
 

@@ -123,7 +123,7 @@ static void ssc_interactive_set_flash_freq(enum panel_event_notifier_tag panel_t
 	ssc_cxt->last_freq = freq;
 	spin_unlock(&ssc_cxt->rw_lock);
 	pr_info("set_flash_freq %d\n", freq);
-	ssc_interactive_set_fifo(LCM_ADFR_MIN_FPS, ssc_cxt->last_freq);
+	ssc_interactive_set_fifo(LCM_ADFR_MIN_FPS, freq);
 }
 #endif
 
