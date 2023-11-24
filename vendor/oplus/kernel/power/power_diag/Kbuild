@@ -1,0 +1,9 @@
+
+ccflags-y += \
+	     -I$(srctree)/drivers/misc/mediatek/include \
+	     -I$(srctree)/drivers/misc/mediatek/include/mt-plat/ \
+	     -I$(srctree)/drivers/devfreq \
+	     -I$(srctree)/kernel/sched \
+	     -I$(srctree)/drivers/base/power/power_diag \
+
+obj-$(CONFIG_OPLUS_FEATURE_POWER_DIAG) += power_diag.o

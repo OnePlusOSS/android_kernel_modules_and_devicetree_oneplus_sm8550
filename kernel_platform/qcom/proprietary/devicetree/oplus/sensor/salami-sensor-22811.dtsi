@@ -1,0 +1,23 @@
+/**********************************************************************************
+* Copyright (c)  2008-2021  Guangdong oplus Mobile Comm Corp., Ltd
+* Description: oplus sensor dtsi
+*
+* Version: 1.0
+* Date: 2021-07-12
+*
+* ------------------------------ Revision History: --------------------------------
+* <version>           <date>                <author>                            <desc>
+***********************************************************************************/
+&soc {
+	//#ifdef OPLUS_FEATURE_SENSOR_SMEM
+	/*enum sensor_id { OPLUS_ACCEL,OPLUS_GYRO,OPLUS_MAG,OPLUS_LIGHT,OPLUS_PROXIMITY,OPLUS_SAR,OPLUS_CT,OPLUS_BAROMETER,SENSORS_NUM};*/
+	sensor_fb: sensor_fb {
+		compatible = "oplus,sensor-feedback";
+		master-id  = <3>;
+		smem-id    = <608>;
+	};
+	oplus_sensor {
+		compatible = "oplus,sensor-devinfo";
+	};
+	//#endif /*OPLUS_FEATURE_SENSOR_SMEM*/
+};

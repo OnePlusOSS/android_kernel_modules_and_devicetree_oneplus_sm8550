@@ -1,0 +1,65 @@
+#include <dt-bindings/phy/qcom,usb3-4nm-qmp-combo.h>
+
+&tlmm {
+	usb_phy_ps: usb_phy_ps {
+		usb3phy_portselect_default: usb3phy_portselect_default {
+			mux {
+				pins = "gpio11";
+				function = "usb_phy";
+			};
+
+			config {
+				pins = "gpio11";
+				bias-pull-down;
+				drive-strength = <2>;
+			};
+		};
+	};
+};
+
+&soc {
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+};
+
+&pm8550b_haptics {
+	qcom,vmax-mv = <1260>;
+	qcom,cl-vmax-mv = <1260>;
+	qcom,lra-period-us = <5882>;
+	qcom,fifo-vmax-mv = <8050>;
+	qcom,old-steady-vmax-mv = <8050>;
+	qcom,brake-mode = <BRAKE_OPEN_LOOP>;
+	qcom,cal-data-restore;
+	qcom,fifo-empty-threshold = <480>;
+	qcom,vibrator-type = <809>;//0809
+	oplus,livetap_support;
+};
+
+&pm8550b_eusb2_repeater {
+	qcom,param-override-seq = <0x00 0x50 0x0F 0x51 0x06 0x53 0x01 0x54
+			0x03 0x55 0x00 0x56 0x07 0x57 0x2 0x58 0x3 0x59 0x1 0x5A 0x2 0x5B>;
+	qcom,param-override-seq-host = <0x03 0x50 0x05 0x51 0x07 0x53 0x05 0x54
+			0x01 0x55 0x00 0x56 0x02 0x57 0x2 0x58 0x3 0x59 0x1 0x5A 0x2 0x5B>;
+};
+
+&usb0 {
+/delete-property/ extcon;
+	dwc3@a600000 {
+		usb-phy = <&eusb2_phy0>, <&usb_nop_phy>;
+		maximum-speed = "high-speed";
+		dr_mode = "otg";
+	};
+};
+
+&usb_qmp_dp_phy {
+	pinctrl-names = "default";
+	pinctrl-0 = <&usb3phy_portselect_default>;
+	status = "disabled";
+};
+
+&soc {
+	feedback_fb: feedback_fb {
+		compatible = "oplus,haptic-feedback";
+	};
+};

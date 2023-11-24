@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2023-2030 Oplus. All rights reserved.
+config OPLUS_BSP_DFR_USERSPACE_BACKTRACE
+	tristate "dump userspace backtrace"
+	default n
+	help
+            OPLUS_BSP_DFR_USERSPACE_BACKTRACE is the kernel config of dump userspace
+            process backtrace designed by OPLUS.

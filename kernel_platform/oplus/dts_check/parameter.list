@@ -1,0 +1,8 @@
+# dtc_tool_path为dtc工具存放路径
+# dtb_file_path是编译之后main_dtb文件路径只能有一个
+# dtbo_file_path是dtbo文件路径，可以设置多个
+# dtb_file_path和dtb_file_path路径中可能因为user和userdebug版本导致有gki和consolidate的差异，不用管，写两个都写，脚本中会根据版本类型替换
+dtc_tool_path=<prebuilts/misc/linux-x86/dtc/dtc>
+dtb_file_path=<kernel_platform/out/msm-kernel/arch/arm64/boot/dts/vendor/oplus/waipio.dtb>
+dtbo_file_path=<kernel_platform/out/msm-kernel/arch/arm64/boot/dts/vendor/oplus/baize-21001-waipio-overlay.dtbo>
+dtbo_file_path=<kernel_platform/out/msm-kernel/arch/arm64/boot/dts/vendor/oplus/wly-20846-waipio-overlay.dtbo>

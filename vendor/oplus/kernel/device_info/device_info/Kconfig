@@ -1,0 +1,10 @@
+config OPLUS_DEVICE_IFNO
+  tristate "config oplus devinfo software"
+  help
+    define this config to compile devinfo.c for device register
+
+config OPLUS_DEVICE_INFO_MTK_PLATFORM
+    bool "OPLUS platform device info module used"
+    help
+      Say Y here if you have mtk-platform.
+

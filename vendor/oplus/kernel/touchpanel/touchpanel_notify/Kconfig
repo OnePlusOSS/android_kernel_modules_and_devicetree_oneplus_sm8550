@@ -1,0 +1,5 @@
+config TOUCHPANEL_NOTIFY
+    tristate "touch notify"
+    help
+      Say Y here if you have touchscreen notify build into driver.
+      Say M here if you have touchscreen notify as module.

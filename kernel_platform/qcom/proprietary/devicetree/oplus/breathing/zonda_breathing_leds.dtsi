@@ -1,0 +1,103 @@
+&pm8550_rgb{
+	/delete-property/ compatible;
+        /delete-property/ reg;
+	/delete-node/ red;
+	/delete-node/ green;
+	/delete-node/ blue;
+};
+
+&qupv3_hub_i2c3_pins {
+	qupv3_hub_i2c3_pulldown: qupv3_hub_i2c3_pulldown {
+		mux {
+			pins = "gpio22", "gpio23";
+			function = "gpio";
+		};
+		config {
+			pins = "gpio22", "gpio23";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+	qupv3_hub_i2c3_pullup: qupv3_hub_i2c3_pullup {
+		mux {
+			pins = "gpio22", "gpio23";
+			function = "gpio";
+		};
+		config {
+			pins = "gpio22", "gpio23";
+			drive-strength = <2>;
+			bias-pull-up;
+			input-enable;
+		};
+	};
+};
+
+
+
+&qupv3_hub_i2c3 {
+	status = "ok";
+ 	qcom,clk-freq-out = <400000>;
+ 	pinctrl-names = "default", "sleep", "pulldown", "pullup";
+ 	pinctrl-0 = <&qupv3_hub_i2c3_sda_active>, <&qupv3_hub_i2c3_scl_active>;
+ 	pinctrl-1 = <&qupv3_hub_i2c3_sleep>;
+	pinctrl-2 = <&qupv3_hub_i2c3_pulldown>;
+	pinctrl-3 = <&qupv3_hub_i2c3_pullup>;
+	aw210xx_led@1C {
+		compatible = "awinic,aw210xx_led";
+		reg = <0x1C>;
+
+		/* Power Config */
+		enable-gpio = <&tlmm 171 0x1>;
+		vbled-enable-gpio = <&tlmm 176 0x1>;
+
+
+		led_groups_num = <4>;
+		led_allocation_order = <2 3 1 4>;
+		led_current_denominator = <4 1 1 4>; // led: 2 3 1 4
+		led_current_numerator = <5 1 1 5>;
+		dev_resume_time = <250>;
+		global_current = <0xcc>;
+		osc_clk = <1>;
+		br_res = <1>;
+		status = "okay";
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&aw21xx_enable_pin_default>;
+		aw210xx,red {
+			aw210xx,name = "red";
+			aw210xx,id = <0>;
+			aw210xx,imax = <1>;
+			aw210xx,led_default_trigger = "none";
+			aw210xx,brightness = <0>;
+			aw210xx,max-brightness = <255>;
+			aw210xx,rise-time-ms = <5>;
+			aw210xx,hold-time-ms = <0>;
+			aw210xx,fall-time-ms = <0>;
+			aw210xx,off-time-ms = <0>;
+		};
+		aw210xx,green {
+			aw210xx,name = "green";
+			aw210xx,id = <1>;
+			aw210xx,imax = <1>;
+			aw210xx,led_default_trigger = "none";
+			aw210xx,brightness = <0>;
+			aw210xx,max-brightness = <255>;
+			aw210xx,rise-time-ms = <5>;
+			aw210xx,hold-time-ms = <0>;
+			aw210xx,fall-time-ms = <0>;
+			aw210xx,off-time-ms = <0>;
+		};
+		aw210xx,blue {
+			aw210xx,name = "blue";
+			aw210xx,id = <2>;
+			aw210xx,imax = <1>;
+			aw210xx,led_default_trigger = "none";
+			aw210xx,brightness = <0>;
+			aw210xx,max-brightness = <255>;
+			aw210xx,rise-time-ms = <5>;
+			aw210xx,hold-time-ms = <0>;
+			aw210xx,fall-time-ms = <0>;
+			aw210xx,off-time-ms = <0>;
+		};
+	};
+};
