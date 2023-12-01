@@ -1,0 +1,68 @@
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-dvt.dtsi"
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-ldo.dtsi"
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-evt2.dtsi"
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-evt1.dtsi"
+#include "panel/dsi-panel-samsung-amb682cg01-1440-3168-dsc-cmd-t0.dtsi"
+
+&soc {
+	oplus_display_dev: oplus,dsi-display-dev {
+		oplus,dsi-panel-primary = <
+			&dsi_vtdr6130_amoled_video
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_dvt
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_ldo
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_evt2
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_evt1
+			&dsi_panel_samsung_amb682cg01_1440_3168_dsc_cmd_t0
+		>;
+		oplus,dsi-panel-secondary = <
+		>;
+		oplus,dsi-panel-extended = <>;
+	};
+
+	oplus_wukong_dsi_panel_pwr_supply: oplus_wukong_dsi_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <200000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+			qcom,supply-pre-off-sleep = <10>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <1>;
+			qcom,supply-name = "vci";
+			qcom,supply-min-voltage = <3200000>;
+			qcom,supply-max-voltage = <3200000>;
+			qcom,supply-enable-load = <10000>;
+			qcom,supply-disable-load = <0>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+};
+
+&sde_dsi {
+	pinctrl-names = "panel_active", "panel_suspend",
+			"te1_active", "te1_suspend";
+	pinctrl-0 = <&sde_dsi_active &sde_te_active>;
+	pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
+	pinctrl-2 = <&sde_te1_active>;
+	pinctrl-3 = <&sde_te1_suspend>;
+};
+
+&mdss_dsi_phy0 {
+	/delete-property/ qcom,dsi-pll-ssc-en;
+	/delete-property/ qcom,dsi-pll-ssc-mode;
+};
+
+&L13B {
+	regulator-max-microvolt = <3200000>;
+	qcom,init-voltage = <3200000>;
+};

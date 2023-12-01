@@ -1,0 +1,6 @@
+config OPLUS_FEATURE_UXMEM_OPT
+	depends on OPLUS_FEATURE_SCHED_ASSIST
+	tristate "enable uxmem_opt"
+	default n
+	help
+	  This feature add a memory pool for ux process.

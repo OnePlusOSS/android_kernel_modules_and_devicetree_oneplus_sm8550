@@ -1,0 +1,107 @@
+&soc {
+	tlmm: pinctrl@f100000 {
+		compatible = "qcom,sdxbaagha-pinctrl";
+		reg = <0xf000000 0x300000>;
+		interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&intc>;
+		#interrupt-cells = <2>;
+
+		qupv3_se3_2uart_pins: qupv3_se3_2uart_pins {
+			qupv3_se3_2uart_tx_active: qupv3_se3_2uart_tx_active {
+				mux {
+					pins = "gpio8";
+					function = "qup0_se3_l2_mira";
+				};
+
+				config {
+					pins = "gpio8";
+					drive-strength= <2>;
+					bias-disable;
+				};
+			};
+
+			qupv3_se3_2uart_rx_active: qupv3_se3_2uart_rx_active {
+				mux {
+					pins = "gpio9";
+					function = "qup0_se3_l3_mira";
+				};
+
+				config {
+					pins = "gpio9";
+					drive-strength= <2>;
+					bias-disable;
+				};
+			};
+
+			qupv3_se3_2uart_sleep: qupv3_se3_2uart_sleep {
+				mux {
+					pins = "gpio8", "gpio9";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio8", "gpio9";
+					drive-strength = <2>;
+					bias-pull-down;
+				};
+			};
+		};
+	};
+pcie0 {
+		pcie0_perst_default: pcie0_perst_default {
+			mux {
+				pins = "gpio57";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio57";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+
+		pcie0_clkreq_default: pcie0_clkreq_default {
+			mux {
+				pins = "gpio56";
+				function = "pcie0_clkreq_n";
+			};
+
+			config {
+				pins = "gpio56";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+
+		pcie0_wake_default: pcie0_wake_default {
+			mux {
+				pins = "gpio53";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio53";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+
+		pcie0_clkreq_sleep: pcie0_clkreq_sleep {
+			mux {
+				pins = "gpio56";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio56";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+};

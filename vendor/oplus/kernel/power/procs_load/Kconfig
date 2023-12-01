@@ -1,0 +1,6 @@
+#change 'y' to 'n', if you want fo close this controller
+config OPLUS_POWER_PROCS_LOAD
+    bool "oplus power procs cpu usage stats feature"
+    default n
+    help
+      define this config to enable oplus power procs cpu usage stats feature.

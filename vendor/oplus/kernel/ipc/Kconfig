@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2020 Oplus. All rights reserved.
+
+config OPLUS_BINDER_STRATEGY
+	tristate "binder optimization strategy"
+	default n
+	help
+	  Customized binder optimization strategy.
+
+config OPLUS_BINDER_PRIO_SKIP
+	bool "config binder prio skip"
+	default n
+	depends on OPLUS_BINDER_STRATEGY
+	help
+	  Define this config for skip binder_transaction_priority.
+	  When a RT thread A do binder transaction with a cfs thread B,
+	  the priority of A will be set to the same as B (cfs).
+	  So it will affect the performance of A thread,
+	  so skip priority set during binder transaction in some situation.
+
+config OPLUS_BINDER_TRANS_CTRL
+	bool "binder transaction ctrl"
+	default n
+	depends on OPLUS_BINDER_STRATEGY
+	help
+	  With this config, binder threads in target proc will deal with important work first.

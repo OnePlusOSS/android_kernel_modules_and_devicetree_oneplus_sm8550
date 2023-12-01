@@ -1,0 +1,99 @@
+/* add for custom clk by gpio5 */
+#include <dt-bindings/clock/qcom,rpmh.h>
+#include "panel/dsi-panel-boe-nt37705-1080-2412-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amb670yf07-cs-1440-3216-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amb670yf07-fs-1440-3216-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amb670yf08-cs-1440-3216-dsc-cmd.dtsi"
+#include "panel/dsi-panel-samsung-amb670yf08-fs-1440-3216-dsc-cmd.dtsi"
+
+&soc {
+	oplus_display_dev: oplus,dsi-display-dev {
+		oplus,dsi-panel-primary = <
+			&dsi_vtdr6130_amoled_video
+			&dsi_panel_boe_nt37705_1080_2412_dsc_cmd
+			&dsi_panel_samsung_amb670yf07_cs_1440_3216_dsc_cmd
+			&dsi_panel_samsung_amb670yf07_fs_1440_3216_dsc_cmd
+			&dsi_panel_samsung_amb670yf08_cs_1440_3216_dsc_cmd
+			&dsi_panel_samsung_amb670yf08_fs_1440_3216_dsc_cmd
+		>;
+		oplus,dsi-panel-secondary = <
+			&dsi_vtdr6130_amoled_video
+		>;
+		oplus,dsi-panel-extended = <>;
+	};
+
+	oplus_salami_dsi_panel_pwr_supply: oplus_salami_dsi_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <200000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+			qcom,supply-pre-off-sleep = <10>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <1>;
+			qcom,supply-name = "vci";
+			qcom,supply-min-voltage = <3200000>;
+			qcom,supply-max-voltage = <3200000>;
+			qcom,supply-enable-load = <10000>;
+			qcom,supply-disable-load = <0>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+};
+
+&sde_dsi {
+	qcom,platform-te-gpio-1 = <&tlmm 87 0>;
+
+	pinctrl-names = "panel_active", "panel_suspend",
+			"te1_active", "te1_suspend";
+	pinctrl-0 = <&sde_dsi_active &sde_te_active>;
+	pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
+	pinctrl-2 = <&sde_te1_active>;
+	pinctrl-3 = <&sde_te1_suspend>;
+
+	clocks = <&mdss_dsi_phy0 0>,
+		 <&mdss_dsi_phy0 1>,
+		 <&mdss_dsi_phy1 2>,
+		 <&mdss_dsi_phy1 3>,
+		 <&dispcc DISP_CC_MDSS_MDP_CLK>,
+		 /* add for custom clk by gpio5 */
+		 <&rpmhcc RPMH_DIV_CLK1>;
+	clock-names = "pll_byte_clk0", "pll_dsi_clk0",
+		      "pll_byte_clk1", "pll_dsi_clk1",
+		      "mdp_core_clk",
+		      /* add for custom clk by gpio5 */
+		      "div_clk";
+};
+
+&sde_dsi1 {
+	pinctrl-names = "panel_active", "panel_suspend";
+	pinctrl-0 = <&sde_te1_active>;
+	pinctrl-1 = <&sde_te1_suspend>;
+
+	/delete-property/ vddio-supply;
+	/delete-property/ vci-supply;
+	/delete-property/ vdd-supply;
+};
+
+&mdss_dsi_phy0 {
+	/delete-property/ qcom,dsi-pll-ssc-en;
+	/delete-property/ qcom,dsi-pll-ssc-mode;
+};
+
+&mdss_dsi_phy1 {
+	/delete-property/ qcom,dsi-pll-ssc-en;
+	/delete-property/ qcom,dsi-pll-ssc-mode;
+};
+
+&L13B {
+	regulator-max-microvolt = <3200000>;
+	qcom,init-voltage = <3200000>;
+};

@@ -1,0 +1,2 @@
+
+source "drivers/input/touchscreen/oplus_touchscreen/chipone/icnl9911c/Kconfig"

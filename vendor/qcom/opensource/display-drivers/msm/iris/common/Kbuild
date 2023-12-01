@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note
+
+PWAROOT=.
+IRIS_KROOT=$(PWAROOT)/iris/common
+
+ifeq ($(CONFIG_ARCH_LAHAINA), y)
+msm_drm-$(CONFIG_DRM_MSM_DSI) += $(IRIS_KROOT)/dsi_iris_cmpt_8350.o
+endif
+
+ifeq ($(CONFIG_ARCH_WAIPIO), y)
+msm_drm-$(CONFIG_DRM_MSM_DSI) += $(IRIS_KROOT)/dsi_iris_cmpt_8450.o
+endif
+
+ifeq ($(CONFIG_ARCH_KALAMA), y)
+msm_drm-$(CONFIG_DRM_MSM_DSI) += $(IRIS_KROOT)/dsi_iris_cmpt_8550.o
+endif
+
+msm_drm-$(CONFIG_DRM_MSM_DSI) += $(IRIS_KROOT)/dsi_iris_ioctl.o \
+				$(IRIS_KROOT)/dsi_iris_lightup.o \
+				$(IRIS_KROOT)/dsi_iris_lightup_ocp.o \
+				$(IRIS_KROOT)/dsi_iris_lp.o \
+				$(IRIS_KROOT)/dsi_iris_lut.o \
+				$(IRIS_KROOT)/dsi_iris_pq.o \
+				$(IRIS_KROOT)/dsi_iris_common.o \
+				$(IRIS_KROOT)/dsi_iris_i3c.o \
+				$(IRIS_KROOT)/dsi_iris_i2c.o \
+				$(IRIS_KROOT)/dsi_iris_loop_back.o \
+				$(IRIS_KROOT)/dsi_iris_gpio.o \
+				$(IRIS_KROOT)/dsi_iris_memc.o \
+				$(IRIS_KROOT)/dsi_iris_timing_switch.o \
+				$(IRIS_KROOT)/dsi_iris_dbg.o \
+				$(IRIS_KROOT)/msm_iris_extended.o \
+				$(IRIS_KROOT)/sde_iris_extended.o \
+				$(IRIS_KROOT)/dsi_iris_extended.o \
+				$(IRIS_KROOT)/dsi_iris_dts_fw.o \
+				$(IRIS_KROOT)/dsi_iris_cmpt_fpga.o
+ccflags-y += -DCONFIG_PXLW_IRIS
+ccflags-y += -DPXLW_IRIS_DUAL
+#ccflags-y += -DCONFIG_PXLW_SOFT_IRIS

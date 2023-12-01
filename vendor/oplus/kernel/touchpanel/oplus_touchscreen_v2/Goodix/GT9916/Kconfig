@@ -1,0 +1,7 @@
+config TOUCHPANEL_GOODIX_GT9916
+#   default y
+    tristate "TP goodix gt9916 IC enable or not for OPLUS"
+    help
+    Say Y to enable driver for Touchpanel useing goodix gt9916
+    Say M to enable driver for Touchpanel useing goodix gt9916 as module
+

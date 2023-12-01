@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2022-2022 Oplus. All rights reserved.
+
+config OPLUS_FEATURE_FAULT_INJECT_CHG
+	tristate "charger driver fault inject"
+	default n
+	depends on OPLUS_FEATURE_FAULT_INJECT
+	help
+	  charger driver inject.

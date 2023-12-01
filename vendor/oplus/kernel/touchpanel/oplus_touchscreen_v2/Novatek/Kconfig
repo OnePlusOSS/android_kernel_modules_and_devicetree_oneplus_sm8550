@@ -1,0 +1,3 @@
+source "drivers/input/touchscreen/oplus_touchscreen_v2/Novatek/NT36672C_noflash/Kconfig"
+source "drivers/input/touchscreen/oplus_touchscreen_v2/Novatek/NT36523_noflash/Kconfig"
+source "drivers/input/touchscreen/oplus_touchscreen_v2/Novatek/NT36532_noflash/Kconfig"

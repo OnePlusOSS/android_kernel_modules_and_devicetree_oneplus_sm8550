@@ -1,0 +1,6 @@
+config OPLUS_FREEZE_DEBUG
+	tristate "freeze debug logging"
+	default n
+	help
+	  This selects to provide node for open log,
+	  when freezing tasks failed during suspend

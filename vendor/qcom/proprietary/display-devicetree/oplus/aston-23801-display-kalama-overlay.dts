@@ -1,0 +1,17 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include <dt-bindings/iio/qcom,spmi-adc5-gen3-pmk8550.h>
+#include "../display/kalama-sde-display-mtp-overlay.dts"
+#include "kalama-display-overlay-common.dtsi"
+#include "aston-23801-display-kalama-overlay.dtsi"
+/* #if defined(CONFIG_PXLW_IRIS) */
+#include "pxlw-iris7p-kalama-common.dtsi"
+#include "pxlw-aston/dsi-panel-pxlw-iris7p.dtsi"
+/* #endif */
+
+/ {
+	model = "Qualcomm Technologies, Inc. Kalama MTP,aston";
+
+	oplus,project-id = <23861 23801>;
+};

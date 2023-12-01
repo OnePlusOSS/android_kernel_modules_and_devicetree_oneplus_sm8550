@@ -1,0 +1,28 @@
+################################################################################
+
+if [ -f "../oplus/config/abi_gki_aarch64_oplus_internal" ]; then
+ADDITIONAL_KMI_SYMBOL_LISTS=../oplus/config/abi_gki_aarch64_oplus_internal
+fi
+
+jobs=$(cat /proc/cpuinfo | grep processor | wc -l)
+echo "jobs ${jobs}"
+MAKE_GOALS+=" -j${jobs}"
+
+KERNEL_VENDOR_CMDLINE=' androidboot.hardware=qcom androidboot.memcg=1 video=vfb:640x400,bpp=32,memsize=3072000 androidboot.usbcontroller=a600000.dwc3 console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x0099C000 androidboot.console=ttyMSM0 msm_geni_serial.con_enabled=1 buildvariant=userdebug'
+
+function build_oplus_defconfig_fragments() {
+    echo "apply oplus defconfig"
+    apply_defconfig_fragment ${ROOT_DIR}/oplus/config/waipio_oplus.config
+}
+build_oplus_defconfig_fragments
+
+function build_oplus_do_defconfig_fragments() {
+    echo "OPLUS_BUILD_DO - apply waipio_oplus_do.config & modules.blocklist.do"
+    apply_defconfig_fragment ${ROOT_DIR}/oplus/config/waipio_oplus_do.config
+    MODULES_BLOCKLIST="${ROOT_DIR}/oplus/config/modules.blocklist.do"
+    VENDOR_DLKM_MODULES_BLOCKLIST="${ROOT_DIR}/oplus/config/modules.blocklist.do"
+}
+echo "OPLUS_BUILD_DO = [${OPLUS_BUILD_DO}] - Kernel Setup"
+if [ "${OPLUS_BUILD_DO}" == "true" ]; then
+  build_oplus_do_defconfig_fragments
+fi

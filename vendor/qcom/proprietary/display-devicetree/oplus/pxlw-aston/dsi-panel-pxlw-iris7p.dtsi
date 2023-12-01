@@ -1,0 +1,65 @@
+/* Copyright (c) 2020, Pixelworks
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "pxlw-iris7p-cfg-aston-AA551-P-3-A0004-dsc-cmd.dtsi"
+
+&soc {
+	dsi_iris_pwr_supply: dsi_iris_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "px_v18r";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <62000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+
+	/* avoid failed to parse power config */
+	dsi_panel_pwr_sec_supply: dsi_panel_pwr_sec_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "dummy";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <60700>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+};
+
+&mdss_mdp {
+	pxlw,dsi-display-primary-active = "qcom,mdss_dsi_panel_AA551_P_3_A0004_dsc_cmd";
+};
+
+&sde_dsi {
+	pxlw,iris-lightup-config = <&mdss_iris7p_cfg_aston_AA551_P_3_A0004_dsc_cmd>;
+	px_v18r-supply = <&L12B>;
+};
+
+&sde_dsi1 {
+	px_v18r-supply = <&L12B>;
+};
+
+&dsi_panel_AA551_P_3_A0004_dsc_cmd {
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x377 0x2>;
+	qcom,iris-supply-entries = <&dsi_iris_pwr_supply>;
+};
+

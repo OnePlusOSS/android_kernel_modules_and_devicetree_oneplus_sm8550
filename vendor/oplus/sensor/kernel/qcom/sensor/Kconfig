@@ -1,0 +1,34 @@
+config OPLUS_FEATURE_SENSOR_CFG
+	tristate "oplus sensor share memory config"
+	default y
+	help
+	  To compile this driver as a module, set M in kernel build config
+	  module will be called oplus_sensor.
+config SSC_INTERACTIVE
+    tristate "config ssc interactive"
+    help
+        define this config to send lcd info to slpi
+
+config OPLUS_SENSOR_FB_QC
+	tristate "sensor feedback config for qcom"
+	help
+	  To compile this driver as a module, set M in kernel build config
+	  module will be called sensor_feedback.
+
+config OPLUS_SENSOR_DRM_PANEL_NOTIFY
+	tristate "CONFIG_OPLUS_SENSOR_DRM_PANEL_NOTIFY"
+	help
+	 Say 'y' or 'm' to support drm panel notify
+	 Say 'n' to not support drm panel notify
+
+config OPLUS_SENSOR_DRM_PANEL_ADFR_MIN_FPS
+	tristate "CONFIG_OPLUS_SENSOR_DRM_PANEL_ADFR_MIN_FPS"
+	help
+	 Say 'y' or 'm' to support drm panel ADFR min fps
+	 Say 'n' to not support drm panel ADFR min fps
+
+config OPLUS_FEATURE_SENSOR_FEEDBACK
+	tristate "CONFIG_OPLUS_FEATURE_SENSOR_FEEDBACK"
+	help
+	 Say 'y' or 'm' to support saving sensor minidump
+	 Say 'n' to not support saving sensor minidump

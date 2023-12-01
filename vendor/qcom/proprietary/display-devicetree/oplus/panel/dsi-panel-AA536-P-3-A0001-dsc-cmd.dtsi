@@ -1,0 +1,2078 @@
+&mdss_mdp {
+	dsi_panel_AA536_P_3_A0001_dsc_cmd: qcom,mdss_dsi_panel_AA536_P_3_A0001_dsc_cmd {
+		qcom,mdss-dsi-panel-name = "AA536 P 3 A0001 dsc cmd mode panel";
+		oplus,mdss-dsi-vendor-name = "A0001";
+		oplus,mdss-dsi-manufacture = "P_3";
+		qcom,mdss-dsi-panel-type = "dsi_cmd_mode";
+		qcom,mdss-dsi-virtual-channel-id = <0>;
+		qcom,mdss-dsi-stream = <0>;
+		qcom,mdss-dsi-bpp = <30>;
+		qcom,mdss-dsi-color-order = "rgb_swap_rgb";
+		qcom,mdss-dsi-underflow-color = <0xff>;
+		qcom,mdss-dsi-border-color = <0>;
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,mdss-dsi-traffic-mode = "burst_mode";
+		qcom,mdss-dsi-lane-map = "lane_map_0123";
+		qcom,mdss-dsi-bllp-eof-power-mode;
+		qcom,mdss-dsi-bllp-power-mode;
+		qcom,mdss-dsi-lane-0-state;
+		qcom,mdss-dsi-lane-1-state;
+		qcom,mdss-dsi-lane-2-state;
+		qcom,mdss-dsi-lane-3-state;
+		qcom,mdss-dsi-dma-trigger = "trigger_sw";
+		qcom,mdss-dsi-dma-schedule-line = <1>;
+		qcom,mdss-dsi-dma-schedule-window = <10>;
+		qcom,mdss-dsi-mdp-trigger = "none";
+		qcom,mdss-dsi-reset-sequence = <1 2>, <0 5>, <1 25>;
+		qcom,mdss-dsi-te-pin-select = <1>;
+		qcom,mdss-dsi-te-dcs-command = <1>;
+		qcom,mdss-pan-physical-width-dimension = <70>;
+		qcom,mdss-pan-physical-height-dimension = <156>;
+		qcom,mdss-dsi-init-delay-us = <1000>;
+		qcom,mdss-dsi-te-check-enable;
+		qcom,mdss-dsi-te-using-te-pin;
+		qcom,mdss-dsi-lp11-init;
+		qcom,mdss-dsi-wr-mem-start = <0x2c>;
+		qcom,mdss-dsi-wr-mem-continue = <0x3c>;
+		qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+		qcom,mdss-dsc-scr-version = <0x1>;
+		qcom,mdss-bl-high2bit;
+		/* HDR Setting */
+		qcom,mdss-dsi-panel-hdr-enabled;
+		qcom,mdss-dsi-panel-hdr-color-primaries = <15635 16450 34000 16000 13250 34500 7500 3000>;
+		qcom,mdss-dsi-panel-peak-brightness = <5400000>;
+		qcom,mdss-dsi-panel-average-brightness = <2000000>;
+		qcom,mdss-dsi-panel-blackness-level = <4000>;
+
+		qcom,esd-check-enabled;
+		//oplus,esd-check-flag-enabled;
+		qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+		qcom,mdss-dsi-panel-status-command = [
+				06 01 00 01 05 00 02 0A 00
+				06 01 00 01 05 00 02 91 00
+			];
+		qcom,mdss-dsi-panel-status-command-state = "dsi_lp_mode";
+		qcom,mdss-dsi-panel-status-value = <0x9C 0xAB>;
+		qcom,mdss-dsi-panel-status-read-length = <1 1>;
+
+		qcom,dynamic-mode-switch-enabled;
+		qcom,dynamic-mode-switch-type = "dynamic-resolution-switch-immediate";
+		qcom,mdss-dsi-display-timings {
+			timing@sa_fhd_120 {
+				qcom,mdss-mdp-transfer-time-us = <6290>;
+				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+				qcom,mdss-dsc-scr-version = <0x1>;
+
+				qcom,mdss-dsc-version = <0x11>;
+				qcom,mdss-dsi-timing-default;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <1094400000>;
+				qcom,mdss-dsi-panel-width = <1240>;
+				qcom,mdss-dsi-panel-height = <2772>;
+
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <50>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+
+				qcom,mdss-dsi-h-left-border = <0>;
+				qcom,mdss-dsi-h-right-border = <0>;
+				qcom,mdss-dsi-v-top-border = <0>;
+				qcom,mdss-dsi-v-bottom-border = <0>;
+
+				/* standard adfr */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-min-fps-mapping-table = <120 60>;
+
+				/* ofp config */
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
+				oplus,ofp-aod-off-insert-black-frame = <1>;
+				oplus,ofp-aod-off-black-frame-total-time = <42>;
+				oplus,ofp-need-to-separate-backlight;
+				oplus,ofp-hbm-on-period = <1>;
+                                oplus,apollo-panel-vsync-width = <5600>;
+
+				qcom,mdss-dsi-panel-read-register-open-command = [
+
+				];
+				qcom,mdss-dsi-panel-id1-command = [
+
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-command = [
+					//120HZ part 1
+					15 00 00 60 00 00 02 2F 00
+					39 00 00 60 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 60 00 00 02 6F 6B
+					15 00 00 60 00 00 02 B0 01
+					39 00 00 20 04 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//120HZ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 BE 47
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 2F 30  //Skip Mode Enable
+					15 00 00 40 00 00 02 6D 00
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 21
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 31
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 41
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 51
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 00 00 00 09 BA 11 1F 81 1F 81 1F 81 1F
+				];
+
+				qcom,mdss-dsi-on-command = [
+					//OSC Setting
+					39 00 00 40 00 00 06 F0 55 AA 52 08 04 //page 4
+					39 00 00 40 00 00 05 FF AA 55 A5 80 //CMD3
+					39 00 00 40 00 00 02 6F 1A
+					15 00 00 40 00 00 02 F4 55
+					15 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 F8 01 4E
+					15 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 03 F8 00 FC
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 05
+					15 00 00 40 00 00 02 FE 3C
+					15 00 00 40 00 00 02 6F 02
+					15 00 00 40 00 00 02 F9 04
+					15 00 00 40 00 00 02 6F 1E
+					15 00 00 00 00 00 02 FB 0F
+					//MIPI Bias
+					39 00 00 40 00 00 05 FF AA 55 A5 82
+					15 00 00 40 00 00 02 6F 09
+					15 00 00 40 00 00 02 F2 55
+					39 00 00 40 00 00 05 FF AA 55 A5 83
+					15 00 00 40 00 00 02 6F 12  //VRAM
+					15 00 00 00 00 00 02 FE 41
+					15 00 00 40 00 00 02 6F 13  //Dumura
+					15 00 00 40 00 00 02 FD 21
+					05 00 00 40 00 00 01 35
+					15 00 00 40 00 00 02 53 20
+					39 00 00 40 00 00 05 2A 00 00 04 D7
+					39 00 00 00 00 00 05 2B 00 00 0A D3
+					//VDC
+					15 00 00 40 00 00 02 26 00
+					39 00 00 00 00 00 03 81 01 00
+					//DSC 10bit DSC_1.1
+					15 00 00 40 00 00 02 03 01
+					39 00 00 40 00 00 03 90 03 03
+					39 00 00 40 00 00 13 91 AB 28 00 2C F2 00 02 85 04 06 00 08 02 CB 01 FF 10 E0
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					39 00 00 40 00 00 02 6F 24
+					39 00 00 00 00 00 15 FB 00 03 04 55 77 77 77 99 9D 00 00 06 88 9A BB BC DE EF F0 11
+					//Disable AOD OFF first frame voltage widening
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 D2 00
+					//Fix AOD FD enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 02
+					39 00 00 40 00 00 04 D2 01 01 2D
+					15 00 00 40 00 00 02 6F 05
+					39 00 00 40 00 00 04 D2 01 01 00
+					15 00 00 40 00 00 02 6F 01
+					39 00 00 40 00 00 05 E4 10 10 01 00
+					15 00 00 40 00 00 02 6F 0B
+					39 00 00 00 00 00 05 E4 00 10 00 00
+					//SDRAM DATA
+					39 00 00 40 00 00 06 F0 55 AA 52 08 03
+					15 00 00 00 00 00 02 C7 00
+					//120HZ
+					15 00 00 00 00 00 02 2F 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 40 00 00 02 6F 6B
+					15 00 00 40 00 00 02 B0 01
+					39 00 00 40 00 00 03 44 0A C0
+					//CONFIG DCDC
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 40 00 00 02 6F 44
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+					05 00 00 00 78 00 01 11
+					//120HZ SEQ part 1
+					39 00 00 00 00 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//120HZ SEQ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1B
+					15 00 00 40 00 00 02 BA 18
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 3C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 4C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 5C
+					39 00 00 40 00 00 05 BA 01 01 01 01
+					15 00 00 40 00 00 02 6F 6C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 7C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 8C
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 40 00 00 09 BA 11 1F 81 1F 81 1F 81 1F
+					15 00 00 40 00 00 02 6F A4
+					15 00 00 40 00 00 02 BA E4
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 00
+					//Temperature Compensation Enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 03 E5 B2 26  //120HZ 补偿使能
+					15 00 00 40 00 00 02 6F 22
+					39 00 00 40 00 00 03 E5 B2 26  //90HZ 补偿使能
+					//Display on
+					05 00 00 00 00 00 01 29
+				];
+				qcom,mdss-dsi-on-high-fre-command = [
+				];
+				qcom,mdss-dsi-lpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-hpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-reset-scanline-command = [
+
+				];
+				qcom,mdss-dsi-recovery-scanline-command = [
+
+				];
+				qcom,mdss-dsi-panel-info-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 01
+				];
+				qcom,mdss-dsi-default-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+				];
+				qcom,mdss-dsi-qsync-on-commands = [
+
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+
+				];
+				qcom,mdss-dsi-adfr-auto-on-command = [
+					/* SDC Auto On */
+				];
+				qcom,mdss-dsi-adfr-auto-off-command = [
+					/* SDC Auto Off */
+				];
+				qcom,mdss-dsi-adfr-min-fps-0-command = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 00
+				];
+				qcom,mdss-dsi-adfr-min-fps-1-command = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 01
+				];
+
+				qcom,mdss-dsi-post-on-backlight = [
+
+				];
+				qcom,mdss-dsi-off-command=[
+					05 00 00 00 14 00 01 28
+					05 00 00 00 78 00 01 10
+				];
+				qcom,mdss-dsi-lp1-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 40 00 00 02 B5 50
+					/* TE Modulation */
+					15 00 00 40 00 00 02 2F 00
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 03 44 00 00
+					/* AOD Mode ON */
+					05 00 00 40 00 00 01 39
+					15 00 00 40 00 00 02 65 01
+					05 00 00 40 00 00 01 2C
+					/* AOD Switch */
+					15 00 00 40 00 00 02 6F 04
+					39 00 00 00 44 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-nolp-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 02 B5 4F
+					/* AOD mode OFF */
+					15 00 00 40 00 00 02 65 00
+					05 00 00 40 00 00 01 38
+					05 00 00 40 00 00 01 2C
+					/* TE Modulation */
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 02 6D 00
+					39 00 00 40 00 00 02 2F 30
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 00 00 00 03 51 00 00
+				];
+				qcom,mdss-dsi-hbm-off-command = [
+					39 00 00 00 00 00 03 51 0D BB
+				];
+				qcom,mdss-dsi-hbm-on-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-hbm-on-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-aod-high-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-aod-low-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 00 03
+				];
+				//qcom,mdss-dsi-esd-switch-page-command = [
+				//	39 01 00 00 00 00 05 FF AA 55 A5 81
+				//	15 01 00 00 00 00 02 6F 0F
+				//];
+				qcom,mdss-dsi-temperature-compensation-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 02 6F 06
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 28
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 52
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 03
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 0C
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 15
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 05 EC 00 00 00 00
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 40 00 00 02 B2 17
+					39 00 00 00 00 00 03 51 05 2F
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-timming-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+				qcom,mdss-dsi-timming-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 02 B2 17
+				];
+				qcom,mdss-dsi-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+				];
+				qcom,mdss-dsi-pwm-switch-threepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+
+				qcom,mdss-dsi-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-high-fre-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-on-high-fre-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-onepulse-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-recovery-scanline-command-state = "dsi_hs_mode";
+
+				qcom,mdss-dsi-adfr-auto-on-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-auto-off-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-lpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-threepulse-command-state = "dsi_hs_mode";
+
+				qcom,lm-split = <620 620>;
+				qcom,compression-mode = "dsc";
+				qcom,mdss-dsc-encoders = <2>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <620>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
+				qcom,mdss-dsc-bit-per-component = <10>;
+				qcom,mdss-dsc-bit-per-pixel = <8>;
+				qcom,mdss-dsc-block-prediction-enable;
+				qcom,mdss-dsi-panel-id1-command-state = "dsi_lp_mode";
+			};
+			timing@sa_fhd_90{
+				qcom,mdss-mdp-transfer-time-us = <9000>;
+				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+				qcom,mdss-dsc-scr-version = <0x1>;
+				qcom,mdss-dsc-version = <0x11>;
+				qcom,mdss-dsi-timing-default;
+				qcom,mdss-dsi-panel-framerate = <90>;
+				qcom,mdss-dsi-panel-clockrate = <1094400000>;
+				qcom,mdss-dsi-panel-width = <1240>;
+				qcom,mdss-dsi-panel-height = <2772>;
+
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <80>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-v-back-porch = <16>;
+				qcom,mdss-dsi-v-front-porch = <10>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+
+				qcom,mdss-dsi-h-left-border = <0>;
+				qcom,mdss-dsi-h-right-border = <0>;
+				qcom,mdss-dsi-v-top-border = <0>;
+				qcom,mdss-dsi-v-bottom-border = <0>;
+
+				/* standard adfr */
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				oplus,adfr-min-fps-mapping-table = <90 45>;
+
+				/* ofp config */
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
+				oplus,ofp-aod-off-insert-black-frame = <1>;
+				oplus,ofp-aod-off-black-frame-total-time = <45>;
+				oplus,ofp-need-to-separate-backlight;
+				oplus,ofp-hbm-on-period = <1>;
+                                oplus,apollo-panel-vsync-width = <5600>;
+
+				qcom,mdss-dsi-panel-read-register-open-command = [
+
+				];
+				qcom,mdss-dsi-panel-id1-command = [
+
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-command = [
+					//90HZ part 1
+					15 00 00 60 00 00 02 2F 01
+					39 00 00 60 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 60 00 00 02 6F 6B
+					15 00 00 60 00 00 02 B0 00
+					39 00 00 20 04 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//90HZ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 BE 47
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 11 11
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 11 11 11 11
+					15 00 00 40 00 00 02 2F 31  //Skip Mode Enable
+					15 00 00 40 00 00 02 6D 00
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 03 BA 01 0A
+					15 00 00 40 00 00 02 6F 21
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 31
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 41
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 51
+					39 00 00 40 00 00 03 BA 00 01
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 00 00 00 09 BA 81 1F 81 1F 81 1F 81 1F
+				];
+				qcom,mdss-dsi-on-command = [
+					//OSC Setting
+					39 00 00 40 00 00 06 F0 55 AA 52 08 04 //page 4
+					39 00 00 40 00 00 05 FF AA 55 A5 80 //CMD3
+					39 00 00 40 00 00 02 6F 1A
+					15 00 00 40 00 00 02 F4 55
+					15 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 F8 01 4E
+					15 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 03 F8 00 FC
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 05
+					15 00 00 40 00 00 02 FE 3C
+					15 00 00 40 00 00 02 6F 02
+					15 00 00 40 00 00 02 F9 04
+					15 00 00 40 00 00 02 6F 1E
+					15 00 00 00 00 00 02 FB 0F
+					//MIPI Bias
+					39 00 00 40 00 00 05 FF AA 55 A5 82
+					15 00 00 40 00 00 02 6F 09
+					15 00 00 40 00 00 02 F2 55
+					39 00 00 40 00 00 05 FF AA 55 A5 83
+					15 00 00 40 00 00 02 6F 12
+					15 00 00 00 00 00 02 FE 41
+					//Dumura
+					15 00 00 40 00 00 02 6F 13
+					15 00 00 40 00 00 02 FD 21
+					05 00 00 40 00 00 01 35
+					15 00 00 40 00 00 02 53 20
+					39 00 00 40 00 00 05 2A 00 00 04 D7
+					39 00 00 00 00 00 05 2B 00 00 0A D3
+					//VDC
+					15 00 00 40 00 00 02 26 00
+					39 00 00 00 00 00 03 81 01 00
+					//DSC 10bit DSC_1.1
+					15 00 00 40 00 00 02 03 01
+					39 00 00 40 00 00 03 90 03 03
+					39 00 00 40 00 00 13 91 AB 28 00 2C F2 00 02 85 04 06 00 08 02 CB 01 FF 10 E0
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					39 00 00 40 00 00 02 6F 24
+					39 00 00 00 00 00 15 FB 00 03 04 55 77 77 77 99 9D 00 00 06 88 9A BB BC DE EF F0 11
+					//Disable AOD OFF first frame voltage widening
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 D2 00
+					//Fix AOD FD enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 02
+					39 00 00 40 00 00 04 D2 01 01 2D
+					15 00 00 40 00 00 02 6F 05
+					39 00 00 40 00 00 04 D2 01 01 00
+					15 00 00 40 00 00 02 6F 01
+					39 00 00 40 00 00 05 E4 10 10 01 00
+					15 00 00 40 00 00 02 6F 0B
+					39 00 00 00 00 00 05 E4 00 10 00 00
+					//SDRAM DATA
+					39 00 00 40 00 00 06 F0 55 AA 52 08 03
+					15 00 00 00 00 00 02 C7 00
+					//90HZ
+					15 00 00 00 00 00 02 2F 01
+					39 00 00 40 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 40 00 00 02 6F 6B
+					15 00 00 40 00 00 02 B0 00
+					39 00 00 40 00 00 03 44 0A C0
+					//CONFIG DCDC
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 40 00 00 02 6F 44
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+					05 00 00 00 78 00 01 11
+					//90HZ SEQ part 1
+					39 00 00 40 00 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//90HZ SEQ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1B
+					15 00 00 40 00 00 02 BA 18
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 11 BA 01 0A 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 3C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 4C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 00 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 5C
+					39 00 00 40 00 00 05 BA 01 01 01 01
+					15 00 00 40 00 00 02 6F 6C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 7C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 8C
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 40 00 00 09 BA 81 1F 81 1F 81 1F 81 1F
+					15 00 00 40 00 00 02 6F A4
+					15 00 00 40 00 00 02 BA E4
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 11 11
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 11 11 11 11
+					15 00 00 40 00 00 02 2F 31
+					15 00 00 00 00 00 02 6D 00
+					//Temperature Compensation Enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 03 E5 B2 26  //120HZ 补偿使能
+					15 00 00 40 00 00 02 6F 22
+					39 00 00 40 00 00 03 E5 B2 26  //90HZ 补偿使能
+					//Display on
+					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-panel-info-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 01
+				];
+				qcom,mdss-dsi-default-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+				];
+				qcom,mdss-dsi-qsync-on-commands = [
+					/* SDC Auto On */
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+					/* SDC Auto Off */
+				];
+				qcom,mdss-dsi-adfr-auto-on-command = [
+					/* SDC Auto On */
+				];
+				qcom,mdss-dsi-adfr-auto-off-command = [
+					/* SDC Auto Off */
+				];
+				qcom,mdss-dsi-adfr-min-fps-0-command = [
+					15 00 00 40 00 00 02 2F 01
+					15 00 00 40 00 00 02 2F 31
+					15 00 00 00 00 00 02 6D 00
+				];
+				qcom,mdss-dsi-adfr-min-fps-1-command = [
+					15 00 00 40 00 00 02 2F 01
+					15 00 00 40 00 00 02 2F 31
+					15 00 00 00 00 00 02 6D 01
+				];
+
+				qcom,mdss-dsi-post-on-backlight = [
+					/* Display On */
+				];
+				qcom,mdss-dsi-off-command=[
+					05 00 00 00 14 00 01 28
+					05 00 00 00 78 00 01 10
+				];
+				qcom,mdss-dsi-lp1-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 40 00 00 02 B5 50
+					/* TE Modulation */
+					15 00 00 40 00 00 02 2F 01
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 03 44 00 00
+					/* AOD Mode ON */
+					05 00 00 40 00 00 01 39
+					15 00 00 40 00 00 02 65 01
+					05 00 00 40 00 00 01 2C
+					/* AOD Switch */
+					15 00 00 40 00 00 02 6F 04
+					39 00 00 00 44 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-nolp-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 02 B5 4F
+					/* AOD Mode OFF */
+					15 00 00 40 00 00 02 65 00
+					05 00 00 40 00 00 01 38
+					05 00 00 40 00 00 01 2C
+					/* TE Modulation */
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 02 6D 00
+					15 00 00 40 00 00 02 2F 31
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 00 00 00 03 51 00 00
+				];
+				qcom,mdss-dsi-hbm-off-command = [
+					39 00 00 00 00 00 03 51 0D BB
+				];
+				qcom,mdss-dsi-hbm-on-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-hbm-on-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-aod-high-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-aod-low-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 00 03
+				];
+				//qcom,mdss-dsi-esd-switch-page-command = [
+				//	39 01 00 00 00 00 05 FF AA 55 A5 81
+				//	15 01 00 00 00 00 02 6F 0F
+				//];
+				qcom,mdss-dsi-temperature-compensation-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 02 6F 06
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 28
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 52
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 03
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 0C
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 15
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 05 EC 00 00 00 00
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 40 00 00 02 B2 17
+					39 00 00 00 00 00 03 51 05 2F
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-timming-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+				qcom,mdss-dsi-timming-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 02 B2 17
+				];
+				qcom,mdss-dsi-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+				];
+				qcom,mdss-dsi-pwm-switch-threepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+
+				qcom,mdss-dsi-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-onepulse-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+
+				qcom,mdss-dsi-adfr-auto-on-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-auto-off-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-threepulse-command-state = "dsi_hs_mode";
+
+				qcom,lm-split = <620 620>;
+				qcom,compression-mode = "dsc";
+				qcom,mdss-dsc-encoders = <2>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <620>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
+				qcom,mdss-dsc-bit-per-component = <10>;
+				qcom,mdss-dsc-bit-per-pixel = <8>;
+				qcom,mdss-dsc-block-prediction-enable;
+				qcom,mdss-dsi-panel-id1-command-state = "dsi_lp_mode";
+			};
+			timing@sa_fhd_60 {
+				qcom,mdss-mdp-transfer-time-us = <6000>;
+				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+				qcom,mdss-dsc-scr-version = <0x1>;
+				qcom,mdss-dsc-version = <0x11>;
+				qcom,mdss-dsi-timing-default;
+				qcom,mdss-dsi-panel-framerate = <60>;
+				qcom,mdss-dsi-panel-clockrate = <1094400000>;
+				qcom,mdss-dsi-panel-width = <1240>;
+				qcom,mdss-dsi-panel-height = <2772>;
+
+				qcom,mdss-dsi-h-front-porch = <100>;
+				qcom,mdss-dsi-h-back-porch = <120>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-v-back-porch = <30>;
+				qcom,mdss-dsi-v-front-porch = <20>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+
+				qcom,mdss-dsi-h-left-border = <0>;
+				qcom,mdss-dsi-h-right-border = <0>;
+				qcom,mdss-dsi-v-top-border = <0>;
+				qcom,mdss-dsi-v-bottom-border = <0>;
+
+				/* standard adfr */
+				qcom,mdss-dsi-h-sync-skew = <1>;
+				oplus,adfr-min-fps-mapping-table = <60>;
+
+				/* ofp config */
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
+				oplus,ofp-aod-off-insert-black-frame = <2>;
+				oplus,ofp-aod-off-black-frame-total-time = <59>;
+				oplus,ofp-need-to-separate-backlight;
+				oplus,ofp-hbm-on-period = <1>;
+                                oplus,apollo-panel-vsync-width = <8900>;
+
+				qcom,mdss-dsi-panel-read-register-open-command = [
+
+				];
+				qcom,mdss-dsi-panel-id1-command = [
+
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-command = [
+					//60HZ part 1
+					15 00 00 60 00 00 02 2F 00
+					39 00 00 60 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 60 00 00 02 6F 6B
+					15 00 00 60 00 00 02 B0 01
+					39 00 00 20 04 00 05 35 00 00 00 01
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//60HZ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 BE 47
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 2F 30  //Skip Mode Enable
+					15 00 00 40 00 00 02 6D 01
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 21
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 31
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 41
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 51
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 00 00 00 09 BA 11 1F 11 1F 11 1F 11 1F
+				];
+
+				qcom,mdss-dsi-on-command = [
+					//OSC Setting
+					39 00 00 40 00 00 06 F0 55 AA 52 08 04 //page 4
+					39 00 00 40 00 00 05 FF AA 55 A5 80 //CMD3
+					39 00 00 40 00 00 02 6F 1A
+					15 00 00 40 00 00 02 F4 55
+					15 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 F8 01 4E
+					15 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 03 F8 00 FC
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 05
+					15 00 00 40 00 00 02 FE 3C
+					15 00 00 40 00 00 02 6F 02
+					15 00 00 40 00 00 02 F9 04
+					15 00 00 40 00 00 02 6F 1E
+					15 00 00 00 00 00 02 FB 0F
+					//MIPI Bias
+					39 00 00 40 00 00 05 FF AA 55 A5 82
+					15 00 00 40 00 00 02 6F 09
+					15 00 00 40 00 00 02 F2 55
+					39 00 00 40 00 00 05 FF AA 55 A5 83
+					15 00 00 40 00 00 02 6F 12
+					15 00 00 00 00 00 02 FE 41
+					//Dumura
+					15 00 00 40 00 00 02 6F 13
+					15 00 00 40 00 00 02 FD 21
+					05 00 00 40 00 00 01 35
+					15 00 00 40 00 00 02 53 20
+					39 00 00 40 00 00 05 2A 00 00 04 D7
+					39 00 00 00 00 00 05 2B 00 00 0A D3
+					//VDC
+					15 00 00 40 00 00 02 26 00
+					39 00 00 00 00 00 03 81 01 00
+					//DSC 10bit DSC_1.1
+					15 00 00 40 00 00 02 03 01
+					39 00 00 40 00 00 03 90 03 03
+					39 00 00 40 00 00 13 91 AB 28 00 2C F2 00 02 85 04 06 00 08 02 CB 01 FF 10 E0
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					39 00 00 40 00 00 02 6F 24
+					39 00 00 00 00 00 15 FB 00 03 04 55 77 77 77 99 9D 00 00 06 88 9A BB BC DE EF F0 11
+					//Disable AOD OFF first frame voltage widening
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 D2 00
+					//Fix AOD FD enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 02
+					39 00 00 40 00 00 04 D2 01 01 2D
+					15 00 00 40 00 00 02 6F 05
+					39 00 00 40 00 00 04 D2 01 01 00
+					15 00 00 40 00 00 02 6F 01
+					39 00 00 40 00 00 05 E4 10 10 01 00
+					15 00 00 40 00 00 02 6F 0B
+					39 00 00 00 00 00 05 E4 00 10 00 00
+					//SDRAM DATA
+					39 00 00 40 00 00 06 F0 55 AA 52 08 03
+					15 00 00 00 00 00 02 C7 00
+					//60HZ
+					15 00 00 00 00 00 02 2F 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 40 00 00 02 6F 6B
+					15 00 00 40 00 00 02 B0 01
+					39 00 00 40 00 00 03 44 0A C0
+					//CONFIG DCDC
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 40 00 00 02 6F 44
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+					05 00 00 00 78 00 01 11
+					//60HZ SEQ part 1
+					39 00 00 00 00 00 05 35 00 00 00 01
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//60HZ SEQ part 1
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1B
+					15 00 00 40 00 00 02 BA 18
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 3C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 4C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 01 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 5C
+					39 00 00 40 00 00 05 BA 01 01 01 01
+					15 00 00 40 00 00 02 6F 6C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 7C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 8C
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 40 00 00 09 BA 11 1F 11 1F 11 1F 11 1F
+					15 00 00 40 00 00 02 6F A4
+					15 00 00 40 00 00 02 BA E4
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 01
+					//Temperature Compensation Enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 03 E5 B2 26  //120HZ 补偿使能
+					15 00 00 40 00 00 02 6F 22
+					39 00 00 40 00 00 03 E5 B2 26  //90HZ 补偿使能
+					//Display on
+					05 00 00 00 00 00 01 29
+				];
+				qcom,mdss-dsi-lpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-hpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-reset-scanline-command = [
+
+				];
+				qcom,mdss-dsi-recovery-scanline-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-120-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-120-high-fre-command = [
+
+				];
+				qcom,mdss-dsi-panel-info-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 01
+				];
+				qcom,mdss-dsi-default-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+				];
+				qcom,mdss-dsi-qsync-on-commands = [
+
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+
+				];
+				qcom,mdss-dsi-adfr-auto-on-command = [
+					/* SDC Auto On */
+				];
+				qcom,mdss-dsi-adfr-auto-off-command = [
+					/* SDC Auto Off */
+				];
+				qcom,mdss-dsi-adfr-min-fps-0-command = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 01
+				];
+
+				qcom,mdss-dsi-post-on-backlight = [
+
+				];
+				qcom,mdss-dsi-off-command=[
+					05 00 00 00 14 00 01 28
+					05 00 00 00 78 00 01 10
+				];
+				qcom,mdss-dsi-lp1-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 40 00 00 02 B5 50
+					/* TE Modulation */
+					15 00 00 40 00 00 02 2F 00
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 03 44 00 00
+					/* AOD Mode ON */
+					05 00 00 40 00 00 01 39
+					15 00 00 40 00 00 02 65 01
+					05 00 00 40 00 00 01 2C
+					/* AOD Switch */
+					15 00 00 40 00 00 02 6F 04
+					39 00 00 00 44 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-nolp-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 02 B5 4F
+					/* AOD Mode OFF */
+					15 00 00 40 00 00 02 65 00
+					05 00 00 40 00 00 01 38
+					05 00 00 40 00 00 01 2C
+					/* TE Modulation */
+					39 00 00 40 00 00 05 35 00 00 00 01
+					15 00 00 40 00 00 02 6D 01
+					15 00 00 40 00 00 02 2F 30
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 00 00 00 03 51 00 00
+				];
+				qcom,mdss-dsi-hbm-off-command = [
+					39 00 00 00 00 00 03 51 0D BB
+				];
+				qcom,mdss-dsi-hbm-on-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-hbm-on-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-aod-high-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-aod-low-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 00 03
+				];
+				//qcom,mdss-dsi-esd-switch-page-command = [
+				//	39 01 00 00 00 00 05 FF AA 55 A5 81
+				//	15 01 00 00 00 00 02 6F 0F
+				//];
+				qcom,mdss-dsi-temperature-compensation-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 02 6F 06
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 28
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 52
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 03
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 0C
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 15
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 05 EC 00 00 00 00
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 40 00 00 02 B2 17
+					39 00 00 00 00 00 03 51 05 2F
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-timming-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+				qcom,mdss-dsi-timming-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 02 B2 17
+				];
+				qcom,mdss-dsi-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+				];
+				qcom,mdss-dsi-pwm-switch-threepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+
+				qcom,mdss-dsi-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-high-fre-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-120-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-120-high-fre-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-on-high-fre-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-onepulse-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-recovery-scanline-command-state = "dsi_hs_mode";
+
+				qcom,mdss-dsi-adfr-auto-on-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-auto-off-command-state ="dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-lpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-threepulse-command-state = "dsi_hs_mode";
+
+				qcom,lm-split = <620 620>;
+				qcom,compression-mode = "dsc";
+				qcom,mdss-dsc-encoders = <2>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <620>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
+				qcom,mdss-dsc-bit-per-component = <10>;
+				qcom,mdss-dsc-bit-per-pixel = <8>;
+				qcom,mdss-dsc-block-prediction-enable;
+				qcom,mdss-dsi-panel-id1-command-state = "dsi_lp_mode";
+			};
+			timing@oa_fhd_120 {
+				//qcom,mdss-mdp-transfer-time-us = <6290>;
+				qcom,mdss-dsi-panel-jitter = <0x4 0x1>;
+				qcom,mdss-dsc-scr-version = <0x1>;
+				qcom,mdss-dsc-version = <0x11>;
+				qcom,mdss-dsi-timing-default;
+				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-clockrate = <1094400000>;
+				qcom,mdss-dsi-panel-width = <1240>;
+				qcom,mdss-dsi-panel-height = <2772>;
+
+				qcom,mdss-dsi-h-front-porch = <64>;
+				qcom,mdss-dsi-h-back-porch = <50>;
+				qcom,mdss-dsi-h-pulse-width = <8>;
+				qcom,mdss-dsi-v-back-porch = <8>;
+				qcom,mdss-dsi-v-front-porch = <2>;
+				qcom,mdss-dsi-v-pulse-width = <2>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+
+				qcom,mdss-dsi-h-left-border = <0>;
+				qcom,mdss-dsi-h-right-border = <0>;
+				qcom,mdss-dsi-v-top-border = <0>;
+				qcom,mdss-dsi-v-bottom-border = <0>;
+
+				/* oplus adfr */
+				qcom,mdss-dsi-h-sync-skew = <2>;
+				oplus,adfr-min-fps-mapping-table = <120 60>;
+
+				/* ofp config */
+				oplus,ofp-need-to-sync-data-in-aod-unlocking;
+				oplus,ofp-aod-off-insert-black-frame = <1>;
+				oplus,ofp-aod-off-black-frame-total-time = <42>;
+				oplus,ofp-need-to-separate-backlight;
+				oplus,ofp-hbm-on-period = <1>;
+
+				qcom,mdss-dsi-panel-read-register-open-command = [
+
+				];
+				qcom,mdss-dsi-panel-id1-command = [
+
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+
+				];
+				qcom,mdss-dsi-timing-switch-command = [
+					//OA 120HZ part 1
+					15 00 00 60 00 00 02 2F 00
+					39 00 00 60 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 60 00 00 02 6F 6B
+					15 00 00 60 00 00 02 B0 01
+					39 00 00 20 04 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//OA 120HZ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 BE 5F
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 2F 30  //Skip Mode Enable
+					15 00 00 40 00 00 02 6D 00
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 03 BA 01 01
+					15 00 00 40 00 00 02 6F 21
+					39 00 00 40 00 00 03 BA 01 02
+					15 00 00 40 00 00 02 6F 31
+					39 00 00 40 00 00 03 BA 01 02
+					15 00 00 40 00 00 02 6F 41
+					39 00 00 40 00 00 03 BA 01 02
+					15 00 00 40 00 00 02 6F 51
+					39 00 00 40 00 00 03 BA 01 02
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 00 00 00 09 BA 11 11 11 11 11 11 11 11
+				];
+
+				qcom,mdss-dsi-on-command = [
+					//OSC Setting
+					39 00 00 40 00 00 06 F0 55 AA 52 08 04 //page 4
+					39 00 00 40 00 00 05 FF AA 55 A5 80 //CMD3
+					39 00 00 40 00 00 02 6F 1A
+					15 00 00 40 00 00 02 F4 55
+					15 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 F8 01 4E
+					15 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 03 F8 00 FC
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 05
+					15 00 00 40 00 00 02 FE 3C
+					15 00 00 40 00 00 02 6F 02
+					15 00 00 40 00 00 02 F9 04
+					15 00 00 40 00 00 02 6F 1E
+					15 00 00 00 00 00 02 FB 0F
+					//MIPI Bias
+					39 00 00 40 00 00 05 FF AA 55 A5 82
+					15 00 00 40 00 00 02 6F 09
+					15 00 00 40 00 00 02 F2 55
+					39 00 00 40 00 00 05 FF AA 55 A5 83
+					15 00 00 40 00 00 02 6F 12  //VRAM
+					15 00 00 00 00 00 02 FE 41
+					15 00 00 40 00 00 02 6F 13  //Dumura
+					15 00 00 40 00 00 02 FD 21
+					05 00 00 40 00 00 01 35
+					15 00 00 40 00 00 02 53 20
+					39 00 00 40 00 00 05 2A 00 00 04 D7
+					39 00 00 00 00 00 05 2B 00 00 0A D3
+					//VDC
+					15 00 00 40 00 00 02 26 00
+					39 00 00 00 00 00 03 81 01 00
+					//DSC 10bit DSC_1.1
+					15 00 00 40 00 00 02 03 01
+					39 00 00 40 00 00 03 90 03 03
+					39 00 00 40 00 00 13 91 AB 28 00 2C F2 00 02 85 04 06 00 08 02 CB 01 FF 10 E0
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					39 00 00 40 00 00 02 6F 24
+					39 00 00 00 00 00 15 FB 00 03 04 55 77 77 77 99 9D 00 00 06 88 9A BB BC DE EF F0 11
+					//Disable AOD OFF first frame voltage widening
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 D2 00
+					//Fix AOD FD enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 02
+					39 00 00 40 00 00 04 D2 01 01 2D
+					15 00 00 40 00 00 02 6F 05
+					39 00 00 40 00 00 04 D2 01 01 00
+					15 00 00 40 00 00 02 6F 01
+					39 00 00 40 00 00 05 E4 10 10 01 00
+					15 00 00 40 00 00 02 6F 0B
+					39 00 00 00 00 00 05 E4 00 10 00 00
+					//SDRAM DATA
+					39 00 00 40 00 00 06 F0 55 AA 52 08 03
+					15 00 00 00 00 00 02 C7 00
+					//OA 120HZ
+					15 00 00 00 00 00 02 2F 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 0A
+					15 00 00 40 00 00 02 6F 6B
+					15 00 00 40 00 00 02 B0 01
+					39 00 00 40 00 00 03 44 0A C0
+					//CONFIG DCDC
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 2D
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 40 00 00 02 6F 44
+					39 00 00 40 00 00 18 B5 28 28 28 28 28 28 28 28 28 28 28 28 28 28 27 27 24 24 12 12 12 12 12
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+					05 00 00 00 78 00 01 11
+					//OA 120HZ SEQ part 1
+					39 00 00 00 00 00 05 35 00 00 00 00
+					//OSC Track 547.2MHz
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 2A C3 DD 06 20 11 FC 00 06 20 11 FF 00 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18 03 F2 12 05 43 18
+					//OA 120HZ SEQ part 2
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 1B
+					15 00 00 40 00 00 02 BA 18
+					15 00 00 40 00 00 02 6F 1C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 02 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 02 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 3C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 02 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 4C
+					39 00 00 40 00 00 11 BA 01 01 01 01 00 01 02 03 00 01 02 03 00 00 00 00
+					15 00 00 40 00 00 02 6F 5C
+					39 00 00 40 00 00 05 BA 01 01 01 01
+					15 00 00 40 00 00 02 6F 6C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 7C
+					39 00 00 40 00 00 05 BA 00 01 02 03
+					15 00 00 40 00 00 02 6F 8C
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 6F 9C
+					39 00 00 40 00 00 09 BA 11 11 11 11 11 11 11 11
+					15 00 00 40 00 00 02 6F A4
+					15 00 00 40 00 00 02 BA E4
+					15 00 00 40 00 00 02 6F A8
+					39 00 00 40 00 00 03 BA 00 00
+					15 00 00 40 00 00 02 6F B0
+					39 00 00 40 00 00 05 BA 00 00 00 00
+					15 00 00 40 00 00 02 BE 5F
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 00
+					//Temperature Compensation Enable
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 03 E5 B2 26  //120HZ 补偿使能
+					15 00 00 40 00 00 02 6F 22
+					39 00 00 40 00 00 03 E5 B2 26  //90HZ 补偿使能
+					//Display on
+					05 00 00 00 00 00 01 29
+				];
+				qcom,mdss-dsi-on-high-fre-command = [
+				];
+				qcom,mdss-dsi-lpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-hpwm-pulse-command = [
+				];
+				qcom,mdss-dsi-reset-scanline-command = [
+
+				];
+				qcom,mdss-dsi-recovery-scanline-command = [
+
+				];
+				qcom,mdss-dsi-panel-info-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 01
+				];
+				qcom,mdss-dsi-default-switch-page-command = [
+					39 00 00 00 00 00 06 F0 55 AA 52 08 00
+				];
+				qcom,mdss-dsi-qsync-on-commands = [
+
+				];
+				qcom,mdss-dsi-qsync-off-commands = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 00
+				];
+				qcom,mdss-dsi-adfr-min-fps-0-command = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 00
+				];
+				qcom,mdss-dsi-adfr-min-fps-1-command = [
+					15 00 00 40 00 00 02 2F 00
+					15 00 00 40 00 00 02 2F 30
+					15 00 00 00 00 00 02 6D 01
+				];
+
+				qcom,mdss-dsi-post-on-backlight = [
+
+				];
+				qcom,mdss-dsi-off-command=[
+					05 00 00 00 14 00 01 28
+					05 00 00 00 78 00 01 10
+				];
+				qcom,mdss-dsi-lp1-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 40 00 00 02 B5 50
+					/* TE Modulation */
+					15 00 00 40 00 00 02 2F 00
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 03 44 00 00
+					/* AOD Mode ON */
+					05 00 00 40 00 00 01 39
+					15 00 00 40 00 00 02 65 01
+					05 00 00 40 00 00 01 2C
+					/* AOD Switch */
+					15 00 00 40 00 00 02 6F 04
+					39 00 00 00 44 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-nolp-command = [
+					/* AOD FD Discharge */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					15 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 02 B5 4F
+					/* AOD mode OFF */
+					15 00 00 40 00 00 02 65 00
+					05 00 00 40 00 00 01 38
+					05 00 00 40 00 00 01 2C
+					/* TE Modulation */
+					39 00 00 40 00 00 05 35 00 00 00 00
+					39 00 00 40 00 00 02 6D 00
+					39 00 00 40 00 00 02 2F 30
+					39 00 00 40 00 00 03 44 0A C0
+					39 00 00 00 00 00 03 51 00 00
+				];
+				qcom,mdss-dsi-hbm-off-command = [
+					39 00 00 00 00 00 03 51 0D BB
+				];
+				qcom,mdss-dsi-hbm-on-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-hbm-on-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 0E C0
+				];
+				qcom,mdss-dsi-aod-high-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 09 9D
+				];
+				qcom,mdss-dsi-aod-low-mode-command = [
+					15 00 00 00 00 00 02 6F 04
+					39 00 00 00 00 00 03 51 00 03
+				];
+				//qcom,mdss-dsi-esd-switch-page-command = [
+				//	39 01 00 00 00 00 05 FF AA 55 A5 81
+				//	15 01 00 00 00 00 02 6F 0F
+				//];
+				qcom,mdss-dsi-temperature-compensation-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					39 00 00 40 00 00 02 6F 06
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 0E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 28
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 2C
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4A
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 4E
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 52
+					39 00 00 40 00 00 05 E5 00 00 00 00
+					39 00 00 40 00 00 02 6F 03
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 0C
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 02 6F 15
+					39 00 00 40 00 00 04 C6 00 00 00
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 05 EC 00 00 00 00
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 40 00 00 02 B2 17
+					39 00 00 00 00 00 03 51 05 2F
+				];
+				/* origin 3 pulse */
+				qcom,mdss-dsi-timming-pwm-switch-high-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+				qcom,mdss-dsi-timming-pwm-switch-low-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 02 B2 0F
+					39 00 00 40 00 00 02 6F 12
+					39 00 00 00 00 00 02 B2 17
+				];
+				qcom,mdss-dsi-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 40 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+					39 00 00 00 00 00 03 51 05 30
+				];
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 00 00
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 F0 00 F0 01 80 01 80 02 A0 02 A0 04 E0 04 E0 08 40 08 40 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8 0A C8
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0B 00 0B 00 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60 0E 60
+				];
+				qcom,mdss-dsi-pwm-switch-threepulse-command = [
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 40 00 00 02 6F 11
+					39 00 00 40 00 00 03 B2 02 03
+					39 00 00 40 00 00 2D B3 00 09 01 71 01 71 01 F7 01 F7 02 D3 02 D3 03 F4 03 F4 05 2F 05 2F 05 30 05 30 0A 06 0A 06 0D BB 0D BB 0F FF 0F FF 0F FF 0F FF 0F FF
+					39 00 00 40 00 00 2F B4 00 60 00 60 00 f0 00 f0 01 80 01 80 02 a0 02 a0 04 e0 04 e0 08 40 08 40 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48 09 48
+					39 00 00 40 00 00 02 6F 2E
+					39 00 00 00 00 00 2F B4 00 80 00 80 01 40 01 40 02 00 02 00 03 80 03 80 06 80 06 80 0b 00 0b 00 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60 0c 60
+				];
+
+				qcom,mdss-dsi-timing-switch-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timing-switch-high-fre-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-on-high-fre-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-on-onepulse-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-recovery-scanline-command-state = "dsi_hs_mode";
+
+				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-lpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-pulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-pwm-switch-threepulse-command-state = "dsi_hs_mode";
+
+				qcom,lm-split = <620 620>;
+				qcom,compression-mode = "dsc";
+				qcom,mdss-dsc-encoders = <2>;
+				qcom,mdss-dsc-slice-height = <44>;
+				qcom,mdss-dsc-slice-width = <620>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
+				qcom,mdss-dsc-bit-per-component = <10>;
+				qcom,mdss-dsc-bit-per-pixel = <8>;
+				qcom,mdss-dsc-block-prediction-enable;
+				qcom,mdss-dsi-panel-id1-command-state = "dsi_lp_mode";
+			};
+		};
+	};
+};
+
+&soc {
+	dsi_panel_AA536_P_3_A0001_dsc_cmd {
+		qcom,dsi-display-active;
+	};
+};
+
+&dsi_panel_AA536_P_3_A0001_dsc_cmd {
+	qcom,panel-supply-entries = <&oplus_xigua_dsi_panel_pwr_supply>;
+	qcom,mdss-dsi-panel-controller = <&mdss_dsi0>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,bl-update-flag = "delay_until_first_frame";
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <4095>;
+	qcom,mdss-brightness-max-level = <4095>;
+	oplus,dsi-bl-normal-max-level = <3375>;
+	oplus,dsi-brightness-normal-max-level = <3375>;
+	oplus,dsi-dc-backlight-threshold = <1960>;
+	oplus,dsi-brightness-default-level = <1638>;
+	qcom,platform-te-gpio = <&tlmm 86 0>;
+	qcom,platform-te-gpio-1 = <&tlmm 87 0>;
+	qcom,dynamic-te-gpio = <&tlmm 177 0>;
+	qcom,vsync-switch-gpio = <&tlmm 57 0>;
+	qcom,platform-reset-gpio = <&tlmm 133 0>;
+	qcom,platform-panel-vout-gpio = <&tlmm 90 0>;
+
+	qcom,mdss-dsi-bl-inverted-dbv;
+	qcom,ulps-enabled;
+	qcom,dsi-select-clocks = "pll_byte_clk0", "pll_dsi_clk0";
+	/* ofp config */
+	oplus,ofp-fp-type = <0x08>;
+	oplus,ofp-need-to-wait-data-before-aod-on;
+	oplus,enhance_mipi_strength;
+
+/* #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
+	oplus,temp-compensation-config = <1>;
+	oplus,temp-compensation-reg-repeat = <3>; // reg repeat count, max 4, default 4
+	oplus,temp-compensation-dbv-group = <3516 1604 1511 1419 1328 1212 1096 950 761 544>;
+	oplus,temp-compensation-temp-group = <(0-10) 0 10 20 25 30 35 40 45 51>;
+	oplus,temp-compensation-data = [
+		/* dbv > 3515 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		0C 10 14 0C 10 04 04 04 35 35 35 35 35 35 35 35 35 10 A2 F5 20 2A 58 58 58	/* -20 ~ -10 */
+		10 14 18 10 14 08 08 08 35 35 35 35 35 35 35 35 35 10 A2 F5 20 2A 58 58 58	/* -10 ~ 0 */
+		14 18 1C 14 18 0C 0C 0C 35 35 35 35 35 35 35 35 35 10 A2 F5 20 2A 58 58 58	/* 0 ~ 10 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 10 ~ 20 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 20 ~ 25 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 25 ~ 30 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 30 ~ 35 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 35 ~ 40 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 40 ~ 45 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* 45 ~ 50 */
+		18 1C 20 18 1C 0C 0C 0C 34 34 34 34 34 34 35 35 35 10 A2 F5 20 2A 58 58 58	/* > 50 */
+
+		/* 1604 <= dbv <= 3515 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		08 0C 10 08 0C 04 04 04 20 21 22 2B 2C 2D 35 35 35 10 A2 F5 20 2A 58 58 58	/* -20 ~ -10 */
+		0C 10 14 0C 10 08 08 08 20 21 22 2B 2C 2D 35 35 35 10 A2 F5 20 2A 58 58 58	/* -10 ~ 0 */
+		10 14 18 10 14 0C 0C 0C 20 21 22 2B 2C 2D 35 35 35 10 A2 F5 20 2A 58 58 58	/* 0 ~ 10 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 10 ~ 20 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 20 ~ 25 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 25 ~ 30 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 30 ~ 35 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 35 ~ 40 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 40 ~ 45 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* 45 ~ 50 */
+		14 18 1C 14 18 0C 0C 0C 1F 20 21 2A 2B 2C 35 35 35 10 A2 F5 20 2A 58 58 58	/* > 50 */
+
+		/* 1511 <= dbv < 1604 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		0C 10 14 0C 10 04 04 04 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -20 ~ -10 */
+		10 14 18 10 14 08 08 08 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -10 ~ 0 */
+		14 18 1C 14 18 0C 0C 0C 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* 0 ~ 10 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 10 ~ 20 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 20 ~ 25 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 25 ~ 30 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 30 ~ 35 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 35 ~ 40 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 40 ~ 45 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 45 ~ 50 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* > 50 */
+
+		/* 1419 <= dbv < 1511 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		0C 10 14 0C 10 04 04 04 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -20 ~ -10 */
+		10 14 18 10 14 08 08 08 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -10 ~ 0 */
+		14 18 1C 14 18 0C 0C 0C 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* 0 ~ 10 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 10 ~ 20 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 20 ~ 25 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 25 ~ 30 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 30 ~ 35 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 35 ~ 40 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 40 ~ 45 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 45 ~ 50 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* > 50 */
+
+		/* 1328 <= dbv < 1419 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		0C 10 14 0C 10 04 04 04 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -20 ~ -10 */
+		10 14 18 10 14 08 08 08 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* -10 ~ 0 */
+		14 18 1C 14 18 0C 0C 0C 22 23 26 2D 2E 31 35 35 35 10 A2 F5 20 2A 58 58 58	/* 0 ~ 10 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 10 ~ 20 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 20 ~ 25 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 25 ~ 30 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 30 ~ 35 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 35 ~ 40 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 40 ~ 45 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* 45 ~ 50 */
+		18 1C 20 18 1C 0C 0C 0C 21 22 25 2C 2D 30 35 35 35 10 A2 F5 20 2A 58 58 58	/* > 50 */
+
+		/* 1212 <= dbv < 1328 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		08 10 14 08 10 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		0C 14 18 0C 14 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		10 18 1C 10 18 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+
+		/* 1096 <= dbv < 1212 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		08 10 14 08 10 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		0C 14 18 0C 14 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		10 18 1C 10 18 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+
+		/* 950 <= dbv < 1096 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		08 10 14 08 10 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		0C 14 18 0C 14 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		10 18 1C 10 18 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+
+		/* 761 <= dbv < 950 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		08 10 14 08 10 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		0C 14 18 0C 14 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		10 18 1C 10 18 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		10 18 1C 10 18 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+
+		/* 544 <= dbv < 761 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		00 04 08 00 04 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		04 08 0C 04 08 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		08 0C 10 08 0C 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		08 0C 10 08 0C 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+
+		/* dbv < 544 */
+		/*  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
+		00 04 08 00 04 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -20 ~ -10 */
+		04 04 08 04 04 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* -10 ~ 0 */
+		04 04 08 04 04 00 00 00 22 23 26 2D 2E 31 00 00 00 10 A2 A2 20 00 00 00 00	/* 0 ~ 10 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 10 ~ 20 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 20 ~ 25 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 25 ~ 30 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 30 ~ 35 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 35 ~ 40 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 40 ~ 45 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* 45 ~ 50 */
+		04 04 08 04 04 00 00 00 21 22 25 2C 2D 30 00 00 00 10 A2 A2 20 00 00 00 00	/* > 50 */
+	];
+/* #endif */ /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
+
+	/* adfr config */
+	/* just for qsync enable*/
+	qcom,qsync-enable;
+	qcom,mdss-dsi-qsync-min-refresh-rate = <24>;
+	/*
+	** 0st bit: adfr global on/off
+	** 1st bit: fakeframe on/off
+	** 2st bit: switch on/off
+	** 3rd bit: 0:double-TE switch 1:external TE/TP switch
+	** 4rd bit: idle mode on/off
+	** 5th bit: temperature compensation mode on/off
+	** 6th bit: OA backlight mutual exclusion
+	*/
+	oplus,adfr-config = <0x61>;  // 0b0110'0001
+
+	qcom,mdss-dsi-display-timings {
+		timing@sa_fhd_120 { /* FHD+ 120hz 1094.4Mbps */
+			qcom,mdss-dsi-panel-phy-timings = [00 25 09 0A 1A 25 09 0A 09 02 04 00 1E 0F];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@sa_fhd_90 { /* FHD+ 90hz 1094.4Mbps */
+			qcom,mdss-dsi-panel-phy-timings = [00 25 09 0A 1A 25 09 0A 09 02 04 00 1E 0F];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@sa_fhd_60 { /* FHD+ 60hz 1094.4Mbps */
+			qcom,mdss-dsi-panel-phy-timings = [00 25 09 0A 1A 25 09 0A 09 02 04 00 1E 0F];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+		timing@oa_fhd_120 { /* FHD+ 120hz 1094.4Mbps */
+			qcom,mdss-dsi-panel-phy-timings = [00 25 09 0A 1A 25 09 0A 09 02 04 00 1E 0F];
+			qcom,display-topology = <1 1 1>,<2 2 1>;
+			qcom,default-topology-index = <1>;
+		};
+	};
+};
+&dsi_panel_AA536_P_3_A0001_dsc_cmd {
+	qcom,panel_voltage_vddi_name = "vddio";
+	qcom,panel_voltage_vddi = <0 1800000 1850000 1950000>;
+	qcom,panel_voltage_vddr_name = "vddio";
+	qcom,panel_voltage_vddr = <1 1800000 1850000 1950000>;
+};
+
+&dsi_panel_AA536_P_3_A0001_dsc_cmd{
+	oplus,color_vivid_status;
+	oplus,color_srgb_status;
+	oplus,color_softiris_status;
+	oplus,color_dual_brightness_status;
+	oplus,color_2nit_status;
+
+	/* serial num config */
+	oplus,dsi-serial-number-enabled;
+	oplus,dsi-serial-number-switch-page;
+	oplus,dsi-serial-number-index= <0>;
+	oplus,dsi-serial-number-reg= <0xD7>;
+	oplus,dsi-serial-number-read-count= <7>;
+
+	/*Feature config*/
+	oplus,pwm-switch-support;
+	oplus,pwm-switch-backlight-threshold = <1327>;
+	oplus,pwm-onepulse-support;
+	oplus,pwm-onepulse-backlight-threshold = <1431>;
+	//oplus,pwm-onepulse-default-enabled;
+};
+

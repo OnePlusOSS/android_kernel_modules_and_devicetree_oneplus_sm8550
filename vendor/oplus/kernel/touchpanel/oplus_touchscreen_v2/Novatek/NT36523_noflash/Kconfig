@@ -1,0 +1,14 @@
+config TOUCHPANEL_NOVA_NT36523_NOFLASH
+#	default y
+	tristate "TP nova nt36523 IC enable or not for OPLUS"
+	help
+	Say Y to enable driver for Touchpanel useing nova nt36523
+	Say O to enable driver for Touchpanel useing nova nt36523 as module
+
+config TOUCHPANEL_NT_PEN_SUPPORT
+	default n
+	depends on TOUCHPANEL_NOVA_NT36523_NOFLASH
+	bool "TP nova nt36523 IC enable pen support"
+	help
+	Say Y if nt36523 IC enable pen support
+	Say O to enable driver for Touchpanel useing nova nt36672 as module

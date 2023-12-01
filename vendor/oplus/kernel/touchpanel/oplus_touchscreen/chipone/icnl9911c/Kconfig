@@ -1,0 +1,4 @@
+config TOUCHPANEL_CHIPONE_ICNL9911C
+	bool "TP CHIPONE_INGL9911C IC enable or not for OPLUS"
+	---help---
+	say Y to enable driver for Touchpanel using CHIPONE ICNL9911C
