@@ -152,7 +152,7 @@ bool iris_get_ai_lce_disable(void);
 void iris_sdr2hdr_hdr_update(void);
 void iris_init_tm_points_lut(void);
 void iris_brightness_para_reset(void);
-void iris_sdr2hdr_set_degain(void);
+void iris_sdr2hdr_set_degain(u32 mode);
 
 void iris_scurve_enable_set(u32 level);
 void iris_end_dpp_i7(bool bcommit);

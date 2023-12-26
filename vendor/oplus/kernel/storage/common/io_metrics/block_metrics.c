@@ -423,15 +423,15 @@ bio_read:
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_drv_max_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].max_time;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_blk_avg_time")) {
-        value = blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].layer[IN_BLOCK].elapse_time /
-                blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].total_cnt;
+        value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].elapse_time /
+                blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_blk_max_time")) {
-        value = blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].layer[IN_BLOCK].max_time;
+        value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].max_time;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_drv_avg_time")) {
-        value = blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].layer[IN_DRIVER].elapse_time /
-                blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].total_cnt;
+        value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].elapse_time /
+                blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_drv_max_time")) {
-        value = blk_metrics[OP_READ][cycle][IO_SIZE_128K_TO_512K].layer[IN_DRIVER].max_time;
+        value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].max_time;
     }
 
 bio_write:
@@ -486,15 +486,15 @@ bio_write:
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_drv_max_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].max_time;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_blk_avg_time")) {
-        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].layer[IN_BLOCK].elapse_time /
-                blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].total_cnt;
+        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].elapse_time /
+                blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_blk_max_time")) {
-        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].layer[IN_BLOCK].max_time;
+        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].max_time;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_drv_avg_time")) {
-        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].layer[IN_DRIVER].elapse_time /
-                blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].total_cnt;
+        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].elapse_time /
+                blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_drv_max_time")) {
-        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_128K_TO_512K].layer[IN_DRIVER].max_time;
+        value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].max_time;
     }
 
     seq_printf(seq_filp, "%llu\n", value);

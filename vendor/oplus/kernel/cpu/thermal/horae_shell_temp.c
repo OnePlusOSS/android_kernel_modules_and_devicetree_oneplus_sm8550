@@ -67,7 +67,8 @@ static int horae_shell_probe(struct platform_device *pdev)
 	struct horae_shell_temp *hst;
 	int ret = 0;
 	int result;
-
+        pr_err(" horae_shell_prob entered \n");
+        pr_err("device name: %s \n", dev_node->name);
 	if (!of_device_is_available(dev_node)) {
 		pr_err("shell-temp dev not found\n");
 		return -ENODEV;

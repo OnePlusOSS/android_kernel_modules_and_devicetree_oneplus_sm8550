@@ -5292,6 +5292,10 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool config_changed)
 	oplus_adfr_fakeframe_handle(sde_enc);
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
 
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	oplus_adfr_high_precision_handle(sde_enc);
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
+
 	/* All phys encs are ready to go, trigger the kickoff */
 	_sde_encoder_kickoff_phys(sde_enc, config_changed);
 

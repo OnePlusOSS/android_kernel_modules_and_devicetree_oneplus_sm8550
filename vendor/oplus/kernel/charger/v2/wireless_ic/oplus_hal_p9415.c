@@ -1244,6 +1244,7 @@ static int p9415_set_fod_parm(struct oplus_chg_ic_dev *dev, u8 data[], int len)
 {
 	struct oplus_p9415 *chip;
 	int rc;
+	u8 *temp_data = NULL;
 
 	if (dev == NULL) {
 		chg_err("oplus_chg_ic_dev is NULL\n");
@@ -1251,9 +1252,31 @@ static int p9415_set_fod_parm(struct oplus_chg_ic_dev *dev, u8 data[], int len)
 	}
 	chip = oplus_chg_ic_get_drvdata(dev);
 
-	rc = p9415_write_data(chip, 0x0068, data, len);
-	if (rc < 0)
+	rc = p9415_write_data(chip, P9415_REG_FOD, data, len);
+	if (rc < 0) {
 		chg_err("set fod parameter error, rc=%d\n", rc);
+		p9415_write_data(chip, P9415_REG_FOD, data, len);
+	}
+	temp_data = (u8 *)kmalloc(sizeof(u8) * len, GFP_KERNEL);
+	if (temp_data == NULL) {
+		return -ENODEV;
+	} else {
+		rc = p9415_read_data(chip, P9415_REG_FOD, temp_data, len);
+		if (rc < 0) {
+			chg_err("read fod parameter error, rc=%d\n", rc);
+		}
+	}
+
+	if (memcmp(data, temp_data, len) != 0) {
+		p9415_write_data(chip, P9415_REG_FOD, data, len);
+		if (rc < 0)
+			chg_err("set fod parameter error again, rc=%d\n", rc);
+	} else {
+		for (rc = 0; rc < len; rc++)
+			chg_info("set fod parameter %x : %x\n", 0x0068 + rc, data[rc]);
+	}
+
+	kfree(temp_data);
 
 	return rc;
 }

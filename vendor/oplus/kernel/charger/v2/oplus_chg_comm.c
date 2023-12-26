@@ -509,9 +509,6 @@ static bool is_sub_gauge_topic_available(struct oplus_chg_comm *chip)
 	if (!chip->sub_gauge_topic)
 		chip->sub_gauge_topic = oplus_mms_get_by_name("gauge:1");
 
-	if (!chip->sub_gauge_topic)
-		chg_err(" get gauge:1 error\n");
-
 	return !!chip->sub_gauge_topic;
 }
 
@@ -1961,7 +1958,7 @@ done:
 		if (!chip->batt_full && ui_soc == 100 && charging &&
 		    (chip->config.smooth_switch || chip->ffc_status == FFC_DEFAULT) &&
 		    (!chip->vooc_charging || vooc_by_normalpath_chg) && mmi_chg &&
-		    !chip->ufcs_charging) {
+		    !chip->ufcs_charging && !is_wls_fastchg_started(chip)) {
 			tmp = chip->batt_full_jiffies +
 			      (unsigned long)(60 * HZ);
 			if (time_is_before_jiffies(tmp)) {
@@ -3137,7 +3134,7 @@ static void oplus_comm_check_shell_temp(struct oplus_chg_comm *chip, bool update
 		shell_temp = chip->batt_temp;
 	} else {
 		rc = thermal_zone_get_temp(chip->shell_themal, &shell_temp);
-		chg_err("Can get shell_back %p\n", chip->shell_themal);
+		chg_debug("Can get shell_back %p %d\n", chip->shell_themal, shell_temp / 100);
 
 		if (rc) {
 			chg_err("thermal_zone_get_temp get error");
@@ -6627,9 +6624,6 @@ static void oplus_fg_soft_reset_work(struct work_struct *work)
 		chip->fg_check_ibat_cnt = 0;
 	}
 
-	chg_info("reset_done [%s] ibat_cnt[%d] fail_cnt[%d] \n",
-		chip->fg_soft_reset_done == true ?"true":"false",
-		chip->fg_check_ibat_cnt, chip->fg_soft_reset_fail_cnt);
 }
 
 static void oplus_wired_chg_check_work(struct work_struct *work)

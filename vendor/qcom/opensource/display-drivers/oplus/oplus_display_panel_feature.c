@@ -147,6 +147,15 @@ int oplus_panel_features_config(struct dsi_panel *panel)
 	LCD_INFO("oplus,pwm-onepulse-default-enabled: %s\n",
 			panel->oplus_priv.pwm_onepulse_enabled ? "true" : "false");
 
+	if(panel->oplus_priv.pwm_onepulse_support) {
+		panel->oplus_priv.directional_onepulse_switch = utils->read_bool(utils->data,
+			"oplus,directional-onepulse-switch");
+	} else {
+		panel->oplus_priv.directional_onepulse_switch = false;
+	}
+	LCD_INFO("oplus,directional-onepulse-switch: %s\n",
+			panel->oplus_priv.directional_onepulse_switch ? "true" : "false");
+
 	panel->oplus_priv.dynamic_demua_support = utils->read_bool(utils->data,
 			"oplus,dynamic-demua-support");
 	LCD_INFO("oplus,dynamic-demua-supportt: %s\n",
@@ -249,6 +258,10 @@ void oplus_panel_update_backlight(struct dsi_panel *panel,
 	/* pwm switch due to backlight change*/
 	oplus_panel_pwm_switch_backlight(panel, bl_lvl);
 
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	oplus_adfr_high_precision_switch_state(panel);
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
+
 	if (!panel->oplus_priv.need_sync && panel->cur_mode->priv_info->async_bl_delay) {
 		if (panel->oplus_priv.disable_delay_bl_count > 0) {
 			panel->oplus_priv.disable_delay_bl_count--;
@@ -259,6 +272,7 @@ void oplus_panel_update_backlight(struct dsi_panel *panel,
 			panel->oplus_priv.disable_delay_bl_count = 0;
 		}
 	}
+
 	/* will inverted display brightness value */
 	if (panel->bl_config.bl_inverted_dbv)
 		inverted_dbv_bl_lvl = (((bl_lvl & 0xff) << 8) | (bl_lvl >> 8));

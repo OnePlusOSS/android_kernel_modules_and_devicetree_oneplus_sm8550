@@ -48,12 +48,13 @@ static int tracing_mark_write(const char *buf)
 
 void freq_qos_req_systrace_c(int type, int new_value)
 {
-	char buf[256];
+	char buf[256] = {0};
+	bool is_min = true;
 
-	if (type == FREQ_QOS_MIN)
-		snprintf(buf, sizeof(buf), "C|8888|min_freq_qos|%d\n", new_value);
-	else if (type == FREQ_QOS_MAX)
-		snprintf(buf, sizeof(buf), "C|8888|max_freq_qos|%d\n", new_value);
+	if (type == FREQ_QOS_MAX)
+		is_min = false;
+
+	snprintf(buf, sizeof(buf), "C|8888|%s_freq_qos|%d\n", is_min ? "min" : "max", new_value);
 
 	tracing_mark_write(buf);
 }
@@ -178,8 +179,6 @@ static void freqqos_min_release(struct freq_qos_request *req)
 		return;
 
 	policy = container_of(qos, struct cpufreq_policy, constraints);
-	if (policy == NULL)
-		return;
 
 	cpu = policy->cpu;
 	cluster_id = topology_physical_package_id(cpu);

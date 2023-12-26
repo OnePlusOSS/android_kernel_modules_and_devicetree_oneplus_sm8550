@@ -30,8 +30,10 @@
 
 #define SEND_FASTCHG_ONGOING_NOTIFY_INTERVAL 2000 /* ms */
 #define BTBOVER_5V1A_CHARGE_STD	0x01
+#define VOOC_INIT_WAIT_TIME_MS 100
 
 struct oplus_voocphy_manager *g_voocphy_chip;
+struct completion vooc_init_check_ack;
 
 __maybe_unused static bool is_batt_psy_available(struct oplus_voocphy_manager *chip)
 {
@@ -70,6 +72,7 @@ static void oplus_voocphy_check_charger_out_work_func(struct work_struct *work)
 
 	chg_vol = oplus_chglib_get_charger_voltage();
 	if (chg_vol >= 0 && chg_vol < VOLTAGE_2000MV) {
+		complete_all(&vooc_init_check_ack);
 		cancel_delayed_work(&chip->voocphy_send_ongoing_notify);
 		oplus_adsp_voocphy_clear_status(chip->dev);
 		if (oplus_chglib_get_vooc_is_started(chip->dev))
@@ -112,14 +115,24 @@ static void oplus_adsp_voocphy_send_ongoing_notify(struct work_struct *work)
 static void oplus_adsp_voocphy_switch_chg_mode(struct device *dev, int mode)
 {
 	struct oplus_voocphy_manager *chip = dev_get_drvdata(dev);
+	int rc = 0;
+
 	chg_err("oplus_adsp_voocphy_switch_chg_mode :%d\n", mode);
+
 	if (mode == 1) {
 		/*
 		 * Voocphy sends fastchg status 0x54 to notify
 		 * vooc to update the current soc and temp range.
 		 */
+		chip->fastchg_notify_status = FAST_NOTIFY_LOW_TEMP_FULL;
 		oplus_chglib_notify_ap(chip->dev, FAST_NOTIFY_LOW_TEMP_FULL);
 		oplus_chg_set_match_temp_ui_soc_to_voocphy();
+		reinit_completion(&vooc_init_check_ack);
+		rc = wait_for_completion_interruptible_timeout(
+				&vooc_init_check_ack, msecs_to_jiffies(VOOC_INIT_WAIT_TIME_MS));
+		if (!rc)
+			chg_err("vooc wait for curve_num timeout\n");
+
 		g_voocphy_chip->ops->adsp_voocphy_enable(1);
 	} else {
 		g_voocphy_chip->ops->adsp_voocphy_enable(0);
@@ -646,9 +659,17 @@ static void oplus_adsp_voocphy_set_vooc_current(struct device *dev, int data, in
 		chg_info("chip is null, return\n");
 		return;
 	}
-	cool_down = data >> 1;
-	chg_info("set cool_down %d\n", cool_down);
-	oplus_adsp_voocphy_set_cool_down(cool_down);
+	if (chip->fastchg_notify_status != FAST_NOTIFY_LOW_TEMP_FULL) {
+		cool_down = data >> 1;
+		chg_info("set cool_down %d\n", cool_down);
+		oplus_adsp_voocphy_set_cool_down(cool_down);
+	} else {
+		/* send the curve soc_range<<4|temp_range to adsp */
+		cool_down = data;
+		oplus_adsp_voocphy_set_curve_num(cool_down);
+		chg_info("set curve num 0x%02x to adsp\n", cool_down);
+		complete(&vooc_init_check_ack);
+	}
 }
 
 int oplus_adsp_voocphy_get_bcc_max_curr(struct device *dev)
@@ -717,6 +738,7 @@ static int adsp_voocphy_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
+	init_completion(&vooc_init_check_ack);
 	chip->dev = &pdev->dev;
 	chip->ops = &oplus_adsp_voocphy_ops;
 	platform_set_drvdata(pdev, chip);

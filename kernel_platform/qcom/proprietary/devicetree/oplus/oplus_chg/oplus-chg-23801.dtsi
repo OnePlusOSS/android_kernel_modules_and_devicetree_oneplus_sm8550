@@ -268,7 +268,7 @@
 		oplus_spec,vbat_charging_uv_thr_mv = <3200>;
 
 		/*If use subboard NTC as battery temp, config it as 20, otherwise 0 */
-		oplus,tbatt_power_off_cali_temp = <20>;
+		oplus_spec,tbatt_power_off_cali_temp = <20>;
 		oplus,vooc_show_ui_soc_decimal;
 		oplus,ui_soc_decimal_speedmin = <20>;
 
@@ -1062,13 +1062,13 @@
 								4350 20 0 0 0
 								4534 15 0 0 0
 								4540 10 1 0 0>;
-				strategy_temp_little_cool =	<4150 73 0 300 0
-								4150 70 0 300 0
-								4150 65 0 300 0
-								4150 60 0 600 0
-								4150 55 0 600 0
-								4480 50 0 0 0
-								4480 45 0 0 0
+				strategy_temp_little_cool =	<4150 73 0 600 0
+								4150 70 0 600 0
+								4150 65 0 600 0
+								4150 60 0 1200 0
+								4150 55 0 1200 0
+								4480 50 0 600 0
+								4480 45 0 600 0
 								4480 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0
@@ -1076,32 +1076,32 @@
 								4534 20 0 0 0
 								4534 15 0 0 0
 								4540 10 1 0 0>;
-				strategy_temp_normal_low =	<4180 91 0 180 0
-								4180 85 0 180 0
-								4330 80 0 180 0
-								4330 73 0 180 0
-								4330 70 0 300 0
-								4480 65 0 300 0
-								4480 60 0 600 0
-								4480 55 0 600 0
-								4534 50 0 300 0
-								4534 45 0 300 0
+				strategy_temp_normal_low =	<4180 91 0 360 0
+								4180 85 0 360 0
+								4330 80 0 360 0
+								4330 73 0 600 0
+								4330 70 0 600 0
+								4480 65 0 600 0
+								4480 60 0 1200 0
+								4480 55 0 1200 0
+								4534 50 0 600 0
+								4534 45 0 600 0
 								4534 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0
 								4534 25 0 0 0
 								4534 20 0 0 0
 								4540 15 1 0 0>;
-				strategy_temp_normal_high =	<4180 91 0 180 0
-								4180 85 0 180 0
-								4330 80 0 180 0
-								4330 73 0 180 0
-								4330 70 0 300 0
-								4480 65 0 300 0
-								4480 60 0 600 0
-								4480 55 0 600 0
-								4534 50 0 300 0
-								4534 45 0 300 0
+				strategy_temp_normal_high =	<4180 91 0 360 0
+								4180 85 0 360 0
+								4330 80 0 360 0
+								4330 73 0 600 0
+								4330 70 0 600 0
+								4480 65 0 600 0
+								4480 60 0 1200 0
+								4480 55 0 1200 0
+								4534 50 0 600 0
+								4534 45 0 600 0
 								4534 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0
@@ -1305,7 +1305,6 @@
 	oplus_cpa: oplus,cpa {
 		compatible = "oplus,cpa";
 		oplus,protocol_list =		<CHG_PROTOCOL_UFCS 33
-						CHG_PROTOCOL_PPS 18
 						CHG_PROTOCOL_PD 18
 						CHG_PROTOCOL_VOOC 100
 						CHG_PROTOCOL_QC 18>;
@@ -1365,7 +1364,7 @@
 		oplus,ufcs_rmos_mohm = <5>;
 		oplus,ufcs_r_limit = <260 200 140 90 40>;
 		oplus,ufcs_strategy_batt_high_temp = <410 420 430 400 410 420>;
-		oplus,ufcs_strategy_high_current = <3000 2000 2000 3000 3000 3000>;
+		oplus,ufcs_strategy_high_current = <3000 3000 2000 3000 3000 3000>;
 		oplus,ufcs_charge_strategy_soc = <0 20 35 50 75 85 95>;
 		oplus,ufcs_charge_strategy_temp = <0 50 120 200 350 440 530>;
 		oplus,ufcs_low_curr_full_strategy_temp = <0 200 350 440>;

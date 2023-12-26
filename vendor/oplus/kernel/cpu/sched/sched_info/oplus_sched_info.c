@@ -18,7 +18,9 @@
 #include "osi_debug.h"
 #include "osi_cpuloadmonitor.h"
 #include "osi_healthinfo.h"
+#if IS_ENABLED(CONFIG_ARM64_AMU_EXTN)
 #include "osi_amu.h"
+#endif
 #include "osi_preemptirq.h"
 
 static struct proc_dir_entry *d_task_info;
@@ -181,7 +183,9 @@ static int __init jank_info_init(void)
 #endif
 	osi_hotthread_proc_init(d_cpu_jank_info);
 	osi_base_proc_init(d_cpu_jank_info);
+#if IS_ENABLED(CONFIG_ARM64_AMU_EXTN)
 	osi_amu_init(d_cpu_jank_info);
+#endif
 	osi_freq_init(d_cpu_jank_info);
 	jank_register_hook();
 	tasktrack_init();
@@ -239,7 +243,9 @@ void __exit __maybe_unused jank_info_exit(void)
 	jank_version_proc_deinit(d_cpu_jank_info);
 	jank_cpuload_proc_deinit(d_cpu_jank_info);
 	osi_hotthread_proc_deinit(d_cpu_jank_info);
+#if IS_ENABLED(CONFIG_ARM64_AMU_EXTN)
 	osi_amu_exit(d_cpu_jank_info);
+#endif
 	osi_freq_exit(d_cpu_jank_info);
 	jank_tasktrack_proc_deinit(d_cpu_jank_info);
 	jank_debug_proc_deinit(d_cpu_jank_info);

@@ -66,11 +66,17 @@ static ssize_t err_flag_show(struct device *dev, struct device_attribute *attr,
 			     char *buf)
 {
 	struct ufcs_dev *ufcs = dev_get_drvdata(dev);
+	int rc;
+	unsigned int err_flag;
 
 	if (ufcs == NULL)
 		return -ENODEV;
 
-	return snprintf(buf, PAGE_SIZE, "0x%x\n", ufcs->dev_err_flag);
+	rc = ufcs_check_error_flag_all(ufcs, &err_flag);
+	if (rc < 0)
+		return rc;
+
+	return snprintf(buf, PAGE_SIZE, "0x%x\n", err_flag);
 }
 static DEVICE_ATTR_RO(err_flag);
 
@@ -183,6 +189,12 @@ ufcs_device_register(struct device *parent, struct ufcs_dev_ops *ops,
 	ufcs->dev.release = ufcs_release;
 	dev_set_drvdata(&ufcs->dev, ufcs);
 
+	rc = kfifo_alloc(&ufcs->err_flag_fifo, UFCS_ERR_FLAG_BUF_SIZE, GFP_KERNEL);
+	if (rc < 0) {
+		ufcs_err("alloc err_flag_fifo error\n");
+		goto free_ufcs_mem;
+	}
+
 	rc = dev_set_name(&ufcs->dev, "ufcs");
 	if (rc)
 		goto free_ufcs;
@@ -219,6 +231,7 @@ ufcs_device_register(struct device *parent, struct ufcs_dev_ops *ops,
 	mutex_init(&class->pe_lock);
 	mutex_init(&class->handshake_lock);
 	mutex_init(&class->ext_req_lock);
+	spin_lock_init(&class->err_flag_lock);
 
 	rc = ufcs_timer_init(class);
 	if (rc)
@@ -251,6 +264,8 @@ device_create_file_err:
 	device_del(&ufcs->dev);
 free_ufcs:
 	put_device(&ufcs->dev);
+free_ufcs_mem:
+	kfifo_free(&ufcs->err_flag_fifo);
 	kfree(ufcs);
 	kfree(class);
 	return ERR_PTR(rc);
@@ -271,6 +286,7 @@ void ufcs_device_unregister(struct ufcs_dev *ufcs)
 	kthread_destroy_worker(class->worker);
 	device_del(&ufcs->dev);
 	put_device(&ufcs->dev);
+	kfifo_free(&ufcs->err_flag_fifo);
 	kfree(ufcs);
 	kfree(class);
 }

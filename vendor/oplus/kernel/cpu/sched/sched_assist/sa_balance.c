@@ -149,7 +149,7 @@ __maybe_unused void runnable_time_systrace(
 		if (!ux_state)
 			return;
 
-		snprintf(buf, sizeof(buf), "C|%d|runnable_time_cpu%d|%u\n",
+		snprintf(buf, sizeof(buf), "C|%d|runnable_time_cpu%d|%llu\n",
 						OPLUS_LB_SYSTRACE_PID, cpu, time);
 		tracing_mark_write(buf);
 	}
@@ -171,7 +171,7 @@ __maybe_unused void record_runnable_time_systrace(
 		if (!ux_state)
 			return;
 
-		snprintf(buf, sizeof(buf), "C|%d|runnable_time_cpu%d_pid%d|%u\n",
+		snprintf(buf, sizeof(buf), "C|%d|runnable_time_cpu%d_pid%d|%llu\n",
 						OPLUS_LB_SYSTRACE_PID, cpu, p->pid, time);
 		tracing_mark_write(buf);
 	}
@@ -193,7 +193,7 @@ __maybe_unused void record_exec_time_systrace(
 		if (!ux_state)
 			return;
 
-		snprintf(buf, sizeof(buf), "C|%d|exec_time_cpu%d_pid%d|%u\n",
+		snprintf(buf, sizeof(buf), "C|%d|exec_time_cpu%d_pid%d|%llu\n",
 						OPLUS_LB_SYSTRACE_PID, cpu, p->pid, time);
 		tracing_mark_write(buf);
 	}
@@ -208,7 +208,7 @@ void runnable_time_rt_systrace(
 		if (!test_task_is_rt(p))
 			return;
 
-		snprintf(buf, sizeof(buf), "C|%d|runnable_time_rt_cpu%d|%u\n",
+		snprintf(buf, sizeof(buf), "C|%d|runnable_time_rt_cpu%d|%llu\n",
 						OPLUS_LB_SYSTRACE_PID, cpu, time);
 		tracing_mark_write(buf);
 	}
@@ -1030,12 +1030,12 @@ u64 __get_time(struct task_struct *tsk, bool time_sel)
 	(s64)running_time < 0, (s64)runnable_time < 0, runnable_time == now,
 	running_time > 80000000000, runnable_time > 80000000000,
 	max_runnable_time, max_running_time);
-#endif
 
 	oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
 			"A-runnable_time_pid", tsk->pid, runnable_time);
 	oplus_loadbalance_systrace_print(OPLUS_LB_SYSTRACE_PID,
 			"B-running_time_pid", tsk->pid, running_time);
+#endif
 
 	return time_sel ? runnable_time : running_time;
 }
@@ -1723,7 +1723,7 @@ static int oplus_active_load_balance_cpu_stop_for_rt(void *data)
 		orq->lb.pid);
 
 	task = find_task_by_vpid(orq->lb.pid);
-	trace_printk("DEBUG_LB_RT_TICK[%d]: task=0x%lx\n", __LINE__, task);
+	trace_printk("DEBUG_LB_RT_TICK[%d]: task=0x%llx\n", __LINE__, (unsigned long long)task);
 	if (task) {
 		trace_printk("DEBUG_LB_RT_TICK[%d]: task=%s$%d, state=%d, on_cpu=%d, on_rq=%d, task_cpu=%d\n",
 			__LINE__, task->comm, task->pid,
@@ -3496,8 +3496,8 @@ void show_trackme_stats(void)
 
 		trace_printk("TRACK[%d]: task=%s$%d, state=%d, on_cpu=%d, on_rq=%d, "
 			"running=%llu, runnable=%llu, thres=%d-%d, "
-			"curr=%s$%d, is_idle=%d, preempt=%d, tif=%d, "
 			"max_running_time=%llu, max_runnable_time=%llu, "
+			"curr=%s$%d, is_idle=%d, preempt=%d, tif=%d, "
 			"nr_running=%d, h_nr_running=%d\n",
 			i, tsk->comm, tsk->pid,
 			tsk->__state, tsk->on_cpu, tsk->on_rq,
@@ -3659,7 +3659,7 @@ int dump_rt_boost_task(struct seq_file *m, void *v)
 		defined(DEBUG_LB_RT_RUNNABLE_TIME)
 
 		seq_printf(m, ", uage=%d, state=%d, task_cpu=%d",
-			p->usage, READ_ONCE(p->__state), task_cpu(p));
+			refcount_read(&p->usage), READ_ONCE(p->__state), task_cpu(p));
 #endif
 		seq_printf(m, "\n");
 	}

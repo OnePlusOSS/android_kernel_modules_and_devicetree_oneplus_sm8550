@@ -3373,13 +3373,19 @@ static int oplus_pps_delay_exit(void)
 
 static void oplus_pps_power_switch_check(struct oplus_pps_chip *chip)
 {
+	int pps_adapter_power;
+	int pps_cp_support_power;
+
 	if (chip->pps_status <= OPLUS_PPS_STATUS_CUR_CHANGE || !chip->timer.check_power_flag ||
 	    chip->pps_adapter_type == PPS_ADAPTER_THIRD)
 		return;
 
 	chip->timer.check_power_flag = 0;
+	pps_adapter_power = oplus_pps_get_power();
+	pps_cp_support_power = oplus_pps_support_max_power();
 
-	if (oplus_pps_get_power() > OPLUS_PPS_POWER_THIRD && oplus_pps_get_power() < OPLUS_PPS_POWER_V3) {
+	if ((pps_adapter_power > OPLUS_PPS_POWER_THIRD && pps_adapter_power < OPLUS_PPS_POWER_V3) ||
+		(pps_adapter_power > OPLUS_PPS_POWER_V2 && pps_cp_support_power == OPLUS_PPS_POWER_V2)) {
 		if (chip->cp_mode == PPS_SC_MODE &&
 		    (chip->ask_charger_current * PPS_SWITCH_VOL_V2) <= (chip->mode_switch.power_v2 * 1000 * 1000)) {
 			chip->count.power_over++;
@@ -3399,7 +3405,7 @@ static void oplus_pps_power_switch_check(struct oplus_pps_chip *chip)
 		} else {
 			chip->count.power_over = 0;
 		}
-	} else if (oplus_pps_get_power() >= OPLUS_PPS_POWER_V3 && oplus_pps_get_power() < OPLUS_PPS_POWER_MAX) {
+	} else if (pps_adapter_power >= OPLUS_PPS_POWER_V3 && pps_adapter_power < OPLUS_PPS_POWER_MAX) {
 		if (chip->cp_mode == PPS_SC_MODE &&
 		    (chip->ask_charger_current * PPS_SWITCH_VOL_V2) <= (chip->mode_switch.power_v3 * 1000 * 1000)) {
 			chip->count.power_over++;
@@ -4836,17 +4842,40 @@ int oplus_is_pps_charging(void)
 	}
 }
 
+int oplus_pps_support_max_power(void)
+{
+	int pps_support_type = PPS_SUPPORT_2CP;
+	int max_power = OPLUS_PPS_POWER_V2;
+	pps_support_type = oplus_pps_get_support_type();
+	switch (pps_support_type) {
+	case PPS_SUPPORT_2CP:
+		max_power = OPLUS_PPS_POWER_V2;
+		break;
+	case PPS_SUPPORT_3CP:
+		max_power = OPLUS_PPS_POWER_V3;
+		break;
+	case PPS_SUPPORT_NOT:
+		max_power = OPLUS_PPS_POWER_CLR;
+		break;
+	default:
+		max_power = OPLUS_PPS_POWER_THIRD;
+		break;
+	}
+	return max_power;
+}
+
 void oplus_pps_set_power(int pps_ability, int imax, int vmax)
 {
+	int support_max_power;
 	struct oplus_pps_chip *chip = &g_pps_chip;
 	if (!chip || !chip->pps_support_type)
 		return;
-
+	support_max_power = oplus_pps_support_max_power();
 	chip->pps_power = pps_ability;
 	chip->pps_imax = imax;
 	chip->pps_vmax = vmax;
 	if (pps_ability != OPLUS_PPS_POWER_CLR)
-		chip->last_pps_power = chip->pps_power;
+		chip->last_pps_power = (chip->pps_power < support_max_power ? chip->pps_power : support_max_power);
 	pps_err(" %d, %d, %d, %d\n", chip->pps_power, chip->pps_imax, chip->pps_vmax, chip->last_pps_power);
 }
 

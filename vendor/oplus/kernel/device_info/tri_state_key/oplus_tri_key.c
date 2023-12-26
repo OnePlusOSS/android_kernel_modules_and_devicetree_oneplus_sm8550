@@ -1524,6 +1524,266 @@ static void tri_key_timeout_work_func(struct work_struct *work)
 		}
 }
 
+static void trikey_speedup_resume(struct work_struct *work)
+{
+	int err;
+
+	TRI_KEY_LOG("%s call\n", __func__);
+	if (g_the_chip->threeaxis_hall_support) {
+		disable_irq(g_the_chip->irq);
+		err = threeaxis_judge_calibration_data(g_the_chip);
+		if (err < 0) {
+			enable_irq(g_the_chip->irq);
+			return;
+		}
+		err = threeaxis_get_data(g_the_chip);
+		threeaxis_judge_interference(g_the_chip);
+		err = threeaxis_get_position(g_the_chip);
+		msleep(10);
+		enable_irq(g_the_chip->irq);
+	} else {
+		reupdata_threshold(g_the_chip);
+	}
+	TRI_KEY_LOG("%s exit\n", __func__);
+}
+
+#if IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+static void trikey_panel_notifier_callback(enum panel_event_notifier_tag tag,
+		 struct panel_event_notification *notification, void *client_data)
+{
+	if (!notification) {
+		TRI_KEY_LOG("Invalid notification\n");
+		return;
+	}
+	if (notification->notif_type < DRM_PANEL_EVENT_FOR_TOUCH) {
+		TRI_KEY_LOG("Notification type:%d, early_trigger:%d",
+			notification->notif_type,
+			notification->notif_data.early_trigger);
+	}
+
+	if (g_hall_dev->bus_ready == false) {
+		TRI_KEY_LOG("bus_ready not ready, tp exit\n");
+		return;
+	}
+
+	if (notification->notif_type == DRM_PANEL_EVENT_UNBLANK && notification->notif_data.early_trigger && g_the_chip->is_suspended) {
+		g_the_chip->is_suspended = false;
+		queue_work(g_the_chip->speedup_resume_wq, &g_the_chip->speed_up_work);
+	} else if (notification->notif_type == DRM_PANEL_EVENT_BLANK) {
+		g_the_chip->is_suspended = true;
+	}
+}
+
+#elif IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
+static int trikey_mtk_drm_notifier_callback(struct notifier_block *nb,
+	unsigned long event, void *data)
+{
+	int *blank = (int *)data;
+
+	TRI_KEY_LOG("mtk gki notifier event:%lu, blank:%d",
+			event, *blank);
+
+	if (*blank == MTK_DISP_BLANK_UNBLANK && event == MTK_DISP_EARLY_EVENT_BLANK && g_the_chip->is_suspended) {
+		g_the_chip->is_suspended = false;
+		queue_work(g_the_chip->speedup_resume_wq, &g_the_chip->speed_up_work);
+	} else if (*blank == MTK_DISP_BLANK_POWERDOWN) {
+		g_the_chip->is_suspended = true;
+	}
+
+	return 0;
+}
+
+#else
+static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
+{
+	int *blank;
+#if IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+	struct msm_drm_notifier *evdata = data;
+#else
+	struct fb_event *evdata = data;
+#endif
+
+	/*to aviod some kernel bug (at fbmem.c some local veriable are not initialized)*/
+#if IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+	if (event != MSM_DRM_EARLY_EVENT_BLANK && event != MSM_DRM_EVENT_BLANK)
+#else
+	if (event != FB_EARLY_EVENT_BLANK && event != FB_EVENT_BLANK)
+#endif
+		return 0;
+
+	if (evdata && evdata->data) {
+		blank = evdata->data;
+		TRI_KEY_LOG("%s: event = %ld, blank = %d\n", __func__, event, *blank);
+#if IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+		if (*blank == MSM_DRM_BLANK_UNBLANK && event == MSM_DRM_EARLY_EVENT_BLANK && g_the_chip->is_suspended) { /*resume*/
+#else
+		if (*blank == FB_BLANK_UNBLANK && event == FB_EARLY_EVENT_BLANK && g_the_chip->is_suspended) {  /*resume*/
+#endif
+			g_the_chip->is_suspended = false;
+			queue_work(g_the_chip->speedup_resume_wq, &g_the_chip->speed_up_work);
+#if IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+		} else if (*blank == MSM_DRM_BLANK_BLANK) { /*suspend*/
+#else
+		} else if (*blank == FB_BLANK_BLANK) {  /*suspend*/
+#endif
+			g_the_chip->is_suspended = true;
+		}
+	}
+
+	return 0;
+}
+#endif
+
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+struct drm_panel *trikey_dev_get_panel(struct device_node *of_node)
+{
+	int i;
+	int count;
+	struct device_node *node;
+	struct drm_panel *panel;
+	struct device_node *np;
+	char disp_node[32] = {0};
+
+	np = of_find_node_by_name(NULL, "oplus,dsi-display-dev");
+	if (!np) {
+		TRI_KEY_LOG("[oplus,dsi-display-dev] is missing, try to find [panel] node \n");
+		np = of_node;
+		TRI_KEY_LOG("np full name = %s \n", np->full_name);
+		strncpy(disp_node, "panel", sizeof("panel"));
+	} else {
+		TRI_KEY_LOG("[oplus,dsi-display-dev] node found \n");
+		/* for primary panel */
+		strncpy(disp_node, "oplus,dsi-panel-primary", sizeof("oplus,dsi-panel-primary"));
+	}
+	TRI_KEY_LOG("disp_node = %s \n", disp_node);
+
+	count = of_count_phandle_with_args(np, disp_node, NULL);
+	if (count <= 0) {
+		TRI_KEY_LOG("can not find [%s] node in dts \n", disp_node);
+		return NULL;
+	}
+
+	for (i = 0; i < count; i++) {
+		node = of_parse_phandle(np, disp_node, i);
+		panel = of_drm_find_panel(node);
+		TRI_KEY_LOG("panel[%d] IS_ERR =%d \n", i, IS_ERR(panel));
+		of_node_put(node);
+		if (!IS_ERR(panel)) {
+			TRI_KEY_LOG("Find available panel\n");
+			return panel;
+		}
+	}
+
+	return NULL;
+}
+EXPORT_SYMBOL(trikey_dev_get_panel);
+#endif
+
+int oplus_hall_register_notifier(void)
+{
+	int ret = 0;
+#if IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	void *cookie = NULL;
+#endif
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY)
+	g_the_chip->active_panel = g_hall_dev->active_panel;
+	g_the_chip->fb_notif.notifier_call = fb_notifier_callback;
+
+	if (g_the_chip->active_panel)
+		ret = drm_panel_notifier_register(g_the_chip->active_panel,
+				&g_the_chip->fb_notif);
+#elif IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	g_the_chip->active_panel = g_hall_dev->active_panel;
+	if (g_the_chip->active_panel) {
+		cookie = panel_event_notifier_register(PANEL_EVENT_NOTIFICATION_PRIMARY,
+				PANEL_EVENT_NOTIFIER_CLIENT_TRI_STATE_KEY, g_the_chip->active_panel,
+				&trikey_panel_notifier_callback, g_the_chip);
+
+		if (!cookie) {
+			TRI_KEY_LOG("Unable to register fb_notifier: %d\n", ret);
+		} else {
+			g_the_chip->notifier_cookie = cookie;
+		}
+	}
+
+#elif IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
+	g_the_chip->disp_notifier.notifier_call = trikey_mtk_drm_notifier_callback;
+	if (mtk_disp_notifier_register("Oplus_trikey", &g_the_chip->disp_notifier)) {
+		TRI_KEY_LOG("Failed to register disp notifier client!!\n");
+	}
+
+#elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+	g_the_chip->fb_notif.notifier_call = fb_notifier_callback;
+	ret = msm_drm_register_client(&g_the_chip->fb_notif);
+
+	if (ret) {
+		TRI_KEY_LOG("Unable to register fb_notifier: %d\n", ret);
+	}
+
+#elif IS_ENABLED(CONFIG_FB)
+	g_the_chip->fb_notif.notifier_call = fb_notifier_callback;
+	ret = fb_register_client(&g_the_chip->fb_notif);
+
+	if (ret) {
+		TRI_KEY_LOG("Unable to register fb_notifier: %d\n", ret);
+	}
+#endif/*CONFIG_FB*/
+
+	INIT_WORK(&g_the_chip->speed_up_work, trikey_speedup_resume);
+	g_the_chip->speedup_resume_wq = create_singlethread_workqueue("trikey_sp_resume");
+
+	if (!g_the_chip->speedup_resume_wq) {
+		ret = -ENOMEM;
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(oplus_hall_register_notifier);
+
+int oplus_hall_unregister_notifier(void)
+{
+	int ret = 0;
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY)
+	if (g_the_chip->active_panel && g_the_chip->fb_notif.notifier_call) {
+		ret = drm_panel_notifier_unregister(g_the_chip->active_panel,
+			&g_the_chip->fb_notif);
+		if (ret) {
+			TRI_KEY_LOG("Unable to unregister fb_notifier: %d\n", ret);
+		}
+	}
+#elif IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	if (g_the_chip->active_panel && g_the_chip->notifier_cookie) {
+		panel_event_notifier_unregister(g_the_chip->notifier_cookie);
+	}
+#elif IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
+	if (g_the_chip->disp_notifier.notifier_call) {
+		mtk_disp_notifier_unregister(&g_the_chip->disp_notifier);
+	}
+#elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+	if (g_the_chip->fb_notif.notifier_call) {
+		ret = msm_drm_unregister_client(&g_the_chip->fb_notif);
+
+		if (ret) {
+			TRI_KEY_LOG("Unable to register fb_notifier: %d\n", ret);
+		}
+	}
+#elif IS_ENABLED(CONFIG_FB)
+	if (g_the_chip->fb_notif.notifier_call) {
+		ret = fb_unregister_client(&g_the_chip->fb_notif);
+
+		if (ret) {
+			TRI_KEY_LOG("Unable to unregister fb_notifier: %d\n", ret);
+		}
+	}
+#endif/*CONFIG_FB*/
+	if (g_the_chip->speedup_resume_wq) {
+		cancel_work_sync(&g_the_chip->speed_up_work);
+		flush_workqueue(g_the_chip->speedup_resume_wq);
+		destroy_workqueue(g_the_chip->speedup_resume_wq);
+	}
+	return ret;
+}
+EXPORT_SYMBOL(oplus_hall_unregister_notifier);
 
 static short Sum(short value0, short value1)
 {

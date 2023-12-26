@@ -5567,7 +5567,6 @@ static int oplus_chg_8350_get_charger_cycle(struct oplus_chg_ic_dev *ic_dev, int
 		return rc;
 	}
 
-	chg_err("get charger_cycle[%d]\n", pst->prop[BATT_CYCLE_COUNT]);
 	*cycle = pst->prop[BATT_CYCLE_COUNT];
 
 	return rc;

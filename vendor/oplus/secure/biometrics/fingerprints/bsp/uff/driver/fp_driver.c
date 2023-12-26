@@ -543,6 +543,9 @@ static long fp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
             if (fp_netlink_init() == NETLINK_INIT_SUCCESS) {
                 set_fp_driver_evt_type(FP_DRIVER_NETLINK);
             }
+            else {
+                set_fp_driver_evt_type(FP_DRIVER_INTERRUPT);
+            }
             break;
         case FP_IOC_RD_NETLINK_VALUE:
             pr_info("%s FP_IOC_RD_NETLINK_VALUE\n", __func__);

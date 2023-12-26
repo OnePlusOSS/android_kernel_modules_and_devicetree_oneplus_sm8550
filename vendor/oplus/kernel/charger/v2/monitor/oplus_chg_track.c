@@ -2050,7 +2050,7 @@ static int oplus_chg_track_parse_dt(struct oplus_chg_track *track_dev)
 			chg_err("preversion open SocJump NoCharging FastChgBreak olc config\n");
 			track_dev->track_cfg.exception_data.olc_config[0] = 0x2;
 			track_dev->track_cfg.exception_data.olc_config[2] = 0x1;
-			track_dev->track_cfg.exception_data.olc_config[4] = 0x1;
+			track_dev->track_cfg.exception_data.olc_config[4] = 0x7;
 		}
 #endif
 	} else {
@@ -3548,8 +3548,7 @@ oplus_chg_track_check_chg_abnormal(struct oplus_monitor *monitor,
 			NOTIFY_BAT_FULL_THIRD_BATTERY, track_status);
 	}
 
-	chg_info(
-		"track_notify_code:0x%x, chager_notify_code:0x%x, abnormal_reason[%s]\n",
+	chg_debug("track_notify_code:0x%x, chager_notify_code:0x%x, abnormal_reason[%s]\n",
 		notify_code, monitor->notify_code,
 		track_status->chg_abnormal_reason);
 
@@ -3633,7 +3632,7 @@ oplus_chg_track_cal_chg_common_mesg(struct oplus_monitor *monitor,
 	}
 	pre_slow_chg = monitor->slow_chg_enable;
 
-	chg_info("chg_max_temp:%d, batt_max_temp:%d, batt_max_curr:%d, "
+	chg_debug("chg_max_temp:%d, batt_max_temp:%d, batt_max_curr:%d, "
 		"batt_max_vol:%d, once_mmi_chg:%d, once_chg_cycle_status:%d\n",
 		track_status->chg_max_temp, track_status->batt_max_temp,
 		track_status->batt_max_curr, track_status->batt_max_vol,

@@ -9225,26 +9225,9 @@ int dsi_display_post_enable(struct dsi_display *display)
 	if (display->panel->cur_mode->dsi_mode_flags &
 			DSI_MODE_FLAG_POMS_TO_CMD) {
 		dsi_panel_switch_cmd_mode_in(display->panel);
-#if defined(CONFIG_PXLW_IRIS)
-		if ((display->config.panel_mode == DSI_OP_CMD_MODE)
-				&& iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			iris_dsi_rx_mode_switch(display->config.panel_mode);
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
-
 	} else if (display->panel->cur_mode->dsi_mode_flags &
 			DSI_MODE_FLAG_POMS_TO_VID) {
 		dsi_panel_switch_video_mode_in(display->panel);
-#if defined(CONFIG_PXLW_IRIS)
-		if ((display->config.panel_mode == DSI_OP_CMD_MODE)
-			       && iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			iris_dsi_rx_mode_switch(display->config.panel_mode);
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
 	} else {
 		rc = dsi_panel_post_enable(display->panel);
 		if (rc)
@@ -9282,22 +9265,6 @@ int dsi_display_pre_disable(struct dsi_display *display)
 
 		if (display->config.panel_mode == DSI_OP_VIDEO_MODE)
 			dsi_panel_switch_video_mode_out(display->panel);
-
-#if defined(CONFIG_PXLW_IRIS)
-		if (iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			// switch to video mode
-			if (display->config.panel_mode == DSI_OP_CMD_MODE)
-				iris_dsi_rx_mode_switch(DSI_OP_VIDEO_MODE);
-
-			// switch to command mode
-			if (display->config.panel_mode == DSI_OP_VIDEO_MODE) {
-				iris_sw_te_enable();
-				//iris_dsi_rx_mode_switch(DSI_OP_CMD_MODE);
-			}
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
 	} else {
 		rc = dsi_panel_pre_disable(display->panel);
 		if (rc)

@@ -848,7 +848,7 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 			pcfg->pt_sr_enable = values[0];
 			iris_sr_level_set(PT_MODE, values[3], values[4], values[5], values[6]);
 			iris_pt_sr_set(values[0], values[1], values[2]);
-			iris_sdr2hdr_set_degain();
+			iris_sdr2hdr_set_degain(PT_MODE);
 		} else {
 			IRIS_LOGW("SR alreay enabled or disabled");
 			return 0;

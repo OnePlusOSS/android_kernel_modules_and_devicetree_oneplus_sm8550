@@ -100,8 +100,9 @@ static void send_bright_screen_dcs_msg(void)
 	mLastPwkTime = ts;
 	BRIGHT_DEBUG_PRINTK("send_bright_screen_dcs_msg mLastPwkTime is %lld ms\n", mLastPwkTime);
 	get_brightscreen_check_dcs_logmap(logmap);
-	theia_send_event(THEIA_EVENT_BRIGHT_SCREEN_HANG, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
-		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+	theia_send_event(THEIA_EVENT_PWK_SHUTDOWN_MONITOR, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
+		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG
+		 | THEIA_LOGINFO_DUMPSYS_SF | THEIA_LOGINFO_DUMPSYS_POWER,
 		get_systemserver_pid(), logmap);
 }
 

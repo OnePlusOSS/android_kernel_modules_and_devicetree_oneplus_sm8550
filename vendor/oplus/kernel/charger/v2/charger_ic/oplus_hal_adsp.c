@@ -6425,7 +6425,6 @@ static int oplus_chg_8350_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
 	else
 		*mode = TYPEC_PORT_ROLE_SRC;
 
-	chg_info("typec mode=%d\n", *mode);
 	return rc;
 }
 
@@ -6569,6 +6568,28 @@ int oplus_adsp_voocphy_set_cool_down(int cool_down)
 	return rc;
 }
 
+int oplus_adsp_voocphy_set_curve_num(int number)
+{
+	int rc = 0;
+	struct battery_chg_dev *bcdev = g_bcdev;
+	struct psy_state *pst = NULL;
+
+	if (!bcdev) {
+		chg_err("bcdev is NULL!\n");
+		return -1;
+	}
+	pst = &bcdev->psy_list[PSY_TYPE_BATTERY];
+
+	rc = write_property_id(bcdev, pst, BATT_SET_VOOC_CURVE_NUM, number);
+	if (rc < 0)
+		chg_err("write curve num fail, rc=%d\n", rc);
+	else
+		chg_info("set curve num to %d, rc=%d\n", number, rc);
+
+	return rc;
+}
+
+
 static int oplus_chg_8350_set_match_temp(struct oplus_chg_ic_dev *ic_dev, int match_temp)
 {
 	struct battery_chg_dev *bcdev;
@@ -6586,8 +6607,6 @@ static int oplus_chg_8350_set_match_temp(struct oplus_chg_ic_dev *ic_dev, int ma
 	rc = write_property_id(bcdev, pst, BATT_SET_MATCH_TEMP, match_temp);
 	if (rc < 0)
 		chg_err("write match temp fail, rc=%d\n", rc);
-	else
-		chg_info("set matchtemp to %d, rc=%d\n", match_temp, rc);
 
 	return rc;
 }

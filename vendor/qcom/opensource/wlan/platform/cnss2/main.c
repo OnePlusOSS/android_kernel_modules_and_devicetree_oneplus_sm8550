@@ -4008,7 +4008,7 @@ static ssize_t icnss_show_fw_ready(struct device_driver *driver, char *buf)
 	bool regdbloadsuccess = false;
 	bool cnssprobesuccess = false;
 	bool plat_env_null = false;
-	bool pcie_link_up = false;
+	bool pcie_link_down = false;
 	bool pcie_bus_fail = false;
 	bool pcie_enumerate_fail = false;
 
@@ -4020,7 +4020,7 @@ static ssize_t icnss_show_fw_ready(struct device_driver *driver, char *buf)
 		regdbloadsuccess = test_bit(CNSS_LOAD_REGDB_SUCCESS, &plat_env->loadRegdbState);
 		bdfloadsuccess = test_bit(CNSS_LOAD_BDF_SUCCESS, &plat_env->loadBdfState);
 		plat_env_null = false;
-		pcie_link_up = test_bit(CNSS_PCIE_LINK_UP,&plat_env->pcieLinkDown);
+		pcie_link_down = test_bit(CNSS_PCIE_LINK_DOWN,&plat_env->pcieLinkDown);
 		pcie_bus_fail = test_bit(CNSS_PCIEBUS_FAIL, &plat_env->pcieBusState);
 		pcie_enumerate_fail = test_bit(CNSS_PCIE_ENUM_FAIL, &plat_env->pcieEnumState);
 	}
@@ -4031,7 +4031,7 @@ static ssize_t icnss_show_fw_ready(struct device_driver *driver, char *buf)
            (bdfloadsuccess ? "bdf_loadsuccess" : "bdf_loadfail"),
            (cnssprobesuccess ? "cnssprobe_success" : "cnssprobe_fail"),
            (plat_env_null ? "platenv_fail" : "platenv_success"),
-           (pcie_link_up ? "pcie_link_up" : "pcie_link_down"),
+           (pcie_link_down ? "pcie_link_down" : "pcie_link_up"),
            (pcie_bus_fail ? "pcie_bus_fail" : "pcie_bus_success"),
            (pcie_enumerate_fail ? "pcie_enumerate_fail" : "pcie_enumerate_success")
            );

@@ -21,10 +21,6 @@
 #include "msm_drv.h"
 #include "sde_encoder.h"
 
-#ifdef OPLUS_FEATURE_DISPLAY
-#include "../oplus/oplus_display_interface.h"
-#endif /* OPLUS_FEATURE_DISPLAY */
-
 #ifdef OPLUS_FEATURE_DISPLAY_ADFR
 #include "../oplus/oplus_adfr.h"
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
@@ -365,11 +361,6 @@ static void dsi_bridge_post_disable(struct drm_bridge *bridge)
 		SDE_ATRACE_END("dsi_bridge_post_disable");
 		return;
 	}
-
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_wait_for_notify_done(display);
-#endif /* OPLUS_FEATURE_DISPLAY */
-
 	SDE_ATRACE_END("dsi_bridge_post_disable");
 }
 

@@ -143,7 +143,7 @@ int oplus_chglib_gauge_vbatt(struct device *dev)
 
 	if (is_gauge_topic_available(chip))
 		oplus_mms_get_item_data(chip->gauge_topic,
-					GAUGE_ITEM_VOL_MAX, &data, false);
+					GAUGE_ITEM_VOL_MAX, &data, true);
 	else
 		chg_err("gauge topic is NULL\n");
 
@@ -154,7 +154,18 @@ int oplus_chglib_gauge_vbatt(struct device *dev)
 
 int oplus_chglib_gauge_pre_vbatt(struct device *dev)
 {
-	return oplus_chglib_gauge_vbatt(dev);
+	struct vphy_chip *chip = oplus_chglib_get_vphy_chip(dev);
+	union mms_msg_data data = {0};
+
+	if (is_gauge_topic_available(chip))
+		oplus_mms_get_item_data(chip->gauge_topic,
+					GAUGE_ITEM_VOL_MAX, &data, false);
+	else
+		chg_err("gauge topic is NULL\n");
+
+	chg_debug("get battery pre voltage = %d\n", data.intval);
+
+	return data.intval;
 }
 
 int oplus_chglib_gauge_main_vbatt(struct device *dev)

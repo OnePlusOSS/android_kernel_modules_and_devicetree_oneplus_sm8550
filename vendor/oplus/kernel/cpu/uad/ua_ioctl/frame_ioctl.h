@@ -6,6 +6,11 @@
 #ifndef _FRAME_IOCTL_H_
 #define _FRAME_IOCTL_H_
 
+/* indicate this stune data is for restoring to def, value equals 'def' in ascii*/
+#define STUNE_DEF 0x444546
+/* indicate this stune data is from surfaceflinger's stune, value equals 'sf' in ascii */
+#define STUNE_SF 0x5346
+
 enum BoostStage {
 	BOOST_NONE = 0,
 	BOOST_ALL_STAGE = 1,

@@ -236,6 +236,7 @@ int oplus_usbtemp_dischg_action(struct oplus_chg_chip *chip)
 	if (1) {
 #endif
 		chg_err(" CONFIG_HIGH_TEMP_VERSION enable here,do not set vbus down \n");
+		chip->dischg_flag = false;
 		if (chip->usbtemp_dischg_by_pmic) {
 			/* add for MTK 6373 pmic usbtemp hardware scheme */
 			oplus_chg_set_dischg_enable(false);

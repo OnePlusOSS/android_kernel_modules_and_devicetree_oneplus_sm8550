@@ -192,6 +192,7 @@ enum battery_property_id {
 	BATT_AFI_UPDATE_DONE,
 	BATT_UI_SOC,
 	BATT_AP_FASTCHG_ALLOW,
+	BATT_SET_VOOC_CURVE_NUM,
 #endif
 	BATT_PROP_MAX,
 };
@@ -631,5 +632,6 @@ int oplus_adsp_voocphy_set_cool_down(int cool_down);
 int oplus_adsp_voocphy_get_bcc_max_current(void);
 int oplus_adsp_voocphy_get_bcc_min_current(void);
 int oplus_adsp_voocphy_get_atl_last_geat_current(void);
+int oplus_adsp_voocphy_set_curve_num(int number);
 #endif
 #endif /*__SM8350_CHARGER_H*/

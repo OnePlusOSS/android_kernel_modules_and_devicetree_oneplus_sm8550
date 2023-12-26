@@ -196,7 +196,6 @@ struct oplus_dhall_chip {
 	unsigned int bias_ratio;
 
 	bool irq_wake;
-	bool bus_ready;                                     /*spi or i2c resume status*/
 	wait_queue_head_t wait;
 	struct wakeup_source *ws;                           /*Qualcomm KBA-211220012446, To make power manager stay awake*/
 };

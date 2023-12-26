@@ -1,6 +1,3 @@
-# Build/Package only in case of supported target
-ifeq ($(call is-board-platform-in-list,kalama pineapple), true)
-
 MY_LOCAL_PATH := $(call my-dir)
 
 # This makefile is only for DLKM
@@ -18,8 +15,8 @@ OPLUS_AUDIO_SRC_FILES := \
 	$(wildcard $(MY_LOCAL_PATH)/*/*/*/*) \
 	$(wildcard $(MY_LOCAL_PATH)/*/*/*/*/*)
 
+# Build/Package only in case of supported target
 ########################### Audio extend driver  ###########################
-#ifdef OPLUS_ARCH_EXTENDS
 #Add for audio extend dirver
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES           := $(OPLUS_AUDIO_SRC_FILES)
@@ -29,7 +26,6 @@ LOCAL_MODULE_TAGS         := optional
 LOCAL_MODULE_DEBUG_ENABLE := true
 LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
 include $(DLKM_DIR)/Build_external_kernelmodule.mk
-#endif /* OPLUS_ARCH_EXTENDS */
 ###########################################################
 
 ########################### TFA98xx-v6 CODEC  ###########################
@@ -46,6 +42,38 @@ include $(DLKM_DIR)/Build_external_kernelmodule.mk
 #endif /* OPLUS_ARCH_EXTENDS */
 ###########################################################
 
+########################### SIPA  ###########################
+#add for sia pa bringup
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES           := $(OPLUS_AUDIO_SRC_FILES)
+LOCAL_MODULE              := oplus_audio_sipa.ko
+LOCAL_MODULE_KBUILD_NAME  := oplus/codecs/sipa/oplus_audio_sipa.ko
+LOCAL_MODULE_TAGS         := optional
+LOCAL_MODULE_DEBUG_ENABLE := true
+LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+include $(DLKM_DIR)/Build_external_kernelmodule.mk
+###########################################################
+########################### SIPA TUNING  ###########################
+#add for sia pa bringup
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES           := $(OPLUS_AUDIO_SRC_FILES)
+LOCAL_MODULE              := oplus_audio_sipa_tuning.ko
+LOCAL_MODULE_KBUILD_NAME  := oplus/codecs/sipa/oplus_audio_sipa_tuning.ko
+LOCAL_MODULE_TAGS         := optional
+LOCAL_MODULE_DEBUG_ENABLE := true
+LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+include $(DLKM_DIR)/Build_external_kernelmodule.mk
+###########################################################
+########################### PA MANAGER  ###########################
+#add for pa manager
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES           := $(OPLUS_AUDIO_SRC_FILES)
+LOCAL_MODULE              := oplus_audio_pa_manager.ko
+LOCAL_MODULE_KBUILD_NAME  := oplus/qcom/oplus_speaker_manager/oplus_audio_pa_manager.ko
+LOCAL_MODULE_TAGS         := optional
+LOCAL_MODULE_DEBUG_ENABLE := true
+LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+include $(DLKM_DIR)/Build_external_kernelmodule.mk
+###########################################################
 endif # audio-kernel
 endif # DLKM check
-endif # supported target check

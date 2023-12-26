@@ -677,6 +677,7 @@ struct oplus_voocphy_manager {
 	int parallel_charge_project;
 
 	unsigned int plug_in_batt_temp;
+	unsigned int receive_temp_range;
 
 	unsigned char  code_id_temp_l; /* identification code temp save */
 	unsigned char  code_id_temp_h;

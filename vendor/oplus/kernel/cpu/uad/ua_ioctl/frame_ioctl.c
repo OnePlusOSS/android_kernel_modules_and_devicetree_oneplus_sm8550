@@ -21,6 +21,25 @@
 #define INVALID_VAL (INT_MIN)
 
 static struct proc_dir_entry *frame_boost_proc;
+static struct ofb_stune_data last_sys_stune_data = {
+	.level = -1,
+	.boost_freq = -1,
+	.boost_migr = -1,
+	.vutil_margin = 0xFF,
+	.util_frame_rate = -1,
+	.util_min_threshold = -1,
+	.util_min_obtain_view = -1,
+	.util_min_timeout = -1,
+	.ed_task_boost_mid_duration = -1,
+	.ed_task_boost_mid_util = -1,
+	.ed_task_boost_max_duration = -1,
+	.ed_task_boost_max_util = -1,
+	.ed_task_boost_timeout_duration = -1,
+	.boost_sf_freq_nongpu = -1,
+	.boost_sf_migr_nongpu = -1,
+	.boost_sf_freq_gpu = -1,
+	.boost_sf_migr_gpu = -1,
+};
 
 #ifdef CONFIG_ARCH_MEDIATEK
 u64 curr_frame_start;
@@ -227,6 +246,74 @@ static long handle_ofb_extra_cmd(unsigned int cmd, void __user *uarg)
 	return 0;
 }
 
+static void setup_stune_data(struct ofb_stune_data *stune_data) {
+	if ((stune_data->boost_freq >= 0) && (stune_data->boost_freq <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_freq, BOOST_DEF_FREQ);
+	}
+
+	if ((stune_data->boost_migr >= 0) && (stune_data->boost_migr <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_migr, BOOST_DEF_MIGR);
+	}
+
+	if ((stune_data->util_frame_rate >= 0) && (stune_data->util_frame_rate <= 240)) {
+		fbg_set_stune_boost(stune_data->util_frame_rate, BOOST_UTIL_FRAME_RATE);
+	}
+
+	if ((stune_data->util_min_threshold >= 0) && (stune_data->util_min_threshold <= 1024)) {
+		fbg_set_stune_boost(stune_data->util_min_threshold, BOOST_UTIL_MIN_THRESHOLD);
+	}
+
+	if ((stune_data->util_min_obtain_view >= 0) && (stune_data->util_min_obtain_view <= 1024)) {
+		fbg_set_stune_boost(stune_data->util_min_obtain_view, BOOST_UTIL_MIN_OBTAIN_VIEW);
+	}
+
+	if ((stune_data->util_min_timeout >= 0) && (stune_data->util_min_timeout <= 1024)) {
+		fbg_set_stune_boost(stune_data->util_min_timeout, BOOST_UTIL_MIN_TIMEOUT);
+	}
+
+	if ((stune_data->vutil_margin >= -16) && (stune_data->vutil_margin <= 16))
+		set_frame_margin(stune_data->vutil_margin);
+
+	if (stune_data->ed_task_boost_mid_duration >= 0) {
+		fbg_set_stune_boost(stune_data->ed_task_boost_mid_duration, BOOST_ED_TASK_MID_DURATION);
+		fbg_update_ed_task_duration(BOOST_ED_TASK_MID_DURATION);
+	}
+
+	if ((stune_data->ed_task_boost_mid_util >= 0) && (stune_data->ed_task_boost_mid_util <= 1024)) {
+		fbg_set_stune_boost(stune_data->ed_task_boost_mid_util, BOOST_ED_TASK_MID_UTIL);
+	}
+
+	if (stune_data->ed_task_boost_max_duration >= 0) {
+		fbg_set_stune_boost(stune_data->ed_task_boost_max_duration, BOOST_ED_TASK_MAX_DURATION);
+		fbg_update_ed_task_duration(BOOST_ED_TASK_MAX_DURATION);
+	}
+
+	if ((stune_data->ed_task_boost_max_util >= 0) && (stune_data->ed_task_boost_max_util <= 1024)) {
+		fbg_set_stune_boost(stune_data->ed_task_boost_max_util, BOOST_ED_TASK_MAX_UTIL);
+	}
+
+	if (stune_data->ed_task_boost_timeout_duration >= 0) {
+		fbg_set_stune_boost(stune_data->ed_task_boost_timeout_duration, BOOST_ED_TASK_TIME_OUT_DURATION);
+		fbg_update_ed_task_duration(BOOST_ED_TASK_TIME_OUT_DURATION);
+	}
+
+	if ((stune_data->boost_sf_freq_nongpu >= 0) && (stune_data->boost_sf_freq_nongpu <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_sf_freq_nongpu, BOOST_SF_FREQ_NONGPU);
+	}
+
+	if ((stune_data->boost_sf_migr_nongpu >= 0) && (stune_data->boost_sf_migr_nongpu <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_sf_migr_nongpu, BOOST_SF_MIGR_NONGPU);
+	}
+
+	if ((stune_data->boost_sf_freq_gpu >= 0) && (stune_data->boost_sf_freq_gpu <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_sf_freq_gpu, BOOST_SF_FREQ_GPU);
+	}
+
+	if ((stune_data->boost_sf_migr_gpu >= 0) && (stune_data->boost_sf_migr_gpu <= 100)) {
+		fbg_set_stune_boost(stune_data->boost_sf_migr_gpu, BOOST_SF_MIGR_GPU);
+	}
+}
+
 static long ofb_sys_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	long ret = 0;
@@ -300,78 +387,36 @@ static long ofb_sys_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 		}
 
 		break;
-	case CMD_ID_BOOST_STUNE:
+	case CMD_ID_BOOST_STUNE: {
+		int uid;
 		if (copy_from_user(&stune_data, uarg, sizeof(stune_data))) {
 			ofb_debug("invalid address");
 			return -EFAULT;
 		}
 
-		if ((stune_data.boost_freq >= 0) && (stune_data.boost_freq <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_freq, BOOST_DEF_FREQ);
+		uid = task_uid(current).val;
+		if (SYSTEM_UID == uid) {
+			if (STUNE_DEF == stune_data.boost_freq) {
+				/* restore to last_sys_stune_data */
+				setup_stune_data(&last_sys_stune_data);
+			} else if (STUNE_SF == stune_data.boost_freq) {
+				setup_stune_data(&stune_data);
+			} else {
+				memcpy(&last_sys_stune_data, &stune_data, sizeof(struct ofb_stune_data));
+				setup_stune_data(&stune_data);
+			}
+			break;
+		} else {
+			/* stune data is from app and its data is default */
+			if (STUNE_DEF == stune_data.boost_freq) {
+				/* restore to last_sys_stune_data */
+				setup_stune_data(&last_sys_stune_data);
+			} else {
+				setup_stune_data(&stune_data);
+			}
+			break;
 		}
-
-		if ((stune_data.boost_migr >= 0) && (stune_data.boost_migr <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_migr, BOOST_DEF_MIGR);
 		}
-
-		if ((stune_data.util_frame_rate >= 0) && (stune_data.util_frame_rate <= 240)) {
-			fbg_set_stune_boost(stune_data.util_frame_rate, BOOST_UTIL_FRAME_RATE);
-		}
-
-		if ((stune_data.util_min_threshold >= 0) && (stune_data.util_min_threshold <= 1024)) {
-			fbg_set_stune_boost(stune_data.util_min_threshold, BOOST_UTIL_MIN_THRESHOLD);
-		}
-
-		if ((stune_data.util_min_obtain_view >= 0) && (stune_data.util_min_obtain_view <= 1024)) {
-			fbg_set_stune_boost(stune_data.util_min_obtain_view, BOOST_UTIL_MIN_OBTAIN_VIEW);
-		}
-
-		if ((stune_data.util_min_timeout >= 0) && (stune_data.util_min_timeout <= 1024)) {
-			fbg_set_stune_boost(stune_data.util_min_timeout, BOOST_UTIL_MIN_TIMEOUT);
-		}
-
-		if ((stune_data.vutil_margin >= -16) && (stune_data.vutil_margin <= 16))
-			set_frame_margin(stune_data.vutil_margin);
-
-		if (stune_data.ed_task_boost_mid_duration >= 0) {
-			fbg_set_stune_boost(stune_data.ed_task_boost_mid_duration, BOOST_ED_TASK_MID_DURATION);
-			fbg_update_ed_task_duration(BOOST_ED_TASK_MID_DURATION);
-		}
-
-		if ((stune_data.ed_task_boost_mid_util >= 0) && (stune_data.ed_task_boost_mid_util <= 1024)) {
-			fbg_set_stune_boost(stune_data.ed_task_boost_mid_util, BOOST_ED_TASK_MID_UTIL);
-		}
-
-		if (stune_data.ed_task_boost_max_duration >= 0) {
-			fbg_set_stune_boost(stune_data.ed_task_boost_max_duration, BOOST_ED_TASK_MAX_DURATION);
-			fbg_update_ed_task_duration(BOOST_ED_TASK_MAX_DURATION);
-		}
-
-		if ((stune_data.ed_task_boost_max_util >= 0) && (stune_data.ed_task_boost_max_util <= 1024)) {
-			fbg_set_stune_boost(stune_data.ed_task_boost_max_util, BOOST_ED_TASK_MAX_UTIL);
-		}
-
-		if (stune_data.ed_task_boost_timeout_duration >= 0) {
-			fbg_set_stune_boost(stune_data.ed_task_boost_timeout_duration, BOOST_ED_TASK_TIME_OUT_DURATION);
-			fbg_update_ed_task_duration(BOOST_ED_TASK_TIME_OUT_DURATION);
-		}
-
-		if ((stune_data.boost_sf_freq_nongpu >= 0) && (stune_data.boost_sf_freq_nongpu <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_sf_freq_nongpu, BOOST_SF_FREQ_NONGPU);
-		}
-
-		if ((stune_data.boost_sf_migr_nongpu >= 0) && (stune_data.boost_sf_migr_nongpu <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_sf_migr_nongpu, BOOST_SF_MIGR_NONGPU);
-		}
-
-		if ((stune_data.boost_sf_freq_gpu >= 0) && (stune_data.boost_sf_freq_gpu <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_sf_freq_gpu, BOOST_SF_FREQ_GPU);
-		}
-
-		if ((stune_data.boost_sf_migr_gpu >= 0) && (stune_data.boost_sf_migr_gpu <= 100)) {
-			fbg_set_stune_boost(stune_data.boost_sf_migr_gpu, BOOST_SF_MIGR_GPU);
-		}
-
 		break;
 	case CMD_ID_BOOST_STUNE_GPU: {
 		bool boost_allow = true;

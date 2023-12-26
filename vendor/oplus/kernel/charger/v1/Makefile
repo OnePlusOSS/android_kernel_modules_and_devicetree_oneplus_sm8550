@@ -167,6 +167,13 @@ oplus_chg-$(CONFIG_OPLUS_SM6375R_CHARGER) += \
 		charger_ic/rt_pd_manager.o \
 		charger_ic/oplus_usbtemp.o \
 		charger_ic/oplus_sc6607_charger.o
+oplus_chg-$(CONFIG_OPLUS_SM6115R_CHARGER) += \
+		voocphy/oplus_voocphy.o \
+                charger_ic/oplus_battery_sm6115R.o \
+		charger_ic/oplus_usbtemp.o \
+		charger_ic/oplus_sy697x.o \
+		charger_ic/oplus_sgm7220.o \
+		charger_ic/rt_pd_manager.o
 oplus_chg-$(CONFIG_OPLUS_CHARGER_MTK6983S) += \
 		charger_ic/oplus_mp2650.o \
 		charger_ic/oplus_usbtemp.o \

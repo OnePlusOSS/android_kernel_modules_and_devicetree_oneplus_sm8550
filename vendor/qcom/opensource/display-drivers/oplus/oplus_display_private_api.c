@@ -3067,6 +3067,10 @@ static OPLUS_ATTR(adfr_config, S_IRUGO | S_IWUSR, oplus_adfr_get_config_attr, op
 static OPLUS_ATTR(mux_vsync_switch, S_IRUGO | S_IWUSR, oplus_adfr_get_mux_vsync_switch_attr, oplus_adfr_set_mux_vsync_switch_attr);
 static OPLUS_ATTR(test_te, S_IRUGO | S_IWUSR, oplus_adfr_get_test_te_attr, oplus_adfr_set_test_te_attr);
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+static OPLUS_ATTR(high_precision_rscc_set, S_IRUGO | S_IWUSR, oplus_display_get_high_precision_rscc,
+		oplus_display_set_high_precision_rscc);
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
 static OPLUS_ATTR(temp_compensation_config, S_IRUGO | S_IWUSR, oplus_temp_compensation_get_config_attr, oplus_temp_compensation_set_config_attr);
 static OPLUS_ATTR(ntc_temp, S_IRUGO | S_IWUSR, oplus_temp_compensation_get_ntc_temp_attr, oplus_temp_compensation_set_ntc_temp_attr);
@@ -3130,6 +3134,9 @@ static struct attribute *oplus_display_attrs[] = {
 	&oplus_attr_mux_vsync_switch.attr,
 	&oplus_attr_test_te.attr,
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	&oplus_attr_high_precision_rscc_set.attr,
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
 	&oplus_attr_temp_compensation_config.attr,
 	&oplus_attr_ntc_temp.attr,

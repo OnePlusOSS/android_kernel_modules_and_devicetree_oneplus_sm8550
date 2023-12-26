@@ -384,6 +384,7 @@
 		temperature_detect_support;
 		palm_to_sleep_support;
 		skip_reinit_device_support;
+		edge_pull_out_support;
 
 		/*
 		 *Virtual Key Config:

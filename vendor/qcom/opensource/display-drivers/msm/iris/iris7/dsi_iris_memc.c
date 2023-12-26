@@ -3213,7 +3213,7 @@ void iris_pt_sr_reset_i7(void)
 		iris_dma_trig(DMA_CH0, 0);
 		iris_update_pq_opt(iris_pq_update_path, true);
 		iris_pmu_frc_set(false);
-		iris_sdr2hdr_set_degain();
+		iris_sdr2hdr_set_degain(PT_MODE);
 	}
 }
 
@@ -3231,7 +3231,7 @@ void iris_pt_sr_restore_i7(void)
 	iris_pt_sr_set_i7(true,
 		pcfg->pt_sr_hsize,
 		pcfg->pt_sr_vsize);
-	iris_sdr2hdr_set_degain();
+	iris_sdr2hdr_set_degain(PT_MODE);
 }
 
 void iris_debug_info_get_i7(u32 *value, u32 count)

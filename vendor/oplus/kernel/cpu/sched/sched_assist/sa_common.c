@@ -19,6 +19,9 @@
 #include <fs/proc/internal.h>
 #include <linux/signal.h>
 #include <linux/cpufeature.h>
+#include <linux/thread_info.h>
+#include <linux/profile.h>
+#include <linux/kprobes.h>
 
 #ifdef CONFIG_OPLUS_FEATURE_SCHED_SPREAD
 #include <linux/cpuhotplug.h>
@@ -288,7 +291,7 @@ bool task_is_runnable(struct task_struct *task)
 	return (task->on_rq && !task->on_cpu);
 }
 
-int get_ux_state(struct task_struct * task)
+int get_ux_state(struct task_struct *task)
 {
 	struct oplus_task_struct *ots;
 
@@ -1076,8 +1079,7 @@ void cgroup_set_sched_assist_boost_task(struct task_struct *p, char *comm)
 				oplus_set_ux_state_lock(p, (ux_state | SA_TYPE_LIGHT), true);
 			else
 				oplus_set_ux_state_lock(p, (ux_state | SA_TYPE_HEAVY), true);
-		}
-		else
+		} else
 			oplus_set_ux_state_lock(p, (ux_state & ~SA_TYPE_HEAVY), true);
 	}
 }
@@ -1104,7 +1106,7 @@ void sched_assist_target_comm(struct task_struct *task, const char *buf)
 
 #ifdef CONFIG_LOCKING_PROTECT
 	if (locking_protect_disable == false) {
-		if(strstr(buf, "kernel_net_tes")) {
+		if (strstr(buf, "kernel_net_tes")) {
 			locking_protect_disable = true;
 			locking_wakeup_preepmt_enable = 0;
 		}
@@ -1298,7 +1300,7 @@ bool sa_skip_rt_sync(struct rq *rq, struct task_struct *p, bool *sync)
 
 	spin_lock_irqsave(orq->ux_list_lock, irqflag);
 	ots = ux_list_first_entry(&orq->ux_list);
-	if (IS_ERR_OR_NULL(ots)|| (ots->im_flag == IM_FLAG_CAMERA_HAL)) {
+	if (IS_ERR_OR_NULL(ots) || (ots->im_flag == IM_FLAG_CAMERA_HAL)) {
 		spin_unlock_irqrestore(orq->ux_list_lock, irqflag);
 		return false;
 	}
@@ -1494,28 +1496,52 @@ int get_grp(struct task_struct *p)
 	return css->id;
 }
 
+static inline void do_boost_kill_task(struct task_struct *p)
+{
+	cpumask_var_t boost_mask;
+	int is_32bit = test_ti_thread_flag(&p->thread_info, TIF_32BIT);
+
+	set_user_nice(p, -20);
+	if (is_32bit)
+		cpumask_and(boost_mask, cpu_active_mask, system_32bit_el0_cpumask());
+	else
+		cpumask_copy(boost_mask, cpu_active_mask);
+	if (!cpumask_empty(boost_mask)) {
+		cpumask_copy(&p->cpus_mask, boost_mask);
+		p->nr_cpus_allowed = cpumask_weight(boost_mask);
+	}
+
+}
+
 void android_vh_exit_signal_handler(void *unused, struct task_struct *p)
 {
-	int is_32bit;
-	cpumask_var_t boost_mask;
-
 	if (p == NULL)
 		return;
 
 	if (boost_kill && get_grp(p) == BGAPP) {
-		is_32bit = test_ti_thread_flag(&p->thread_info, TIF_32BIT);
-		set_user_nice(p, -20);
-		if (is_32bit)
-			cpumask_and(boost_mask, cpu_active_mask, system_32bit_el0_cpumask());
-		else
-			cpumask_copy(boost_mask, cpu_active_mask);
-
-		if (!cpumask_empty(boost_mask)) {
-			cpumask_copy(&p->cpus_mask, boost_mask);
-			p->nr_cpus_allowed = cpumask_weight(boost_mask);
-		}
+		do_boost_kill_task(p);
 	}
 }
+
+static int process_exit_notifier(struct notifier_block *self,
+			unsigned long cmd, void *v)
+{
+	struct task_struct *p = v;
+
+	/* only boost background tasks */
+	if (boost_kill && get_grp(p) == BGAPP) {
+		rcu_read_lock();
+		do_boost_kill_task(p);
+		rcu_read_unlock();
+	}
+
+	return NOTIFY_OK;
+}
+
+
+struct notifier_block process_exit_notifier_block = {
+	.notifier_call	= process_exit_notifier,
+};
 
 void android_vh_cgroup_set_task_handler(void *unused, int ret, struct task_struct *task)
 {

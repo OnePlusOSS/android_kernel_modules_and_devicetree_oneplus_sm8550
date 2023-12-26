@@ -100,7 +100,6 @@ struct oplus_chg_wired {
 	struct work_struct plugin_work;
 	struct work_struct chg_type_change_work;
 	struct work_struct temp_region_update_work;
-	struct work_struct qc_config_work;
 	struct work_struct charger_current_changed_work;
 	struct work_struct led_on_changed_work;
 	struct work_struct icl_changed_work;
@@ -108,6 +107,7 @@ struct oplus_chg_wired {
 	struct work_struct qc_check_work;
 	struct work_struct pd_check_work;
 	struct delayed_work pd_config_work;
+	struct delayed_work qc_config_work;
 
 	struct power_supply *usb_psy;
 	struct power_supply *batt_psy;
@@ -153,6 +153,7 @@ struct oplus_chg_wired {
 	int cool_down;
 	bool chg_ctrl_by_sale_mode;
 	int pd_retry_count;
+	int qc_retry_count;
 	unsigned int err_code;
 	struct mutex icl_lock;
 	struct mutex current_lock;
@@ -539,6 +540,7 @@ static void oplus_wired_variables_init(struct oplus_chg_wired *chip)
 	chip->qc_action = OPLUS_ACTION_NULL;
 	chip->pd_action = OPLUS_ACTION_NULL;
 	chip->pd_retry_count = 0;
+	chip->qc_retry_count = 0;
 	chip->chg_ctrl_by_sale_mode = false;
 	mutex_init(&chip->icl_lock);
 	mutex_init(&chip->current_lock);
@@ -565,10 +567,12 @@ static int oplus_wired_get_vbatt_pdqc_to_9v_thr(struct oplus_chg_wired *chip)
 	return thr;
 }
 
+#define QC_RETRY_DELAY msecs_to_jiffies(3000)
+#define QC_RETRY_COUNT_MAX 3
 static void oplus_wired_qc_config_work(struct work_struct *work)
 {
 	struct oplus_chg_wired *chip =
-		container_of(work, struct oplus_chg_wired, qc_config_work);
+		container_of(work, struct oplus_chg_wired, qc_config_work.work);
 	struct oplus_wired_spec_config *spec = &chip->spec;
 	int cool_down, cool_down_vol;
 	int vbus_set_mv = 5000; /* vbus default setting voltage is 5V */
@@ -602,19 +606,30 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 
 		if (spec->vbatt_pdqc_to_9v_thr > 0 &&
 		    chip->vbat_mv < spec->vbatt_pdqc_to_9v_thr) {
-			chg_info("qc starts to boost\n");
+			chg_info("qc starts to boost, retry count %d.\n", chip->qc_retry_count);
 			mutex_lock(&chip->icl_lock);
 			rc = oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, 9000);
 			mutex_unlock(&chip->icl_lock);
 			if (rc == -EAGAIN) {
 				chg_err("vbus_mv = %d mv, try again.\n", chip->vbus_mv);
-				chip->qc_action = OPLUS_ACTION_BOOST;
-				goto set_curr;
+				if (chip->qc_retry_count < QC_RETRY_COUNT_MAX) {
+					chip->qc_retry_count++;
+					chip->qc_action = OPLUS_ACTION_BOOST;
+					schedule_delayed_work(
+						&chip->qc_config_work,
+						QC_RETRY_DELAY);
+					return;
+				} else {
+					chip->qc_retry_count = 0;
+					chip->qc_action = OPLUS_ACTION_NULL;
+					goto set_curr;
+				}
 			}
 			if (rc < 0) {
 				chip->qc_action = OPLUS_ACTION_NULL;
 				goto set_curr;
 			}
+			chip->qc_retry_count = 0;
 		} else {
 			chg_info(
 				"battery voltage too high, qc cannot be boosted\n");
@@ -697,7 +712,6 @@ static int oplus_wired_get_afi_condition(void)
 	if (!rc)
 		afi_condition = data.intval;
 
-	chg_info("get afi condition = %d\n", afi_condition);
 	return afi_condition;
 }
 
@@ -917,7 +931,7 @@ static void oplus_wired_gauge_update_work(struct work_struct *work)
 	     (cool_down_vol > 0 && cool_down_vol < 9000))) {
 		if (chip->chg_mode == OPLUS_WIRED_CHG_MODE_QC) {
 			chip->qc_action = OPLUS_ACTION_BUCK;
-			schedule_work(&chip->qc_config_work);
+			schedule_delayed_work(&chip->qc_config_work, 0);
 		} else if (chip->chg_mode == OPLUS_WIRED_CHG_MODE_PD) {
 			chip->pd_action = OPLUS_ACTION_BUCK;
 			schedule_delayed_work(&chip->pd_config_work, 0);
@@ -1129,13 +1143,14 @@ static void oplus_wired_plugin_work(struct work_struct *work)
 		vote(chip->icl_votable, MAX_VOTER, false, 0, true);
 		vote(chip->icl_votable, STRATEGY_VOTER, false, 0, true);
 		chip->pd_retry_count = 0;
+		chip->qc_retry_count = 0;
 		chip->qc_action = OPLUS_ACTION_NULL;
 		chip->pd_action = OPLUS_ACTION_NULL;
 		complete_all(&chip->qc_action_ack);
 		complete_all(&chip->pd_action_ack);
 		complete_all(&chip->qc_check_ack);
 		complete_all(&chip->pd_check_ack);
-		cancel_work_sync(&chip->qc_config_work);
+		cancel_delayed_work_sync(&chip->qc_config_work);
 		cancel_delayed_work_sync(&chip->pd_config_work);
 		cancel_work_sync(&chip->qc_check_work);
 		cancel_work_sync(&chip->pd_check_work);
@@ -1178,7 +1193,7 @@ static void oplus_wired_chg_type_change_work(struct work_struct *work)
 	case OPLUS_CHG_USB_TYPE_QC3:
 		chip->chg_mode = OPLUS_WIRED_CHG_MODE_QC;
 		chip->qc_action = OPLUS_ACTION_BOOST;
-		schedule_work(&chip->qc_config_work);
+		schedule_delayed_work(&chip->qc_config_work, 0);
 		if (chip->cpa_support)
 			complete(&chip->qc_check_ack);
 		break;
@@ -1636,12 +1651,30 @@ static int oplus_wired_input_suspend_vote_callback(struct votable *votable,
 {
 	struct oplus_chg_wired *chip = data;
 	static bool suspend = true;
+	static bool suspend_check_only = false;
 	int rc;
 
-	chg_info("charger suspend change to %s by %s\n",
-		 disable ? "true" : "false", client);
+	if (strcmp(client, SHUTDOWN_VOTER) == 0)
+		suspend_check_only = true;
+
+	chg_info("charger suspend change to %s by %s suspend_check_only %s\n",
+		 disable ? "true" : "false", client,
+		 suspend_check_only ? "true" : "false");
+
+	if (chip->chg_online && !disable && !suspend_check_only) {
+		if (is_vooc_chg_auto_mode_votable_available(chip))
+			vote(chip->vooc_chg_auto_mode_votable,
+			     CHARGE_SUSPEND_VOTER, disable, disable, false);
+		else
+			chg_err("vooc_chg_auto_mode_votable not found\n");
+	}
+
 	rc = oplus_wired_input_enable(!disable);
-	if (chip->chg_online) {
+
+	if (suspend_check_only)
+		return rc;
+
+	if (chip->chg_online && disable) {
 		if (is_vooc_chg_auto_mode_votable_available(chip))
 			vote(chip->vooc_chg_auto_mode_votable,
 			     CHARGE_SUSPEND_VOTER, disable, disable, false);
@@ -1671,12 +1704,31 @@ static int oplus_wired_output_suspend_vote_callback(struct votable *votable,
 {
 	struct oplus_chg_wired *chip = data;
 	static bool suspend = true;
+	static bool suspend_check_only = false;
 	int rc;
 
-	chg_info("charging disabled change to %s by %s\n",
-		 disable ? "true" : "false", client);
+	if (strcmp(client, SHUTDOWN_VOTER) == 0)
+		suspend_check_only = true;
+
+	chg_info("charging disabled change to %s by %s  suspend_check_only %s\n",
+		 disable ? "true" : "false", client,
+		 suspend_check_only ? "true" : "false");
+
+
+	if (chip->chg_online && !disable && !suspend_check_only) {
+		if (is_vooc_chg_auto_mode_votable_available(chip))
+			vote(chip->vooc_chg_auto_mode_votable,
+			     CHAEGE_DISABLE_VOTER, disable, disable, false);
+		else
+			chg_err("vooc_chg_auto_mode_votable not found\n");
+	}
+
 	rc = oplus_wired_output_enable(!disable);
-	if (chip->chg_online) {
+
+	if (suspend_check_only)
+		return rc;
+
+	if (chip->chg_online && disable) {
 		if (is_vooc_chg_auto_mode_votable_available(chip))
 			vote(chip->vooc_chg_auto_mode_votable,
 			     CHAEGE_DISABLE_VOTER, disable, disable, false);
@@ -2030,7 +2082,7 @@ static int oplus_wired_probe(struct platform_device *pdev)
 	INIT_WORK(&chip->temp_region_update_work,
 		  oplus_wired_temp_region_update_work);
 	INIT_WORK(&chip->gauge_update_work, oplus_wired_gauge_update_work);
-	INIT_WORK(&chip->qc_config_work, oplus_wired_qc_config_work);
+	INIT_DELAYED_WORK(&chip->qc_config_work, oplus_wired_qc_config_work);
 	INIT_DELAYED_WORK(&chip->pd_config_work, oplus_wired_pd_config_work);
 	INIT_WORK(&chip->charger_current_changed_work,
 		  oplus_wired_charger_current_changed_work);

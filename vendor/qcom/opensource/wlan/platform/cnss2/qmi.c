@@ -671,7 +671,7 @@ static void cnss_get_oplus_bdf_file_name(struct cnss_plat_data *plat_priv, char*
 	int reg_id = get_Operator_Version();
 	int hw_id = get_PCB_Version();
 	int rf_id = get_Modem_Version();
-	cnss_pr_dbg("region id: %d pcb version: %d rf_id: %d\n", reg_id, hw_id, rf_id);
+	cnss_pr_info("region id: %d pcb version: %d rf_id: %d\n", reg_id, hw_id, rf_id);
 
 	if (plat_priv->chip_info.chip_id & CHIP_ID_GF_MASK) {
 		if (is_prj_support_region_id()) {
@@ -992,9 +992,10 @@ int cnss_wlfw_bdf_dnld_send_sync(struct cnss_plat_data *plat_priv,
 	} else if (bdf_type == CNSS_BDF_ELF){
 		set_bit(CNSS_LOAD_BDF_SUCCESS, &plat_priv->loadBdfState);
 	}
-	#endif /* OPLUS_FEATURE_WIFI_DCS_SWITCH */
-
+	cnss_pr_info("Downloading BDF: %s, size: %u\n", filename, remaining);
+	#else
 	cnss_pr_dbg("Downloading BDF: %s, size: %u\n", filename, remaining);
+	#endif /* OPLUS_FEATURE_WIFI_DCS_SWITCH */
 
 	while (remaining) {
 		req->valid = 1;

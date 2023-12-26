@@ -462,7 +462,8 @@ static int dsi_panel_power_on(struct dsi_panel *panel)
 	}
 	if (!strcmp(panel->name, "AC052 P 3 A0003 dsc cmd mode panel")
 		|| !strcmp(panel->name, "AC052 S 3 A0001 dsc cmd mode panel")
-		|| !strcmp(panel->name, "AA536 P 3 A0001 dsc cmd mode panel")) {
+		|| !strcmp(panel->name, "AA536 P 3 A0001 dsc cmd mode panel")
+		|| !strcmp(panel->oplus_priv.vendor_name, "A0004")) {
 		rc = 0;
 	} else {
 			if (panel->oplus_priv.oplus_disp_hw_seq_modify_flag) {
@@ -2133,6 +2134,18 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-adfr-fakeframe-command",
 	"qcom,mdss-dsi-adfr-pre-switch-command",
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	"qcom,mdss-dsi-adfr-high-precision-fps-0-command",
+	"qcom,mdss-dsi-adfr-high-precision-fps-1-command",
+	"qcom,mdss-dsi-adfr-high-precision-fps-2-command",
+	"qcom,mdss-dsi-adfr-high-precision-fps-3-command",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-0-command",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-1-command",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-2-command",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-3-command",
+	"qcom,mdss-dsi-adfr-high-precision-te-shift-on-command",
+	"qcom,mdss-dsi-adfr-high-precision-te-shift-off-command",
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
 	"qcom,mdss-dsi-read-temp-compensation-reg-command",
 	"qcom,mdss-dsi-temperature-compensation-command",
@@ -2182,6 +2195,12 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-hbm-exit-max-command",
 	"qcom,mdss-dsi-pwm-switch-onepulse-command",
 	"qcom,mdss-dsi-timming-pwm-switch-onepulse-command",
+	"qcom,mdss-dsi-pwm-switch-1ptodc-command",
+	"qcom,mdss-dsi-pwm-switch-dcto1p-command",
+	"qcom,mdss-dsi-pwm-switch-1ptohp-command",
+	"qcom,mdss-dsi-pwm-switch-hpto1p-command",
+	"qcom,mdss-dsi-pwm-switch-1ptohp-restore-command",
+	"qcom,mdss-dsi-pwm-switch-hpto1p-restore-command",
 	"qcom,mdss-dsi-pwm-switch-threepulse-command",
 	"qcom,mdss-dsi-pwm-switch-high-command",
 	"qcom,mdss-dsi-pwm-switch-low-command",
@@ -2191,10 +2210,12 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-timming-pwm-switch-low-command",
 	"qcom,mdss-dsi-power-on-pwm-switch-high-command",
 	"qcom,mdss-dsi-power-on-pwm-switch-low-command",
+	"qcom,mdss-dsi-power-on-pwm-switch-onepulse-command",
 	"qcom,mdss-dsi-pwm-switch-disable-compensation-command",
 	"qcom,mdss-dsi-demura-dbv-mode-0-command",
 	"qcom,mdss-dsi-demura-dbv-mode-1-command",
 	"qcom,mdss-dsi-demura-dbv-mode-2-command",
+	"qcom,mdss-dsi-demura-dbv-mode-3-command",
 	"qcom,mdss-dsi-dly-on-command",
 	"qcom,mdss-dsi-dly-off-command",
 	"qcom,mdss-dsi-cabc-off-command",
@@ -2290,6 +2311,18 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-adfr-fakeframe-command-state",
 	"qcom,mdss-dsi-adfr-pre-switch-command-state",
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	"qcom,mdss-dsi-adfr-high-precision-fps-0-command-state",
+	"qcom,mdss-dsi-adfr-high-precision-fps-1-command-state",
+	"qcom,mdss-dsi-adfr-high-precision-fps-2-command-state",
+	"qcom,mdss-dsi-adfr-high-precision-fps-3-command-state",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-0-command-state",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-1-command-state",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-2-command-state",
+	"qcom,mdss-dsi-hpwm-adfr-high-precision-fps-3-command-state",
+	"qcom,mdss-dsi-adfr-high-precision-te-shift-on-command-state",
+	"qcom,mdss-dsi-adfr-high-precision-te-shift-off-command-state",
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
 	"qcom,mdss-dsi-read-temp-compensation-reg-command-state",
 	"qcom,mdss-dsi-temperature-compensation-command-state",
@@ -2334,11 +2367,17 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-loading-effect-2-command-state",
 	"qcom,mdss-dsi-loading-effect-off-command-state",
 	"qcom,mdss-dsi-hbm-enter-switch-command-state",
+	"qcom,mdss-dsi-hbm-exit-switch-command-state",
 	"qcom,mdss-dsi-hbm-max-command-state",
 	"qcom,mdss-dsi-hbm-exit-max-command-state",
-	"qcom,mdss-dsi-hbm-exit-switch-command-state",
 	"qcom,mdss-dsi-pwm-switch-onepulse-command-state",
 	"qcom,mdss-dsi-timming-pwm-switch-onepulse-command-state",
+	"qcom,mdss-dsi-pwm-switch-1ptodc-command-state",
+	"qcom,mdss-dsi-pwm-switch-dcto1p-command-state",
+	"qcom,mdss-dsi-pwm-switch-1ptohp-command-state",
+	"qcom,mdss-dsi-pwm-switch-hpto1p-command-state",
+	"qcom,mdss-dsi-pwm-switch-1ptohp-restore-command-state",
+	"qcom,mdss-dsi-pwm-switch-hpto1p-restore-command-state",
 	"qcom,mdss-dsi-pwm-switch-threepulse-command-state",
 	"qcom,mdss-dsi-pwm-switch-high-command-state",
 	"qcom,mdss-dsi-pwm-switch-low-command-state",
@@ -2348,10 +2387,12 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-timming-pwm-switch-low-command-state",
 	"qcom,mdss-dsi-power-on-pwm-switch-high-command-state",
 	"qcom,mdss-dsi-power-on-pwm-switch-low-command-state",
+	"qcom,mdss-dsi-power-on-pwm-switch-onepulse-command-state",
 	"qcom,mdss-dsi-pwm-switch-disable-compensation-command-state",
 	"qcom,mdss-dsi-demura-dbv-mode-0-command-state",
 	"qcom,mdss-dsi-demura-dbv-mode-1-command-state",
 	"qcom,mdss-dsi-demura-dbv-mode-2-command-state",
+	"qcom,mdss-dsi-demura-dbv-mode-3-command-state",
 	"qcom,mdss-dsi-dly-on-command-state",
 	"qcom,mdss-dsi-dly-off-command-state",
 	"qcom,mdss-dsi-cabc-off-command-state",
@@ -5141,7 +5182,8 @@ int dsi_panel_prepare(struct dsi_panel *panel)
 #ifdef OPLUS_FEATURE_DISPLAY
 	if (!strcmp(panel->name, "AC052 P 3 A0003 dsc cmd mode panel")
 		|| !strcmp(panel->name, "AC052 S 3 A0001 dsc cmd mode panel")
-		|| !strcmp(panel->name, "AA536 P 3 A0001 dsc cmd mode panel")) {
+		|| !strcmp(panel->name, "AA536 P 3 A0001 dsc cmd mode panel")
+		|| !strcmp(panel->oplus_priv.vendor_name, "A0004")) {
 		usleep_range(10*1000, (10*1000)+100);
 		dsi_panel_reset(panel);
 	}

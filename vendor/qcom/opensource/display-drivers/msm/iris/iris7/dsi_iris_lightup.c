@@ -78,6 +78,7 @@ void iris_init_i7(struct dsi_display *display, struct dsi_panel *panel)
 	pcfg->osd_label = 0;
 	pcfg->frc_label = 0;
 	pcfg->frc_demo_window = 0;
+	pcfg->ocp_read_by_i2c = 1;
 
 	atomic_set(&pcfg->fod_cnt, 0);
 	atomic_set(&pcfg->iris_esd_flag, 0);

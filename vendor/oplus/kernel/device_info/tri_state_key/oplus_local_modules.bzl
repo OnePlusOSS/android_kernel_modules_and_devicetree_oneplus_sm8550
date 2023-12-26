@@ -11,6 +11,10 @@ def define_oplus_local_modules():
             "oplus_tri_key.c",
         ]),
         includes = ["."],
+        conditional_defines = {
+            "qcom":  ["CONFIG_QCOM_PANEL_EVENT_NOTIFIER"],
+            "mtk":  ["CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY"],
+        },
     )
 
     define_oplus_ddk_module(

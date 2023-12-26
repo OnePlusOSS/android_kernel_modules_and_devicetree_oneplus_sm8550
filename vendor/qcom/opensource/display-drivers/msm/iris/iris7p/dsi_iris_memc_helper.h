@@ -50,5 +50,6 @@ void iris_scl_ptsr_config(uint32_t count, uint32_t *values);
 void iris_scl_ptsr_get(uint32_t count, uint32_t *values);
 const char *iris_ptsr_status(void);
 int iris_dbgfs_scl_init(struct dsi_display *display);
+int iris_get_sr_info(char *kbuf, int size, bool hide_mode);
 
 #endif

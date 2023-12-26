@@ -13091,6 +13091,10 @@ int oplus_chg_show_vooc_logo_ornot(void)
 		}
 	} else if ((oplus_is_vooc_project() == DUAL_BATT_150W || oplus_is_vooc_project() == DUAL_BATT_240W) &&
 		    g_charger_chip->mmi_chg) {
+		if (g_charger_chip->pd_svooc == false && g_charger_chip->chg_ops->get_charger_subtype() == CHARGER_SUBTYPE_PD) {
+			charger_xlog_printk(CHG_LOG_CRTI, "PPS not start use PD,fastchg return 0\n");
+			return 0;
+		}
 		chg_info("keep_connect_check:%d!", oplus_quirks_keep_connect_status());
 		return oplus_quirks_keep_connect_status();
 	} else {

@@ -48,7 +48,8 @@ static void combkey_long_press_callback(struct work_struct *work)
 static void pwrkey_long_press_callback(struct work_struct *work)
 {
 	pr_info("called. send long press pwrkey to theia.\n");
-	theia_send_event(THEIA_EVENT_PWK_LONGPRESS, THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+	theia_send_event(THEIA_EVENT_PWK_LONGPRESS, THEIA_LOGINFO_KERNEL_LOG
+		 | THEIA_LOGINFO_ANDROID_LOG | THEIA_LOGINFO_DUMPSYS_SF | THEIA_LOGINFO_BINDER_INFO,
 		0, "pwrkey long press happen");
 }
 

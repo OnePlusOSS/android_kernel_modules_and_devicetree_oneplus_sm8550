@@ -131,11 +131,17 @@ static int sc2201_publish_ic_err_msg(struct oplus_sc2201 *chip, int sub_type, co
 
 static void sc2201_push_i2c_err(struct oplus_sc2201 *chip, bool read, u16 addr, int err_code)
 {
+	int rc;
+	unsigned int err_flag;
+
 	chip->i2c_err = true;
 	if (atomic_read(&chip->i2c_err_count) > I2C_ERR_MAX)
 		return;
+	if (!ufcs_handshake_success(chip->ufcs))
+		return;
 	/* Ignore the report after a hard reset occurs */
-	if (chip->ufcs->dev_err_flag & BIT(UFCS_HW_ERR_HARD_RESET))
+	rc = ufcs_check_error_flag_all(chip->ufcs, &err_flag);
+	if (!rc && (err_flag & BIT(UFCS_HW_ERR_HARD_RESET)))
 		return;
 
 	atomic_inc(&chip->i2c_err_count);
@@ -447,7 +453,7 @@ static int sc2201_read_flags(struct oplus_sc2201 *chip)
 		err_flag |= BIT(UFCS_COMM_ERR_BAUD_RATE_CHANGE);
 	if (flag_buf[9] & SC2201_FLAG_BUS_CONFLICT)
 		err_flag |= BIT(UFCS_COMM_ERR_BUS_CONFLICT);
-	chip->ufcs->dev_err_flag |= err_flag;
+	chip->ufcs->err_flag_save = err_flag;
 
 	if (chip->ufcs->handshake_state == UFCS_HS_WAIT) {
 		if ((flag_buf[7] & SC2201_FLAG_HANDSHAKE_SUCCESS) &&
@@ -460,7 +466,7 @@ static int sc2201_read_flags(struct oplus_sc2201 *chip)
 	chg_info("[0/3/7/8] = [0x%x, 0x%x, 0x%x, 0x%x], err_flag=0x%x\n",
 		 flag_buf[0], flag_buf[3], flag_buf[7], flag_buf[8], err_flag);
 
-	return 0;
+	return ufcs_set_error_flag(chip->ufcs, err_flag);
 }
 
 static int sc2201_dump_registers(struct oplus_sc2201 *chip)
@@ -704,7 +710,6 @@ static irqreturn_t sc2201_int_handler(int irq, void *dev_id)
 {
 	struct oplus_sc2201 *chip = dev_id;
 
-	ufcs_clr_error_flag(chip->ufcs);
 	sc2201_read_flags(chip);
 	ufcs_msg_handler(chip->ufcs);
 	return IRQ_HANDLED;

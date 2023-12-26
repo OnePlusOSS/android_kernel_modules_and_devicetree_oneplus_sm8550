@@ -287,6 +287,7 @@ struct oplus_ufcs {
 	struct work_struct soft_exit_work;
 	struct work_struct gauge_update_work;
 	struct work_struct err_flag_push_work;
+	struct work_struct fifo_overflow_push_work;
 
 	wait_queue_head_t read_wq;
 	struct miscdevice misc_dev;
@@ -687,6 +688,9 @@ static void oplus_ufcs_push_err_info(struct oplus_ufcs *chip, enum ufcs_user_err
 	size_t index;
 
 	if (!is_err_topic_available(chip))
+		return;
+	if ((type == UFCS_ERR_ANTHEN_ERR) &&
+	    (chip->config.curr_max_ma <= UFCS_VERIFY_CURR_THR_MA))
 		return;
 
 	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
@@ -1854,6 +1858,11 @@ static int oplus_ufcs_charge_start(struct oplus_ufcs *chip)
 		rc = oplus_ufcs_cp_set_work_start(chip, true);
 		if (rc < 0) {
 			chg_err("set cp work start error, rc=%d\n", rc);
+			return rc;
+		}
+		rc = oplus_ufcs_pdo_set(chip, chip->config.target_vbus_mv, UFCS_START_DEF_CURR_MA);
+		if (rc < 0) {
+			chg_err("pdo set error, rc=%d\n", rc);
 			return rc;
 		}
 		chip->start_retry_count = 0;
@@ -3176,7 +3185,56 @@ static void oplus_ufcs_err_flag_push_work(struct work_struct *work)
 	kfree(buf);
 	rc = oplus_mms_publish_msg_sync(chip->err_topic, msg);
 	if (rc < 0) {
-		chg_err("publish usbtemp error msg error, rc=%d\n", rc);
+		chg_err("publish ufcs error msg error, rc=%d\n", rc);
+		kfree(msg);
+	}
+}
+
+static void oplus_ufcs_fifo_overflow_push_work(struct work_struct *work)
+{
+	struct oplus_ufcs *chip =
+		container_of(work, struct oplus_ufcs, fifo_overflow_push_work);
+	struct mms_msg *msg;
+	int rc;
+	char *buf;
+	int i;
+	size_t index;
+
+	if (!is_err_topic_available(chip))
+		return;
+
+	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
+	if (buf == NULL)
+		return;
+
+	index = snprintf(buf, PAGE_SIZE, "$$reason@@fifo_overflow$$err_flag@@0x%x"
+		"$$dev_info@@0x%llx$$cable_info@@0x%llx$$emark_info@@0x%llx",
+		chip->err_flag, chip->dev_info, chip->cable_info, chip->emark_info);
+	if (chip->pdo_num > 0)
+		index += snprintf(buf + index, PAGE_SIZE, "$$pdo_info@@");
+	for (i = 0; i < chip->pdo_num; i++) {
+		if (i == chip->pdo_num - 1)
+			index += snprintf(buf + index, PAGE_SIZE, "0x%llx", chip->pdo[i]);
+		else
+			index += snprintf(buf + index, PAGE_SIZE, "0x%llx,", chip->pdo[i]);
+	}
+
+	if (chip->pie_num > 0)
+		index += snprintf(buf + index, PAGE_SIZE, "$$pie_info@@");
+	for (i = 0; i < chip->pie_num; i++) {
+		if (i == chip->pie_num - 1)
+			index += snprintf(buf + index, PAGE_SIZE, "0x%llx", chip->pie[i]);
+		else
+			index += snprintf(buf + index, PAGE_SIZE, "0x%llx,", chip->pie[i]);
+	}
+	index += snprintf(buf + index, PAGE_SIZE, "$$power_max@@%d",
+		oplus_cpa_protocol_get_power(chip->cpa_topic, CHG_PROTOCOL_UFCS));
+
+	msg = oplus_mms_alloc_str_msg(MSG_TYPE_ITEM, MSG_PRIO_MEDIUM, ERR_ITEM_UFCS, buf);
+	kfree(buf);
+	rc = oplus_mms_publish_msg_sync(chip->err_topic, msg);
+	if (rc < 0) {
+		chg_err("publish ufcs error msg error, rc=%d\n", rc);
 		kfree(msg);
 	}
 }
@@ -4590,8 +4648,11 @@ static int oplus_ufcs_event_notifier_call(struct notifier_block *nb, unsigned lo
 		break;
 	case UFCS_NOTIFY_ERR_FLAG:
 		chip->err_flag = *((unsigned int *)v);
-		chg_info("err_flag=%x\n", chip->err_flag);
+		chg_info("err_flag=0x%x\n", chip->err_flag);
 		schedule_work(&chip->err_flag_push_work);
+		break;
+	case UFCS_NOTIFY_FIFO_OVERFLOW:
+		schedule_work(&chip->fifo_overflow_push_work);
 		break;
 	default:
 		chg_err("unknown event=%lu\n", val);
@@ -4641,6 +4702,7 @@ static int oplus_ufcs_probe(struct platform_device *pdev)
 	INIT_WORK(&chip->soft_exit_work, oplus_ufcs_soft_exit_work);
 	INIT_WORK(&chip->gauge_update_work, oplus_ufcs_gauge_update_work);
 	INIT_WORK(&chip->err_flag_push_work, oplus_ufcs_err_flag_push_work);
+	INIT_WORK(&chip->fifo_overflow_push_work, oplus_ufcs_fifo_overflow_push_work);
 
 	rc = oplus_ufcs_init_imp_node(chip);
 	if (rc < 0)

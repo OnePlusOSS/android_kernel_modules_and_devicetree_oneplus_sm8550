@@ -430,7 +430,7 @@ static bool ak09970_update_threshold(int position, short lowthd, short highthd, 
 	}
 	irqval = gpio_get_value(g_chip->irq_gpio);
 	TRI_KEY_LOG("%s  read irq1 is %d\n" , __func__, irqval);
-	err = ak09970_i2c_write_block(g_chip, AK09970_REG_SWX1, th, 4);
+	/*	err = ak09970_i2c_write_block(g_chip, AK09970_REG_SWX1, th, 4);
 	if (err < 0) {
 		TRI_KEY_LOG("%s: clear AK09970_REG_SWX1 fail %d \n", __func__, err);
 		return err;
@@ -444,11 +444,11 @@ static bool ak09970_update_threshold(int position, short lowthd, short highthd, 
 	if (err < 0) {
 		TRI_KEY_LOG("%s: clear AK09970_REG_SWX1 fail %d \n", __func__, err);
 		return err;
-	}
+	}  */
 	switch (position) {
 	case UP_STATE:
 		lowthd = halldata->hall_x - YBOP_TOL;
-	    highthd = halldata->hall_x - YBRP_TOL;
+		highthd = halldata->hall_x - YBRP_TOL;
 		break;
 	case DOWN_STATE:
 		lowthd = halldata->hall_x + YBRP_TOL;
@@ -617,6 +617,7 @@ static bool ak09970_update_threshold(int position, short lowthd, short highthd, 
 /* functions for interrupt handler */
 static irqreturn_t ak09970_irq_handler(int irq, void *dev_id)
 {
+	struct extcon_dev_data *hall_dev = NULL;
 	TRI_KEY_LOG("call \n");
 
 	if (!g_chip) {
@@ -626,16 +627,17 @@ static irqreturn_t ak09970_irq_handler(int irq, void *dev_id)
 	if (g_chip->ws) {
 		__pm_stay_awake(g_chip->ws);
 	}
+	hall_dev = i2c_get_clientdata(g_chip->client);
 	/*for check bus i2c/spi is ready or not*/
-	if (g_chip->bus_ready == false) {
+	if (hall_dev && hall_dev->bus_ready == false) {
 		TRI_KEY_LOG("Wait device resume!");
 		wait_event_interruptible_timeout(g_chip->wait,
-						 g_chip->bus_ready,
+						 hall_dev->bus_ready,
 						 msecs_to_jiffies(50));
 		/*TRI_KEY_LOG("Device maybe resume!");*/
 	}
 
-	if (g_chip->bus_ready == false) {
+	if (hall_dev && hall_dev->bus_ready == false) {
 		TRI_KEY_LOG("The device not resume 50 ms!");
 		goto exit;
 	}
@@ -898,6 +900,9 @@ static int ak09970_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	struct oplus_dhall_chip *chip = NULL;
 	struct extcon_dev_data	*hall_dev = NULL;
 	int err = 0;
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	u8 retry;
+#endif
 
 	TRI_KEY_LOG("call \n");
 
@@ -924,6 +929,27 @@ static int ak09970_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	hall_dev->dev = &client->dev;
 	ak09970_parse_dts(chip);
 
+/* ts check panel dt */
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	/* get spi of_node from spi_register_driver */
+	for(retry = 0; retry < 10; retry++) {
+		hall_dev->active_panel = trikey_dev_get_panel(chip->client->dev.of_node);
+		if (hall_dev->active_panel) {
+			TRI_KEY_ERR("Success to get panel info\n");
+			break;
+		}
+		msleep(500);
+	}
+
+	if (retry == 10) {
+		TRI_KEY_ERR("ts check panel dt failed\n");
+		if (hall_dev) {
+			kfree(hall_dev);
+			hall_dev = NULL;
+		}
+		return -EPROBE_DEFER; /* retry */
+	}
+#endif
 	ak09970_set_power(chip, 1);
 	ak09970_gpio_set_value(chip->reset_gpio, 0);
 	mdelay(1);
@@ -947,7 +973,7 @@ static int ak09970_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	}
 
 	init_waitqueue_head(&chip->wait);
-	chip->bus_ready = true;
+	hall_dev->bus_ready = true;
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
 	chip->ws = wakeup_source_register(dev_name(&chip->client->dev));
 #else
@@ -956,6 +982,13 @@ static int ak09970_i2c_probe(struct i2c_client *client, const struct i2c_device_
 
 	g_chip = chip;
 	oplus_register_hall("three_axis_hall", &ak09970_ops, hall_dev);
+
+	err = oplus_hall_register_notifier();
+	if (err < 0) {
+		TRI_KEY_LOG("oplus_hall_register_notifier failed\n");
+		goto fail;
+	}
+
 
 	TRI_KEY_LOG("success. \n");
 	return 0;
@@ -977,6 +1010,8 @@ static int ak09970_i2c_remove(struct i2c_client *client)
 		wakeup_source_unregister(g_chip->ws);
 	}
 
+	oplus_hall_unregister_notifier();
+
 	hall_dev = i2c_get_clientdata(client);
 	if (hall_dev) {
 		kfree(hall_dev);
@@ -987,6 +1022,7 @@ static int ak09970_i2c_remove(struct i2c_client *client)
 
 static int ak09970_i2c_suspend(struct device *dev)
 {
+	struct extcon_dev_data *hall_dev = NULL;
 	TRI_KEY_LOG("%s: is called\n", __func__);
 
 	if (!g_chip)
@@ -995,7 +1031,10 @@ static int ak09970_i2c_suspend(struct device *dev)
 	if (g_chip->irq == 0)
 		return 0;
 
-	g_chip->bus_ready = false;
+	hall_dev = i2c_get_clientdata(g_chip->client);
+	if (hall_dev) {
+		hall_dev->bus_ready = false;
+	}
 
 	if (!g_chip->irq_wake) {
 		enable_irq_wake(g_chip->irq);
@@ -1007,6 +1046,7 @@ static int ak09970_i2c_suspend(struct device *dev)
 
 static int ak09970_i2c_resume(struct device *dev)
 {
+	struct extcon_dev_data *hall_dev = NULL;
 	TRI_KEY_LOG("%s: is called\n", __func__);
 
 	if (!g_chip)
@@ -1020,7 +1060,10 @@ static int ak09970_i2c_resume(struct device *dev)
 		g_chip->irq_wake = false;
 	}
 
-	g_chip->bus_ready = true;
+	hall_dev = i2c_get_clientdata(g_chip->client);
+	if (hall_dev) {
+		hall_dev->bus_ready = true;
+	}
 
 	wake_up_interruptible(&g_chip->wait);
 

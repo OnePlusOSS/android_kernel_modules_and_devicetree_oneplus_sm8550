@@ -456,7 +456,7 @@ static int oplus_gauge_get_subboard_temp(struct oplus_mms_gauge *chip)
 	}
 #ifndef CONFIG_DISABLE_OPLUS_FUNCTION
 	if (get_eng_version() == HIGH_TEMP_AGING || oplus_is_ptcrb_version()) {
-		chg_info("[OPLUS_CHG]CONFIG_HIGH_TEMP_VERSION enable here, "
+		chg_info("CONFIG_HIGH_TEMP_VERSION enable here, "
 			 "disable high tbat shutdown\n");
 		if (temp > 690)
 			temp = 690;
@@ -613,7 +613,8 @@ int oplus_gauge_protect_check(void)
 
 	rc = oplus_chg_ic_func(g_mms_gauge->gauge_ic, OPLUS_IC_FUNC_GAUGE_SET_PROTECT_CHECK);
 	if (rc < 0) {
-		chg_err("protect_check, rc=%d\n", rc);
+		if (rc != -ENOTSUPP)
+			chg_err("protect_check, rc=%d\n", rc);
 		return 0;
 	}
 	return 0;
@@ -2211,8 +2212,6 @@ static int oplus_mms_gauge_update_fcc(struct oplus_mms *mms, union mms_msg_data 
 	}
 
 	fcc = main_fcc + sub_fcc;
-	chg_info(" main_fcc:%d, sub_fcc:%d, fcc:%d", main_fcc, sub_fcc, fcc);
-
 	data->intval = fcc * batt_num;
 	return 0;
 }
@@ -2396,7 +2395,6 @@ static int oplus_mms_gauge_update_soh(struct oplus_mms *mms, union mms_msg_data 
 		soh = main_soh;
 	}
 
-	chg_info("soh:%d, gauge_type:%d", soh, gauge_type);
 	data->intval = soh;
 	return 0;
 }

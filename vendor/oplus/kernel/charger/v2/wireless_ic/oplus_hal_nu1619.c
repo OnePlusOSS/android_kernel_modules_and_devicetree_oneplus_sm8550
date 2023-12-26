@@ -1870,11 +1870,12 @@ static int nu1619_upgrade_firmware_by_img(struct oplus_chg_ic_dev *dev)
 	}
 	msleep(100);
 
-	if (nu1619_onekey_download_firmware(chip) == true)
+	if (nu1619_onekey_download_firmware(chip) == true) {
 		chg_info("<FW UPDATE> check idt fw update ok<><><><><><><><>\n");
-	else
+	} else {
+		rc = -EPERM;
 		chg_err("<FW UPDATE> check idt fw update fail<><><><><><><><>\n");
-
+	}
 	msleep(100);
 	nu1619_set_trx_boost_enable(chip, false);
 	msleep(20);

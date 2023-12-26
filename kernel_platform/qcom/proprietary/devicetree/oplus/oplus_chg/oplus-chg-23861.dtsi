@@ -160,7 +160,7 @@
 		oplus_spec,vbatt_pdqc_to_9v_thr = <5000>;
 		oplus_spec,pd-iclmax-ma = <2000>;
 		oplus_spec,qc-iclmax-ma = <2000>;
-		oplus_spec,non-standard-ibatmax-ma = <500>;
+		oplus_spec,non-standard-ibatmax-ma = <1000>;
 		oplus_spec,input-power-mw = <
 			2500		/* OPLUS_WIRED_CHG_MODE_UNKNOWN */
 			2500		/* OPLUS_WIRED_CHG_MODE_SDP */
@@ -258,7 +258,7 @@
 		oplus_spec,vbat_charging_uv_thr_mv = <3200>;
 
 		/*If use subboard NTC as battery temp, config it as 20, otherwise 0 */
-		oplus,tbatt_power_off_cali_temp = <20>;
+		oplus_spec,tbatt_power_off_cali_temp = <20>;
 		oplus,vooc_show_ui_soc_decimal;
 		oplus,ui_soc_decimal_speedmin = <20>;
 
@@ -885,13 +885,13 @@
 								4350 20 0 0 0
 								4534 15 0 0 0
 								4540 10 1 0 0>;
-				strategy_temp_little_cool =	<4150 73 0 300 0
-								4150 70 0 300 0
-								4150 65 0 300 0
-								4150 60 0 600 0
-								4150 55 0 600 0
-								4480 50 0 0 0
-								4480 45 0 0 0
+				strategy_temp_little_cool =	<4150 73 0 600 0
+								4150 70 0 600 0
+								4150 65 0 600 0
+								4150 60 0 1200 0
+								4150 55 0 1200 0
+								4480 50 0 600 0
+								4480 45 0 600 0
 								4480 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0
@@ -899,32 +899,32 @@
 								4534 20 0 0 0
 								4534 15 0 0 0
 								4540 10 1 0 0>;
-				strategy_temp_normal_low =	<4180 91 0 180 0
-								4180 85 0 180 0
-								4330 80 0 180 0
-								4330 73 0 180 0
-								4330 70 0 300 0
-								4480 65 0 300 0
-								4480 60 0 600 0
-								4480 55 0 600 0
-								4534 50 0 300 0
-								4534 45 0 300 0
+				strategy_temp_normal_low =	<4180 91 0 360 0
+								4180 85 0 360 0
+								4330 80 0 360 0
+								4330 73 0 600 0
+								4330 70 0 600 0
+								4480 65 0 600 0
+								4480 60 0 1200 0
+								4480 55 0 1200 0
+								4534 50 0 600 0
+								4534 45 0 600 0
 								4534 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0
 								4534 25 0 0 0
 								4534 20 0 0 0
 								4540 15 1 0 0>;
-				strategy_temp_normal_high =	<4180 91 0 180 0
-								4180 85 0 180 0
-								4330 80 0 180 0
-								4330 73 0 180 0
-								4330 70 0 300 0
-								4480 65 0 300 0
-								4480 60 0 600 0
-								4480 55 0 600 0
-								4534 50 0 300 0
-								4534 45 0 300 0
+				strategy_temp_normal_high =	<4180 91 0 360 0
+								4180 85 0 360 0
+								4330 80 0 360 0
+								4330 73 0 600 0
+								4330 70 0 600 0
+								4480 65 0 600 0
+								4480 60 0 1200 0
+								4480 55 0 1200 0
+								4534 50 0 600 0
+								4534 45 0 600 0
 								4534 40 0 0 0
 								4534 35 0 0 0
 								4534 30 0 0 0

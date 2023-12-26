@@ -3461,7 +3461,7 @@ static const char *_iris_sr_status(void)
 	return status;
 }
 
-static int _iris_get_sr_info(char *kbuf, int size)
+static int _iris_get_sr_info(char *kbuf, int size, bool hide_mode)
 {
 	struct iris_cfg *pcfg = iris_get_cfg();
 	uint32_t path_sel = SCL_DATA_PATH1;
@@ -3471,8 +3471,9 @@ static int _iris_get_sr_info(char *kbuf, int size)
 	if (pcfg->pwil_mode == FRC_MODE)
 		path_sel = SCL_DATA_PATH0;
 
-	len += snprintf(kbuf, size,
-			"%-20s:\t%s\n", "SR mode", status == NULL ? "Not set" : status);
+	if (!hide_mode)
+		len += snprintf(kbuf, size,
+				"%-20s:\t%s\n", "SR mode", status == NULL ? "Not set" : status);
 	len += snprintf(kbuf + len, size - len,
 			"%-20s:\t%u x %u\n", "proc size",
 			_iris_scl_conf[path_sel].sr_in_h, _iris_scl_conf[path_sel].sr_in_v);
@@ -3486,6 +3487,15 @@ static int _iris_get_sr_info(char *kbuf, int size)
 			"%-20s:\t%u\n", "CNN model", iris_cnn_using_model);
 
 	return len;
+}
+
+int iris_get_sr_info(char *kbuf, int size, bool hide_mode)
+{
+	const char *status = _iris_sr_status();
+	if (status == NULL)
+		return 0;
+
+	return _iris_get_sr_info(kbuf, size, hide_mode);
 }
 
 static ssize_t _iris_dbg_show_sr_info(struct file *file, char __user *ubuf,
@@ -3504,7 +3514,7 @@ static ssize_t _iris_dbg_show_sr_info(struct file *file, char __user *ubuf,
 		return -ENOMEM;
 	}
 
-	size = _iris_get_sr_info(kbuf, size);
+	size = _iris_get_sr_info(kbuf, size, 0);
 	if (size >= count)
 		size = count - 1;
 

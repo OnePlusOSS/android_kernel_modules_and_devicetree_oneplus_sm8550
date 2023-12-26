@@ -246,7 +246,9 @@ int oplus_panel_global_hbm_mapping(struct dsi_panel *panel, u32 *backlight_level
 		break;
 	}
 
-	if (oplus_panel_pwm_onepulse_is_enabled(panel) && strcmp(panel->oplus_priv.vendor_name, "TM_NT37705")) {
+	if (oplus_panel_pwm_onepulse_is_enabled(panel)
+		&& strcmp(panel->oplus_priv.vendor_name, "TM_NT37705")
+		&& strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel")) {
 		if (bl_lvl > panel->bl_config.pwm_bl_threshold && bl_lvl < panel->bl_config.pwm_bl_onepulse_threshold) {
 			bl_lvl = panel->bl_config.pwm_bl_threshold + 1;
 		} else if (bl_lvl >= panel->bl_config.pwm_bl_onepulse_threshold && bl_lvl <= panel->bl_config.brightness_normal_max_level) {
@@ -330,7 +332,8 @@ void oplus_pwm_disable_duty_set_work_handler(struct work_struct *work)
 
 	oplus_sde_early_wakeup(panel);
 	oplus_wait_for_vsync(panel);
-	if (refresh_rate == 60) {
+	if (refresh_rate == 60
+		|| (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel") && refresh_rate == 90)) {
 		oplus_need_to_sync_te(panel);
 	}
 
@@ -344,7 +347,8 @@ void oplus_pwm_disable_duty_set_work_handler(struct work_struct *work)
 	if (!panel->oplus_priv.pwm_switch_restore_support) {
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_DISABLE_PWM_BACKLIGHT_COMPENSATION);
 	} else {
-		rc = dsi_panel_tx_cmd_set(panel, pwm_switch_cmd_restore);
+		if (pwm_switch_cmd_restore)
+			rc = dsi_panel_tx_cmd_set(panel, pwm_switch_cmd_restore);
 	}
 
 	mutex_unlock(&panel->panel_lock);
@@ -354,6 +358,63 @@ void oplus_pwm_disable_duty_set_work_handler(struct work_struct *work)
 	}
 
 	return;
+}
+
+static void oplus_panel_directional_onepulse_status_judge(struct dsi_panel *panel,
+	u32 bl_lvl,
+	u32 *pwm_switch_state_last,
+	u32 *pwm_switch_cmd,
+	int *pulse) {
+	if (bl_lvl > panel->bl_config.pwm_bl_threshold) {
+		if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+			/* on 1 pulse */
+			panel->oplus_pwm_switch_state = PWM_SWITCH_ONEPULSE_STATE;
+			if (*pwm_switch_state_last == PWM_SWITCH_DC_STATE) {
+				/* DC to 1 pulse */
+				*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_DCTO1P;
+				pwm_switch_cmd_restore = 0;
+			} else if (*pwm_switch_state_last == PWM_SWITCH_HPWM_STATE) {
+				/* High PWM to 1 pulse */
+				*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_HPTO1P;
+				pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_HPTO1P_RESTORE;
+			}
+			if (panel->pwm_power_on || panel->post_power_on)
+				*pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_ONEPULSE;
+		} else {
+			/* on DC */
+			panel->oplus_pwm_switch_state = PWM_SWITCH_DC_STATE;
+			if (*pwm_switch_state_last == PWM_SWITCH_ONEPULSE_STATE) {
+				/* 1 pulse to DC */
+				*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_1PTODC;
+				pwm_switch_cmd_restore = 0;
+			} else if (*pwm_switch_state_last == PWM_SWITCH_HPWM_STATE) {
+				/* High PWM to DC */
+				*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_HIGH;
+				pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_HIGH_RESTORE;
+			}
+			if (panel->pwm_power_on || panel->post_power_on)
+				*pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_HIGH;
+		}
+		*pulse = 0;
+	} else {
+		/* on High PWM */
+		panel->oplus_pwm_switch_state = PWM_SWITCH_HPWM_STATE;
+		if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+			/* 1 pulse to HP */
+			*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_1PTOHP;
+			pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_1PTOHP_RESTORE;
+		} else {
+			/* High PWM to DC*/
+			*pwm_switch_cmd = DSI_CMD_PWM_SWITCH_LOW;
+			pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_LOW_RESTORE;
+		}
+
+		if (panel->pwm_power_on || panel->post_power_on)
+			*pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_LOW;
+		*pulse = 1;
+	}
+	if(panel->oplus_pwm_switch_state != *pwm_switch_state_last)
+		LCD_INFO("last pwm state: %d, cur pwm state: %d\n", *pwm_switch_state_last, panel->oplus_pwm_switch_state);
 }
 
 int oplus_panel_pwm_switch_backlight(struct dsi_panel *panel, u32 bl_lvl)
@@ -374,28 +435,36 @@ int oplus_panel_pwm_switch_backlight(struct dsi_panel *panel, u32 bl_lvl)
 	if (bl_lvl == 0 || bl_lvl == 1)
 		return rc;
 
-	if (bl_lvl > panel->bl_config.pwm_bl_threshold) {
-		panel->oplus_pwm_switch_state = PWM_SWITCH_HIGH_STATE;
-		pwm_switch_cmd = DSI_CMD_PWM_SWITCH_HIGH;
-		pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_HIGH_RESTORE;
-		if (panel->pwm_power_on || panel->post_power_on) {
-			if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel"))
-				pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_HIGH;
-			else
-				pwm_switch_cmd = DSI_CMD_TIMMING_PWM_SWITCH_HIGH;
-		}
-		pulse = 0;
+	if(panel->oplus_priv.directional_onepulse_switch) {
+		oplus_panel_directional_onepulse_status_judge(panel,
+			bl_lvl,
+			&pwm_switch_state_last,
+			&pwm_switch_cmd,
+			&pulse);
 	} else {
-		panel->oplus_pwm_switch_state = PWM_SWITCH_LOW_STATE;
-		pwm_switch_cmd = DSI_CMD_PWM_SWITCH_LOW;
-		pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_LOW_RESTORE;
-		if (panel->pwm_power_on || panel->post_power_on) {
-			if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel"))
-				pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_LOW;
-			else
-				pwm_switch_cmd = DSI_CMD_TIMMING_PWM_SWITCH_LOW;
+		if (bl_lvl > panel->bl_config.pwm_bl_threshold) {
+			panel->oplus_pwm_switch_state = PWM_SWITCH_DC_STATE;
+			pwm_switch_cmd = DSI_CMD_PWM_SWITCH_HIGH;
+			pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_HIGH_RESTORE;
+			if (panel->pwm_power_on || panel->post_power_on) {
+				if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel"))
+					pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_HIGH;
+				else
+					pwm_switch_cmd = DSI_CMD_TIMMING_PWM_SWITCH_HIGH;
+			}
+			pulse = 0;
+		} else {
+			panel->oplus_pwm_switch_state = PWM_SWITCH_HPWM_STATE;
+			pwm_switch_cmd = DSI_CMD_PWM_SWITCH_LOW;
+			pwm_switch_cmd_restore = DSI_CMD_PWM_SWITCH_LOW_RESTORE;
+			if (panel->pwm_power_on || panel->post_power_on) {
+				if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel"))
+					pwm_switch_cmd = DSI_CMD_POWER_ON_PWM_SWITCH_LOW;
+				else
+					pwm_switch_cmd = DSI_CMD_TIMMING_PWM_SWITCH_LOW;
+			}
+			pulse = 1;
 		}
-		pulse = 1;
 	}
 	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
 		pulse = 1;
@@ -432,7 +501,7 @@ int oplus_panel_pwm_switch_timing_switch(struct dsi_panel *panel)
 	}
 
 
-	if (panel->oplus_pwm_switch_state  == PWM_SWITCH_HIGH_STATE) {
+	if (panel->oplus_pwm_switch_state == PWM_SWITCH_DC_STATE) {
 		pwm_switch_cmd = DSI_CMD_TIMMING_PWM_SWITCH_HIGH;
 	}
 
@@ -487,15 +556,31 @@ void oplus_panel_backlight_demura_dbv_switch(struct dsi_panel *panel, u32 bl_lvl
 	if (bl_lvl == 0 || bl_lvl == 1)
 		return;
 
-	if (bl_lvl < 688) {
-		panel->oplus_priv.bl_demura_mode = 0;
-		bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE0;
-	} else if (688 <= bl_lvl && bl_lvl < 1292) {
-		panel->oplus_priv.bl_demura_mode = 1;
-		bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE1;
-	} else if (1292 <= bl_lvl) {
-		panel->oplus_priv.bl_demura_mode = 2;
-		bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE2;
+	if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel")) {
+		if ((bl_lvl >= 8) && (bl_lvl <= 1087)) {
+			panel->oplus_priv.bl_demura_mode = 0;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE0;
+		} else if ((bl_lvl >= 1088) && (bl_lvl < 1768)) {
+			panel->oplus_priv.bl_demura_mode = 1;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE1;
+		} else if ((bl_lvl >= 1768) && (bl_lvl < 2689)) {
+			panel->oplus_priv.bl_demura_mode = 2;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE2;
+		} else if (2689 <= bl_lvl) {
+			panel->oplus_priv.bl_demura_mode = 3;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE3;
+		}
+	} else {
+		if (bl_lvl < 688) {
+			panel->oplus_priv.bl_demura_mode = 0;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE0;
+		} else if (688 <= bl_lvl && bl_lvl < 1292) {
+			panel->oplus_priv.bl_demura_mode = 1;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE1;
+		} else if (1292 <= bl_lvl) {
+			panel->oplus_priv.bl_demura_mode = 2;
+			bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE2;
+		}
 	}
 
 	if (panel->oplus_priv.bl_demura_mode != bl_demura_last_mode && panel->power_mode == SDE_MODE_DPMS_ON)

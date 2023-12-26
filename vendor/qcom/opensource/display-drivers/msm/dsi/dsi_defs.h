@@ -357,6 +357,18 @@ enum dsi_cmd_set_type {
 	DSI_CMD_ADFR_FAKEFRAME,
 	DSI_CMD_ADFR_PRE_SWITCH,
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	DSI_CMD_ADFR_HIGH_PRECISION_FPS_0,
+	DSI_CMD_ADFR_HIGH_PRECISION_FPS_1,
+	DSI_CMD_ADFR_HIGH_PRECISION_FPS_2,
+	DSI_CMD_ADFR_HIGH_PRECISION_FPS_3,
+	DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0,
+	DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_1,
+	DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_2,
+	DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_3,
+	DSI_CMD_ADFR_HIGH_PRECISION_TE_SHIFT_ON,
+	DSI_CMD_ADFR_HIGH_PRECISION_TE_SHIFT_OFF,
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
 	DSI_CMD_READ_TEMP_COMPENSATION_REG,
 	DSI_CMD_TEMPERATURE_COMPENSATION,
@@ -406,6 +418,12 @@ enum dsi_cmd_set_type {
 	DSI_CMD_EXIT_HBM_MAX,
 	DSI_CMD_PWM_SWITCH_ONEPULSE,
 	DSI_CMD_TIMMING_PWM_SWITCH_ONEPULSE,
+	DSI_CMD_PWM_SWITCH_1PTODC,
+	DSI_CMD_PWM_SWITCH_DCTO1P,
+	DSI_CMD_PWM_SWITCH_1PTOHP,
+	DSI_CMD_PWM_SWITCH_HPTO1P,
+	DSI_CMD_PWM_SWITCH_1PTOHP_RESTORE,
+	DSI_CMD_PWM_SWITCH_HPTO1P_RESTORE,
 	DSI_CMD_PWM_SWITCH_THREEPULSE,
 	DSI_CMD_PWM_SWITCH_HIGH,
 	DSI_CMD_PWM_SWITCH_LOW,
@@ -415,10 +433,12 @@ enum dsi_cmd_set_type {
 	DSI_CMD_TIMMING_PWM_SWITCH_LOW,
 	DSI_CMD_POWER_ON_PWM_SWITCH_HIGH,
 	DSI_CMD_POWER_ON_PWM_SWITCH_LOW,
+	DSI_CMD_POWER_ON_PWM_SWITCH_ONEPULSE,
 	DSI_CMD_DISABLE_PWM_BACKLIGHT_COMPENSATION,
 	DSI_CMD_DEMURA_DBV_MODE0,
 	DSI_CMD_DEMURA_DBV_MODE1,
 	DSI_CMD_DEMURA_DBV_MODE2,
+	DSI_CMD_DEMURA_DBV_MODE3,
 	DSI_CMD_DLY_ON,
 	DSI_CMD_DLY_OFF,
 	DSI_CMD_CABC_OFF,
@@ -841,6 +861,15 @@ struct dsi_display_mode_priv_info {
 	unsigned int oplus_adfr_fakeframe_config;
 	unsigned int oplus_adfr_idle_off_min_fps;
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	unsigned int *oplus_adfr_high_precision_fps_mapping_table;
+	unsigned char oplus_adfr_high_precision_fps_mapping_table_count;
+	unsigned int oplus_adfr_sw_stabilize_frame_threshold_us;
+	unsigned int *oplus_adfr_sw_stabilize_frame_config_table;
+	unsigned int oplus_adfr_sw_stabilize_frame_config_table_count;
+	unsigned int *oplus_adfr_hw_stabilize_frame_config_table;
+	unsigned int oplus_adfr_hw_stabilize_frame_config_table_count;
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	bool oplus_ofp_need_to_separate_backlight;
 	bool oplus_ofp_need_to_sync_data_in_aod_unlocking;

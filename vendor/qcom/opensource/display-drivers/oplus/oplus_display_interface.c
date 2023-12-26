@@ -38,7 +38,7 @@ int oplus_panel_cmd_print(struct dsi_panel *panel, enum dsi_cmd_set_type type)
 	case DSI_CMD_READ_SAMSUNG_PANEL_REGISTER_OFF:
 	case DSI_CMD_ESD_SWITCH_PAGE:
 	case DSI_CMD_SKIPFRAME_DBV:
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR_IGNORE
 	case DSI_CMD_ADFR_MIN_FPS_0:
 	case DSI_CMD_ADFR_MIN_FPS_1:
 	case DSI_CMD_ADFR_MIN_FPS_2:
@@ -152,7 +152,8 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 	}
 
 	/* switch the command when pwm onepulse is enabled */
-	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+	if (oplus_panel_pwm_onepulse_is_enabled(panel) &&
+		!panel->oplus_priv.directional_onepulse_switch) {
 		switch (*type) {
 		case DSI_CMD_PWM_SWITCH_HIGH:
 			*type = DSI_CMD_PWM_SWITCH_ONEPULSE;
@@ -187,6 +188,16 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 			case DSI_CMD_SET_ON:
 				*type = DSI_CMD_SET_ON_DVT;
 				break;
+			default:
+				break;
+			}
+		}
+		if(oplus_panel_pwm_onepulse_is_used(panel)) {
+			switch (*type) {
+			case DSI_CMD_SET_TIMING_SWITCH: {
+				*type = DSI_CMD_TIMMING_PWM_SWITCH_ONEPULSE;
+				break;
+			}
 			default:
 				break;
 			}
@@ -617,8 +628,9 @@ int oplus_panel_set_pinctrl_state(struct dsi_panel *panel, bool enable)
 			LCD_ERR("[%s] failed to set oplus pin state, rc=%d\n",
 					panel->oplus_priv.vendor_name, rc);
 	}
-
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR
 error:
+#endif
 	return rc;
 }
 
@@ -735,60 +747,6 @@ int oplus_panel_vddr_off(struct dsi_display *display, const char *vreg_name)
 	}
 
 	return rc;
-}
-
-
-void notify_work_handler(struct kthread_work *work)
-{
-	struct dsi_panel *panel = container_of(work, struct dsi_panel, work);
-
-	SDE_ATRACE_BEGIN("notify_work_handler");
-	panel->notify_done.done = 0;
-	panel->need_to_wait_notify_done = 1;
-	panel_event_notification_trigger(panel->panel_event,
-					&panel->notification);
-	panel->need_to_wait_notify_done = 0;
-	complete(&panel->notify_done);
-	SDE_ATRACE_END("notify_work_handler");
-}
-
-void oplus_panel_event_notification_trigger(enum panel_event_notifier_tag panel_event,
-	struct panel_event_notification *notification)
-{
-	struct dsi_panel *panel = container_of(notification->panel, struct dsi_panel, drm_panel);
-
-	if (IS_ERR_OR_NULL(panel->notify_worker)) {
-		panel->notify_worker = kthread_create_worker(0, "notify_worker");
-		kthread_init_work(&panel->work, notify_work_handler);
-		init_completion(&panel->notify_done);
-	}
-
-	if (!IS_ERR_OR_NULL(panel->notify_worker)) {
-		/* only power off use kthread */
-		if (notification->notif_type == DRM_PANEL_EVENT_BLANK) {
-			panel->panel_event = panel_event;
-			panel->notification = *notification;
-			kthread_queue_work(panel->notify_worker, &panel->work);
-		} else {
-			panel_event_notification_trigger(panel_event, notification);
-		}
-	} else {
-		panel_event_notification_trigger(panel_event, notification);
-	}
-}
-
-void oplus_wait_for_notify_done(struct dsi_display *display)
-{
-	char tag_name[32];
-
-	if (!display || !display->panel)
-		return;
-
-	snprintf(tag_name, sizeof(tag_name), "need_to_wait_notify_done %d", display->panel->need_to_wait_notify_done);
-	SDE_ATRACE_BEGIN(tag_name);
-	if (1 == display->panel->need_to_wait_notify_done)
-		wait_for_completion(&display->panel->notify_done);
-	SDE_ATRACE_END(tag_name);
 }
 
 void oplus_sde_cp_crtc_apply_properties(struct drm_crtc *crtc, struct drm_encoder *encoder)
@@ -999,6 +957,11 @@ int oplus_panel_cmdq_pack_status_reset(void *sde_connector)
 		return -EINVAL;
 	}
 
+	if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
+		LCD_WARN("not in dsi mode, should not reset cmdq pack status\n");
+		return 0;
+	}
+
 	display = c_conn->display;
 	if (!display || !display->panel) {
 		LCD_DEBUG("invalid display params\n");
@@ -1006,11 +969,6 @@ int oplus_panel_cmdq_pack_status_reset(void *sde_connector)
 	}
 
 	if(!display->panel->oplus_priv.cmdq_pack_support) {
-		return 0;
-	}
-
-	if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
-		LCD_WARN("not in dsi mode, should not reset cmdq pack status\n");
 		return 0;
 	}
 

@@ -8,6 +8,7 @@
 ***************************************************************/
 
 #include "oplus_adfr.h"
+#include "oplus_bl.h"
 #include "oplus_display_panel_common.h"
 #include "dsi_display.h"
 #include "sde_trace.h"
@@ -32,6 +33,9 @@
 #define OPLUS_ADFR_CONFIG_OA_BL_MUTUAL_EXCLUSION			(BIT(6))
 #define OPLUS_ADFR_CONFIG_SA_MODE_RESTORE					(BIT(7))
 #define OPLUS_ADFR_CONFIG_DRY_RUN							(BIT(8))
+#define OPLUS_ADFR_CONFIG_HIGH_PRECISION_SA_MODE			(BIT(9))
+#define OPLUS_ADFR_CONFIG_HIGH_PRECISION_OA_MODE			(BIT(10))
+#define OPLUS_ADFR_CONFIG_HIGH_PRECISION_SWITCH				(BIT(11))
 
 /* get config value */
 #define OPLUS_ADFR_GET_GLOBAL_CONFIG(config)				((config) & OPLUS_ADFR_CONFIG_GLOBAL)
@@ -43,6 +47,9 @@
 #define OPLUS_ADFR_GET_OA_BL_MUTUAL_EXCLUSION_CONFIG(config) ((config) & OPLUS_ADFR_CONFIG_OA_BL_MUTUAL_EXCLUSION)
 #define OPLUS_ADFR_GET_SA_MODE_RESTORE_CONFIG(config)		((config) & OPLUS_ADFR_CONFIG_SA_MODE_RESTORE)
 #define OPLUS_ADFR_GET_DRY_RUN_CONFIG(config)				((config) & OPLUS_ADFR_CONFIG_DRY_RUN)
+#define ADFR_GET_HIGH_PRECISION_SA_MODE_CONFIG(config)		((config) & OPLUS_ADFR_CONFIG_HIGH_PRECISION_SA_MODE)
+#define ADFR_GET_HIGH_PRECISION_OA_MODE_CONFIG(config)		((config) & OPLUS_ADFR_CONFIG_HIGH_PRECISION_OA_MODE)
+#define ADFR_GET_HIGH_PRECISION_SWITCH_CONFIG(config)		((config) & OPLUS_ADFR_CONFIG_HIGH_PRECISION_SWITCH)
 
 /* SA property value */
 #define OPLUS_ADFR_SA_MAGIC									0x00800000
@@ -52,6 +59,10 @@
 #define OPLUS_ADFR_FAKEFRAME_VALUE(value)					(((value) & 0x00007F00) >> 8)
 #define OPLUS_ADFR_SA_MIN_FPS_MAGIC							0x00000080
 #define OPLUS_ADFR_SA_MIN_FPS_VALUE(value)					((value) & 0x0000007F)
+#define OPLUS_ADFR_HIGH_PRECISION_SA_MODE_MAGIC				0x00800000
+#define OPLUS_ADFR_HIGH_PRECISION_OA_MODE_MAGIC				0x00000800
+#define OPLUS_ADFR_HIGH_PRECISION_SA_VALUE(value)			(((value)&0X007FF000)>>12)
+#define OPLUS_ADFR_HIGH_PRECISION_OA_VALUE(value)			((value)&0X000007FF)
 
 #define to_sde_encoder_phys_cmd(x)							container_of(x, struct sde_encoder_phys_cmd, base)
 
@@ -398,6 +409,137 @@ static bool oplus_adfr_dry_run_is_enabled(void *oplus_adfr_params)
 	return (bool)(OPLUS_ADFR_GET_DRY_RUN_CONFIG(p_oplus_adfr_params->config));
 }
 
+/* --------------- high precision mode ---------------*/
+static bool oplus_adfr_high_precision_sa_mode_is_enabled(void *oplus_adfr_params)
+{
+	struct oplus_adfr_params *p_oplus_adfr_params = oplus_adfr_params;
+
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return false;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params)) {
+		ADFR_DEBUG("adfr is not supported, high precision sa mode is also not supported\n");
+		return false;
+	}
+
+	return (bool)(ADFR_GET_HIGH_PRECISION_SA_MODE_CONFIG(p_oplus_adfr_params->config));
+}
+
+static bool oplus_adfr_high_precision_oa_mode_is_enabled(void *oplus_adfr_params)
+{
+	struct oplus_adfr_params *p_oplus_adfr_params = oplus_adfr_params;
+
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return false;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params)) {
+		ADFR_DEBUG("adfr is not supported, high precision oa mode is also not supported\n");
+		return false;
+	}
+
+	return (bool)(ADFR_GET_HIGH_PRECISION_OA_MODE_CONFIG(p_oplus_adfr_params->config));
+}
+
+static bool oplus_adfr_high_precision_switch_is_enabled(void *oplus_adfr_params)
+{
+	struct oplus_adfr_params *p_oplus_adfr_params = oplus_adfr_params;
+
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return false;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params)) {
+		ADFR_DEBUG("adfr is not supported, high precision switch is also not supported\n");
+		return false;
+	}
+
+	return (bool)(ADFR_GET_HIGH_PRECISION_SWITCH_CONFIG(p_oplus_adfr_params->config));
+}
+
+int oplus_adfr_get_panel_high_precision_state(void *dsi_display)
+{
+	struct dsi_display *display = dsi_display;
+	unsigned int h_skew = STANDARD_ADFR;
+	unsigned int refresh_rate = 120;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	if (!display || !display->panel || !display->panel->cur_mode) {
+		ADFR_ERR("invalid display or panel params\n");
+		return -EINVAL;
+	}
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_get_panel_high_precision_state");
+	h_skew = display->panel->cur_mode->timing.h_skew;
+	refresh_rate = display->panel->cur_mode->timing.refresh_rate;
+
+	if (h_skew == STANDARD_ADFR && refresh_rate == 120) {
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_panel_high_precision_state", p_oplus_adfr_params->panel_high_precision_state);
+		OPLUS_ADFR_TRACE_END("oplus_adfr_get_panel_high_precision_state");
+		return p_oplus_adfr_params->panel_high_precision_state;
+	} else {
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_panel_high_precision_state", p_oplus_adfr_params->panel_high_precision_state);
+		OPLUS_ADFR_TRACE_END("oplus_adfr_get_panel_high_precision_state");
+		return -EINVAL;
+	}
+}
+
+static int oplus_adfr_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
+{
+	enum dsi_cmd_set_type type_store = *type;
+	u32 count;
+
+	/* switch the command when switch to hpwm state */
+	if (oplus_panel_pwm_turbo_switch_state(panel) != PWM_SWITCH_DC_STATE) {
+		switch (*type) {
+		case DSI_CMD_ADFR_MIN_FPS_0:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_0;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_1:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_1;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_2:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_2;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_3:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_3;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_4:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_4;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_5:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_5;
+			break;
+		case DSI_CMD_ADFR_MIN_FPS_6:
+			*type = DSI_CMD_HPWM_ADFR_MIN_FPS_6;
+			break;
+		default:
+			break;
+		}
+	}
+
+	count = panel->cur_mode->priv_info->cmd_sets[*type].count;
+	if (count == 0) {
+		ADFR_DEBUG("[%s] %s is undefined, restore to %s\n",
+				panel->oplus_priv.vendor_name,
+				cmd_set_prop_map[*type],
+				cmd_set_prop_map[type_store]);
+		*type = type_store;
+	}
+
+	return 0;
+}
+
 /* -------------------- standard adfr -------------------- */
 int oplus_adfr_parse_dtsi_config(void *dsi_panel, void *dsi_display_mode, void *dsi_parser_utils)
 {
@@ -474,6 +616,116 @@ int oplus_adfr_parse_dtsi_config(void *dsi_panel, void *dsi_display_mode, void *
 			priv_info->oplus_adfr_idle_off_min_fps = value;
 		}
 		ADFR_INFO("oplus_adfr_idle_off_min_fps:%u\n", priv_info->oplus_adfr_idle_off_min_fps);
+	}
+
+	/* high precision dtsi parse */
+	if (oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+		/* oplus,adfr-osync-sw-stabilize-frame-config-table */
+		length = utils->count_u32_elems(utils->data, "oplus,adfr-osync-sw-stabilize-frame-config-table");
+		if (length > 0) {
+			priv_info->oplus_adfr_sw_stabilize_frame_config_table = kzalloc(length * sizeof(unsigned int), GFP_KERNEL);
+			if (priv_info->oplus_adfr_sw_stabilize_frame_config_table) {
+				/* store the adfr osync sw stabilize frame config table supported by each timing, represented by a refresh rate (in hz) from high to low */
+				rc = utils->read_u32_array(utils->data, "oplus,adfr-osync-sw-stabilize-frame-config-table", priv_info->oplus_adfr_sw_stabilize_frame_config_table, length);
+				if (rc) {
+					ADFR_ERR("failed to read oplus,adfr-osync-sw-stabilize-frame-config-table\n");
+					rc = 0;
+					kfree(priv_info->oplus_adfr_sw_stabilize_frame_config_table);
+				} else {
+					ADFR_INFO("property:oplus,adfr-osync-sw-stabilize-frame-config-table,length:%u\n", length);
+					for (i = 0; i < length; i++) {
+						ADFR_INFO("oplus_adfr_sw_stabilize_frame_config_table[%u]=%u\n", i, priv_info->oplus_adfr_sw_stabilize_frame_config_table[i]);
+					}
+					/* can get maximum and minimum adfr osync sw stabilize frame config by oplus_adfr_sw_stabilize_frame_config_table_count */
+					priv_info->oplus_adfr_sw_stabilize_frame_config_table_count = length;
+					ADFR_INFO("oplus_adfr_sw_stabilize_frame_config_table_count:%u\n", priv_info->oplus_adfr_sw_stabilize_frame_config_table_count);
+					/* oplus,adfr-osync-sw-stabilize-frame-threshold-us */
+					rc = utils->read_u32(utils->data, "oplus,adfr-osync-sw-stabilize-frame-threshold-us", &value);
+					if (rc) {
+						priv_info->oplus_adfr_sw_stabilize_frame_threshold_us = 400;
+					} else {
+						priv_info->oplus_adfr_sw_stabilize_frame_threshold_us = value;
+					}
+					ADFR_INFO("oplus_adfr_sw_stabilize_frame_threshold_us:%u\n", priv_info->oplus_adfr_sw_stabilize_frame_threshold_us);
+				}
+			} else {
+				ADFR_ERR("failed to kzalloc oplus_adfr_sw_stabilize_frame_config_table\n");
+				rc = -ENOMEM;
+				priv_info->oplus_adfr_sw_stabilize_frame_config_table = NULL;
+				priv_info->oplus_adfr_sw_stabilize_frame_config_table_count = 0;
+			}
+		} else {
+			ADFR_ERR("failed to get the count of oplus,adfr-osync-sw-stabilize-frame-config-table\n");
+			rc = 0;
+			priv_info->oplus_adfr_sw_stabilize_frame_config_table = NULL;
+			priv_info->oplus_adfr_sw_stabilize_frame_config_table_count = 0;
+		}
+
+		/* oplus,adfr-osync-hw-stabilize-frame-config-table */
+		length = utils->count_u32_elems(utils->data, "oplus,adfr-osync-hw-stabilize-frame-config-table");
+		if (length > 0) {
+			priv_info->oplus_adfr_hw_stabilize_frame_config_table = kzalloc(length * sizeof(unsigned int), GFP_KERNEL);
+			if (priv_info->oplus_adfr_hw_stabilize_frame_config_table) {
+				/* store the adfr osync hw stabilize frame config table supported by each timing, represented by a refresh rate (in hz) from high to low */
+				rc = utils->read_u32_array(utils->data, "oplus,adfr-osync-hw-stabilize-frame-config-table", priv_info->oplus_adfr_hw_stabilize_frame_config_table, length);
+				if (rc) {
+					ADFR_ERR("failed to read oplus,adfr-osync-hw-stabilize-frame-config-table\n");
+					rc = 0;
+					kfree(priv_info->oplus_adfr_hw_stabilize_frame_config_table);
+				} else {
+					ADFR_INFO("property:oplus,adfr-osync-hw-stabilize-frame-config-table,length:%u\n", length);
+					for (i = 0; i < length; i++) {
+						ADFR_INFO("oplus_adfr_hw_stabilize_frame_config_table[%u]=%u\n", i, priv_info->oplus_adfr_hw_stabilize_frame_config_table[i]);
+					}
+					/* can get maximum and minimum adfr osync hw stabilize frame config by oplus_adfr_hw_stabilize_frame_config_table_count */
+					priv_info->oplus_adfr_hw_stabilize_frame_config_table_count = length;
+					ADFR_INFO("oplus_adfr_hw_stabilize_frame_config_table_count:%u\n", priv_info->oplus_adfr_hw_stabilize_frame_config_table_count);
+				}
+			} else {
+				ADFR_ERR("failed to kzalloc oplus_adfr_hw_stabilize_frame_config_table\n");
+				rc = -ENOMEM;
+				priv_info->oplus_adfr_hw_stabilize_frame_config_table = NULL;
+				priv_info->oplus_adfr_hw_stabilize_frame_config_table_count = 0;
+			}
+		} else {
+			ADFR_ERR("failed to get the count of oplus,adfr-osync-hw-stabilize-frame-config-table\n");
+			rc = 0;
+			priv_info->oplus_adfr_hw_stabilize_frame_config_table = NULL;
+			priv_info->oplus_adfr_hw_stabilize_frame_config_table_count = 0;
+		}
+	}
+
+	/* oplus,adfr-high-precision-fps-mapping-table */
+	length = utils->count_u32_elems(utils->data, "oplus,adfr-high-precision-fps-mapping-table");
+	if (length > 0) {
+		priv_info->oplus_adfr_high_precision_fps_mapping_table = kzalloc(length * sizeof(unsigned int), GFP_KERNEL);
+		if (priv_info->oplus_adfr_high_precision_fps_mapping_table) {
+			/* store the adfr high-precision fps mapping table supported by each timing, represented by a refresh rate (in hz) from high to low */
+			rc = utils->read_u32_array(utils->data, "oplus,adfr-high-precision-fps-mapping-table", priv_info->oplus_adfr_high_precision_fps_mapping_table, length);
+			if (rc) {
+				ADFR_ERR("failed to read oplus,adfr-high-precision-fps-mapping-table\n");
+				rc = 0;
+				kfree(priv_info->oplus_adfr_high_precision_fps_mapping_table);
+			} else {
+				ADFR_INFO("property:oplus,adfr-high-precision-fps-mapping-table,length:%u\n", length);
+				for (i = 0; i < length; i++) {
+					ADFR_INFO("oplus_adfr_high_precision_fps_mapping_table[%u]=%u\n", i, priv_info->oplus_adfr_high_precision_fps_mapping_table[i]);
+				}
+				/* can get maximum and minimum adfr high precision fps by oplus_adfr_high_precision_fps_mapping_table_count */
+				priv_info->oplus_adfr_high_precision_fps_mapping_table_count = length;
+				ADFR_INFO("oplus_adfr_high_precision_fps_mapping_table_count:%u\n", priv_info->oplus_adfr_high_precision_fps_mapping_table_count);
+			}
+		} else {
+			ADFR_ERR("failed to kzalloc oplus_adfr_high_precision_fps_mapping_table\n");
+			rc = -ENOMEM;
+			priv_info->oplus_adfr_high_precision_fps_mapping_table = NULL;
+			priv_info->oplus_adfr_high_precision_fps_mapping_table_count = 0;
+		}
+	} else {
+		ADFR_ERR("failed to get the count of oplus,adfr-high-precision-fps-mapping-table\n");
+		rc = 0;
+		priv_info->oplus_adfr_high_precision_fps_mapping_table = NULL;
+		priv_info->oplus_adfr_high_precision_fps_mapping_table_count = 0;
 	}
 
 	/* oplus,adfr-min-fps-mapping-table */
@@ -555,6 +807,9 @@ static int oplus_adfr_panel_cmd_set_nolock(void *dsi_panel, enum dsi_cmd_set_typ
 	}
 
 	if (!oplus_adfr_dry_run_is_enabled(p_oplus_adfr_params)) {
+		if (oplus_adfr_high_precision_switch_is_enabled(p_oplus_adfr_params)) {
+			oplus_adfr_panel_cmd_switch(panel, &type);
+		}
 		OPLUS_ADFR_TRACE_BEGIN("dsi_panel_tx_cmd_set");
 		rc = dsi_panel_tx_cmd_set(panel, type);
 		OPLUS_ADFR_TRACE_END("dsi_panel_tx_cmd_set");
@@ -579,7 +834,26 @@ static int oplus_adfr_panel_cmd_set_nolock(void *dsi_panel, enum dsi_cmd_set_typ
 		ADFR_DEBUG("oplus_adfr_need_filter_auto_on_cmd:%d\n", p_oplus_adfr_params->need_filter_auto_on_cmd);
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_need_filter_auto_on_cmd", p_oplus_adfr_params->need_filter_auto_on_cmd);
 		break;
-
+	case DSI_CMD_ADFR_HIGH_PRECISION_FPS_0:
+	case DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0:
+		p_oplus_adfr_params->high_precision_state = OPLUS_ADFR_HIGH_PRECISION_FPS_120;
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_high_precision_panel_cmd_set_nolock", type);
+		break;
+	case DSI_CMD_ADFR_HIGH_PRECISION_FPS_1:
+	case DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_1:
+		p_oplus_adfr_params->high_precision_state = OPLUS_ADFR_HIGH_PRECISION_FPS_90;
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_high_precision_panel_cmd_set_nolock", type);
+		break;
+	case DSI_CMD_ADFR_HIGH_PRECISION_FPS_2:
+	case DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_2:
+		p_oplus_adfr_params->high_precision_state = OPLUS_ADFR_HIGH_PRECISION_FPS_72;
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_high_precision_panel_cmd_set_nolock", type);
+		break;
+	case DSI_CMD_ADFR_HIGH_PRECISION_FPS_3:
+	case DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_3:
+		p_oplus_adfr_params->high_precision_state = OPLUS_ADFR_HIGH_PRECISION_FPS_60;
+		OPLUS_ADFR_TRACE_INT("oplus_adfr_high_precision_panel_cmd_set_nolock", type);
+		break;
 	default:
 		break;
 	}
@@ -896,8 +1170,11 @@ int oplus_adfr_property_update(void *sde_connector, void *sde_connector_state, i
 int oplus_adfr_irq_handler(void *sde_encoder_phys, unsigned int irq_type)
 {
 	/* The initial value is 0, but we don't care about the first calculation error */
+	static unsigned long last_rd_ptr_timestamp_us = 0;
+	static unsigned long last_wr_ptr_timestamp_us = 0;
 	static unsigned long rd_ptr_timestamp_us = 0;
 	static unsigned long wr_ptr_timestamp_us = 0;
+	static unsigned int last_panel_high_precision_state = 0;
 	struct sde_encoder_phys *phys_enc = sde_encoder_phys;
 	struct sde_connector *c_conn = NULL;
 	struct dsi_display *display = NULL;
@@ -949,7 +1226,19 @@ int oplus_adfr_irq_handler(void *sde_encoder_phys, unsigned int irq_type)
 
 	if (irq_type == OPLUS_ADFR_RD_PTR) {
 		ADFR_DEBUG("rd_ptr_irq interval:%lu\n", ((unsigned long)ktime_to_us(ktime_get()) - rd_ptr_timestamp_us));
+		last_rd_ptr_timestamp_us = rd_ptr_timestamp_us;
 		rd_ptr_timestamp_us = (unsigned long)ktime_to_us(ktime_get());
+		ADFR_DEBUG("rd_ptr_timestamp_us:%u, last_rd_ptr_timestamp_us:%u\n", rd_ptr_timestamp_us, last_rd_ptr_timestamp_us);
+		OPLUS_ADFR_TRACE_INT("rd_ptr_timestamp_us", rd_ptr_timestamp_us);
+		OPLUS_ADFR_TRACE_INT("last_rd_ptr_timestamp_us", last_rd_ptr_timestamp_us);
+
+		/* high precision cmds are taking effect in panel module */
+		if (last_panel_high_precision_state != p_oplus_adfr_params->high_precision_state) {
+			p_oplus_adfr_params->panel_high_precision_state = p_oplus_adfr_params->high_precision_state;
+			ADFR_DEBUG("oplus_adfr_panel_high_precision_status_update:%d\n", p_oplus_adfr_params->panel_high_precision_state);
+			OPLUS_ADFR_TRACE_INT("oplus_adfr_panel_high_precision_state", p_oplus_adfr_params->panel_high_precision_state);
+		}
+		last_panel_high_precision_state = p_oplus_adfr_params->high_precision_state;
 
 		/* when the rd_ptr_irq comes there is no need to filter auto on cmds anymore */
 		if (p_oplus_adfr_params->need_filter_auto_on_cmd) {
@@ -974,17 +1263,25 @@ int oplus_adfr_irq_handler(void *sde_encoder_phys, unsigned int irq_type)
 		}
 	} else if (irq_type == OPLUS_ADFR_WD_PTR) {
 		ADFR_DEBUG("wr_ptr_irq interval:%lu\n", ((unsigned long)ktime_to_us(ktime_get()) - wr_ptr_timestamp_us));
+		last_wr_ptr_timestamp_us = wr_ptr_timestamp_us;
 		wr_ptr_timestamp_us = (unsigned long)ktime_to_us(ktime_get());
 
 		p_oplus_adfr_params->osync_frame_status = OPLUS_ADFR_WD_PTR;
 		ADFR_DEBUG("oplus_adfr_osync_frame_status:%u\n", p_oplus_adfr_params->osync_frame_status);
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_osync_frame_status", p_oplus_adfr_params->osync_frame_status);
+		ADFR_DEBUG("wr_ptr_timestamp_us:%u, last_wr_ptr_timestamp_us:%u\n", wr_ptr_timestamp_us, last_wr_ptr_timestamp_us);
+		OPLUS_ADFR_TRACE_INT("current_wr_ptr_timestamp_us", wr_ptr_timestamp_us);
+		OPLUS_ADFR_TRACE_INT("last_wr_ptr_timestamp_us", last_wr_ptr_timestamp_us);
 	} else if (irq_type == OPLUS_ADFR_PP_DONE) {
 		p_oplus_adfr_params->osync_frame_status = OPLUS_ADFR_PP_DONE;
 		ADFR_DEBUG("oplus_adfr_osync_frame_status:%u\n", p_oplus_adfr_params->osync_frame_status);
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_osync_frame_status", p_oplus_adfr_params->osync_frame_status);
 	}
 
+	p_oplus_adfr_params->current_wr_rd_irq_interval = abs(wr_ptr_timestamp_us - rd_ptr_timestamp_us);
+	p_oplus_adfr_params->last_wr_rd_irq_interval = abs(last_wr_ptr_timestamp_us - last_rd_ptr_timestamp_us);
+	OPLUS_ADFR_TRACE_INT("current_wr_rd_irq_interval", p_oplus_adfr_params->current_wr_rd_irq_interval);
+	OPLUS_ADFR_TRACE_INT("last_wr_rd_irq_interval", p_oplus_adfr_params->last_wr_rd_irq_interval);
 	OPLUS_ADFR_TRACE_END("oplus_adfr_irq_handler");
 
 	ADFR_DEBUG("end\n");
@@ -1476,8 +1773,14 @@ int oplus_adfr_status_reset(void *dsi_panel)
 
 		p_oplus_adfr_params->sa_min_fps = refresh_rate;
 
-		ADFR_INFO("sa status reset: auto_mode:%u,fakeframe:%u,sa_min_fps:%u\n",
+		if (oplus_adfr_high_precision_sa_mode_is_enabled(p_oplus_adfr_params)) {
+			p_oplus_adfr_params->sa_high_precision_fps = refresh_rate;
+			ADFR_INFO("sa status reset: auto_mode:%u,fakeframe:%u,sa_min_fps:%u,sa_high_precision_fps:%u\n",
+					p_oplus_adfr_params->auto_mode, p_oplus_adfr_params->fakeframe, p_oplus_adfr_params->sa_min_fps, p_oplus_adfr_params->sa_high_precision_fps);
+		} else {
+			ADFR_INFO("sa status reset: auto_mode:%u,fakeframe:%u,sa_min_fps:%u\n",
 					p_oplus_adfr_params->auto_mode, p_oplus_adfr_params->fakeframe, p_oplus_adfr_params->sa_min_fps);
+		}
 
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_auto_mode", p_oplus_adfr_params->auto_mode);
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_fakeframe", p_oplus_adfr_params->fakeframe);
@@ -1485,6 +1788,11 @@ int oplus_adfr_status_reset(void *dsi_panel)
 
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_auto_mode_cmd", p_oplus_adfr_params->auto_mode);
 	} else {
+		if (oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+			p_oplus_adfr_params->oa_high_precision_fps = refresh_rate;
+			ADFR_INFO("oa status reset: oa_high_precision_fps:%u\n", p_oplus_adfr_params->oa_high_precision_fps);
+			OPLUS_ADFR_TRACE_INT("oplus_adfr_oa_high_precision_fps", p_oplus_adfr_params->oa_high_precision_fps);
+		}
 		OPLUS_ADFR_TRACE_INT("oplus_adfr_auto_mode_cmd", OPLUS_ADFR_AUTO_OFF);
 	}
 
@@ -4613,6 +4921,513 @@ int oplus_adfr_resend_osync_cmd(void *dsi_display)
 	return rc;
 }
 
+/* --------------- high precision mode ---------------*/
+/* prevent the wrong high precision fps setting */
+static int oplus_adfr_high_precision_fps_check(void *dsi_panel, unsigned int high_precision_fps)
+{
+	unsigned char high_precision_fps_mapping_table_count = 0;
+	unsigned int refresh_rate = 120;
+	unsigned int h_skew = STANDARD_ADFR;
+	struct dsi_panel *panel = dsi_panel;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	ADFR_DEBUG("start\n");
+
+	if (!panel) {
+		ADFR_ERR("invalid panel param\n");
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(panel->type, "secondary"))) {
+		ADFR_INFO("no need to check high precision fps for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params) || !oplus_adfr_high_precision_sa_mode_is_enabled(p_oplus_adfr_params)) {
+		ADFR_DEBUG("high precision mode is not enabled\n");
+		return 0;
+	}
+
+	if (!panel->cur_mode || !panel->cur_mode->priv_info) {
+		ADFR_ERR("invalid cur_mode params\n");
+		return -EINVAL;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_high_precision_fps_check");
+
+	refresh_rate = panel->cur_mode->timing.refresh_rate;
+	h_skew = panel->cur_mode->timing.h_skew;
+	high_precision_fps_mapping_table_count = panel->cur_mode->priv_info->oplus_adfr_high_precision_fps_mapping_table_count;
+	ADFR_DEBUG("refresh_rate:%u,h_skew:%u,high_precision_fps_mapping_table_count:%u\n",
+					refresh_rate, h_skew, high_precision_fps_mapping_table_count);
+
+	if (!high_precision_fps_mapping_table_count || !high_precision_fps) {
+		/* fixed max high precision fps */
+		high_precision_fps = refresh_rate;
+	} else if ((high_precision_fps > panel->cur_mode->priv_info->oplus_adfr_high_precision_fps_mapping_table[0])
+					|| (high_precision_fps < panel->cur_mode->priv_info->oplus_adfr_high_precision_fps_mapping_table[high_precision_fps_mapping_table_count - 1])) {
+		/* the highest frame rate is the most stable */
+		high_precision_fps = panel->cur_mode->priv_info->oplus_adfr_high_precision_fps_mapping_table[0];
+	}
+
+	ADFR_DEBUG("high precision fps is %u after check\n", high_precision_fps);
+
+	OPLUS_ADFR_TRACE_END("oplus_adfr_high_precision_fps_check");
+
+	ADFR_DEBUG("end\n");
+
+	return high_precision_fps;
+}
+
+static int oplus_adfr_high_precision_update_te_shift(void *dsi_display)
+{
+	int rc = 0;
+	struct dsi_display *display = dsi_display;
+	static unsigned int last_high_precision_te_shift_status = 0;
+	struct dsi_display_mode_priv_info *priv_info = NULL;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	if (!display || !display->panel || !display->panel->cur_mode) {
+		ADFR_ERR("display is null\n");
+		return -EINVAL;
+	}
+
+	if (display->panel->power_mode != SDE_MODE_DPMS_ON) {
+		ADFR_DEBUG("ignore when power is %d\n", display->panel->power_mode);
+		return 0;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(display->display_type, "secondary"))) {
+		ADFR_INFO("no need to update high precision te shift for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params) || !oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+		ADFR_DEBUG("oa high precision mode is not enabled\n");
+		return 0;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_high_precision_update_te_shift");
+
+	priv_info = display->panel->cur_mode->priv_info;
+	if ((p_oplus_adfr_params->current_wr_rd_irq_interval < priv_info->oplus_adfr_sw_stabilize_frame_threshold_us)
+		&& (p_oplus_adfr_params->last_wr_rd_irq_interval < priv_info->oplus_adfr_sw_stabilize_frame_threshold_us)) {
+		p_oplus_adfr_params->high_precision_te_shift_status = OPLUS_ADFR_TE_SHIFT_OFF;
+	} else {
+		p_oplus_adfr_params->high_precision_te_shift_status = OPLUS_ADFR_TE_SHIFT_ON;
+	}
+
+	if (last_high_precision_te_shift_status != p_oplus_adfr_params->high_precision_te_shift_status) {
+		ADFR_DEBUG("oplus_adfr_high_precision_shift_status is %d\n", p_oplus_adfr_params->high_precision_te_shift_status);
+		if (p_oplus_adfr_params->high_precision_te_shift_status == OPLUS_ADFR_TE_SHIFT_OFF) {
+			rc = oplus_adfr_display_cmd_set(display, DSI_CMD_ADFR_HIGH_PRECISION_TE_SHIFT_OFF);
+		} else if (p_oplus_adfr_params->high_precision_te_shift_status == OPLUS_ADFR_TE_SHIFT_ON) {
+			rc = oplus_adfr_display_cmd_set(display, DSI_CMD_ADFR_HIGH_PRECISION_TE_SHIFT_ON);
+		}
+	}
+	last_high_precision_te_shift_status = p_oplus_adfr_params->high_precision_te_shift_status;
+	OPLUS_ADFR_TRACE_END("oplus_adfr_high_precision_update_te_shift");
+	return rc;
+}
+
+static int oplus_adfr_get_stabilize_frame_type(void *dsi_display)
+{
+	int i = 0;
+	unsigned int high_precision_fps = 0;
+	struct dsi_display *display = dsi_display;
+	struct dsi_display_mode_priv_info *priv_info = NULL;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	if (!display || !display->panel || !display->panel->cur_mode || !display->panel->cur_mode->priv_info) {
+		ADFR_ERR("invalid display or panel params\n");
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(display->display_type, "secondary"))) {
+		ADFR_INFO("no need to get stabilize frame type for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params) || !oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+		ADFR_DEBUG("oa high precision mode is not enabled\n");
+		return 0;
+	}
+
+	priv_info = display->panel->cur_mode->priv_info;
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_get_stabilize_frame_type");
+
+	/* check high precision fps */
+	high_precision_fps = oplus_adfr_high_precision_fps_check(display->panel, p_oplus_adfr_params->oa_high_precision_fps);
+
+	if (priv_info->oplus_adfr_sw_stabilize_frame_config_table_count) {
+		/* find the sw stabilize frame mapping fps */
+		for (i = 0; i < priv_info->oplus_adfr_sw_stabilize_frame_config_table_count - 1; i++) {
+			if ((high_precision_fps <= priv_info->oplus_adfr_sw_stabilize_frame_config_table[i])
+					&& (high_precision_fps > priv_info->oplus_adfr_sw_stabilize_frame_config_table[i + 1])) {
+				break;
+			}
+		}
+		if (high_precision_fps == priv_info->oplus_adfr_sw_stabilize_frame_config_table[i]) {
+			p_oplus_adfr_params->stabilize_frame_type = OPLUS_ADFR_SW_STABILIZE_FRAME;
+		}
+	}
+	if (priv_info->oplus_adfr_hw_stabilize_frame_config_table_count) {
+		/* find the hw stabilize frame mapping fps */
+		for (i = 0; i < priv_info->oplus_adfr_hw_stabilize_frame_config_table_count - 1; i++) {
+			if ((high_precision_fps <= priv_info->oplus_adfr_hw_stabilize_frame_config_table[i])
+					&& (high_precision_fps > priv_info->oplus_adfr_hw_stabilize_frame_config_table[i + 1])) {
+				break;
+			}
+		}
+		if (high_precision_fps == priv_info->oplus_adfr_hw_stabilize_frame_config_table[i]) {
+			p_oplus_adfr_params->stabilize_frame_type = OPLUS_ADFR_HW_STABILIZE_FRAME;
+		}
+	}
+
+	ADFR_DEBUG("oplus_adfr_get_stabilize_frame_type is %d\n", p_oplus_adfr_params->stabilize_frame_type);
+	OPLUS_ADFR_TRACE_INT("oplus_adfr_stabilize_frame_type", p_oplus_adfr_params->stabilize_frame_type);
+	OPLUS_ADFR_TRACE_END("oplus_adfr_get_stabilize_frame_type");
+	return p_oplus_adfr_params->stabilize_frame_type;
+}
+
+static int oplus_adfr_high_precision_fps_update(void *dsi_display, unsigned int high_precision_fps)
+{
+	int rc = 0;
+	int i = 0;
+	struct dsi_display *display = dsi_display;
+	struct dsi_display_mode_priv_info *priv_info = NULL;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	ADFR_DEBUG("start\n");
+
+	if (!display || !display->panel) {
+		ADFR_ERR("invalid display params\n");
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(display->display_type, "secondary"))) {
+		ADFR_INFO("no need to update high precision fps for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params)) {
+		ADFR_DEBUG("adfr is not supported\n");
+		return 0;
+	}
+
+	if (!display->panel->cur_mode || !display->panel->cur_mode->priv_info) {
+		ADFR_ERR("invalid panel params\n");
+		return -EINVAL;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_high_precision_fps_update");
+
+	priv_info = display->panel->cur_mode->priv_info;
+
+	/* check high precision fps */
+	high_precision_fps = oplus_adfr_high_precision_fps_check(display->panel, high_precision_fps);
+	if (high_precision_fps <= 0) {
+		rc = high_precision_fps;
+		ADFR_ERR("failed to check high precision fps, rc=%d\n", rc);
+		goto end;
+	}
+
+	if (!priv_info->oplus_adfr_high_precision_fps_mapping_table_count) {
+		ADFR_DEBUG("no support high precision fps\n");
+		goto end;
+	} else {
+		/* find the high precision fps mapping cmd set */
+		for (i = 0; i < priv_info->oplus_adfr_high_precision_fps_mapping_table_count - 1; i++) {
+			if ((high_precision_fps <= priv_info->oplus_adfr_high_precision_fps_mapping_table[i])
+					&& (high_precision_fps > priv_info->oplus_adfr_high_precision_fps_mapping_table[i + 1])) {
+				break;
+			}
+		}
+	}
+
+	/* send the commands to set high precision fps */
+	if (oplus_panel_pwm_turbo_switch_state(display->panel) == PWM_SWITCH_DC_STATE) {
+		rc = oplus_adfr_display_cmd_set(display, DSI_CMD_ADFR_HIGH_PRECISION_FPS_0 + i);
+		if (rc) {
+			ADFR_ERR("[%s] failed to send DSI_CMD_ADFR_HIGH_PRECISION_FPS_%d cmds, rc=%d\n", display->name, i, rc);
+		}
+	} else {
+		rc = oplus_adfr_display_cmd_set(display, DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0 + i);
+		if (rc) {
+			ADFR_ERR("[%s] failed to send DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_%d cmds, rc=%d\n", display->name, i, rc);
+		}
+	}
+
+	ADFR_DEBUG("oplus_adfr_high_precision_fps_update:%u\n", high_precision_fps);
+	OPLUS_ADFR_TRACE_INT("oplus_adfr_high_precision_fps_update", high_precision_fps);
+
+end:
+	OPLUS_ADFR_TRACE_END("oplus_adfr_high_precision_fps_update");
+
+	ADFR_DEBUG("end\n");
+
+	return rc;
+}
+
+int oplus_adfr_high_precision_handle(void *sde_enc_v)
+{
+	struct sde_encoder_virt *sde_enc = (struct sde_encoder_virt *)sde_enc_v;
+	struct sde_encoder_phys *phys = NULL;
+	struct sde_connector *c_conn = NULL;
+	struct dsi_display *display = NULL;
+	struct dsi_display_mode_priv_info *priv_info = NULL;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+	int h_skew = STANDARD_ADFR;
+	unsigned int refresh_rate = 120;
+	unsigned int stabilize_frame_type = 0;
+	int rc = 0;
+	u32 propval;
+
+	ADFR_DEBUG("start\n");
+
+	if (!sde_enc) {
+		ADFR_ERR("invalid sde_encoder_virt parameters\n");
+		return 0;
+	}
+
+	phys = sde_enc->phys_encs[0];
+	if (!phys || !phys->connector) {
+		ADFR_ERR("invalid sde_encoder_phys parameters\n");
+		return 0;
+	}
+
+	c_conn = to_sde_connector(phys->connector);
+	if (!c_conn) {
+		ADFR_ERR("invalid sde_connector parameters\n");
+		return 0;
+	}
+
+	if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI)
+		return 0;
+
+	display = c_conn->display;
+	if (!display || !display->panel || !display->panel->cur_mode) {
+		ADFR_ERR("invalid display or panel params\n");
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(display->display_type, "secondary"))) {
+		ADFR_INFO("no need to handle high precision mode for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params)) {
+		ADFR_DEBUG("adfr is not supported\n");
+		return 0;
+	}
+
+	/* oa high precision fps is available only after power on */
+	if (display->panel->power_mode != SDE_MODE_DPMS_ON) {
+		ADFR_DEBUG("should not handle high precision mode when power mode is %u\n", display->panel->power_mode);
+		return -EFAULT;
+	}
+
+	priv_info = display->panel->cur_mode->priv_info;
+	refresh_rate = display->panel->cur_mode->timing.refresh_rate;
+	h_skew = display->panel->cur_mode->timing.h_skew;
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_high_precision_handle");
+
+	propval = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HIGH_PRECISION_FPS);
+	ADFR_DEBUG("CONNECTOR_PROP_HIGH_PRECISION_FPS:0x%08x\n", propval);
+
+	if (oplus_adfr_high_precision_sa_mode_is_enabled(p_oplus_adfr_params)) {
+		if ((h_skew == STANDARD_ADFR) && (refresh_rate == 120)) {
+			if (propval & OPLUS_ADFR_HIGH_PRECISION_SA_MODE_MAGIC) {
+				if (OPLUS_ADFR_HIGH_PRECISION_SA_VALUE(propval) != p_oplus_adfr_params->sa_high_precision_fps) {
+					p_oplus_adfr_params->sa_high_precision_fps_updated = true;
+					p_oplus_adfr_params->sa_high_precision_fps = OPLUS_ADFR_HIGH_PRECISION_SA_VALUE(propval);
+					/* latest setting */
+					pr_info("sa high precision fps %d[%d]\n", p_oplus_adfr_params->sa_high_precision_fps, p_oplus_adfr_params->sa_high_precision_fps_updated);
+				}
+			}
+
+			if (p_oplus_adfr_params->sa_high_precision_fps_updated) {
+				/* update sa high precision fps */
+				oplus_adfr_high_precision_fps_update(display, p_oplus_adfr_params->sa_high_precision_fps);
+				p_oplus_adfr_params->sa_high_precision_fps_updated = false;
+				ADFR_DEBUG("sa_high_precision_fps_updated:%d\n", p_oplus_adfr_params->sa_high_precision_fps_updated);
+				OPLUS_ADFR_TRACE_INT("sa_high_precision_fps_updated", p_oplus_adfr_params->sa_high_precision_fps_updated);
+			}
+		}
+	}
+
+	if (oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+		if ((h_skew == OPLUS_ADFR) && (refresh_rate == 120)) {
+			if (propval & OPLUS_ADFR_HIGH_PRECISION_OA_MODE_MAGIC) {
+				if (OPLUS_ADFR_HIGH_PRECISION_OA_VALUE(propval) != p_oplus_adfr_params->oa_high_precision_fps) {
+					p_oplus_adfr_params->oa_high_precision_fps_updated = true;
+					p_oplus_adfr_params->oa_high_precision_fps = OPLUS_ADFR_HIGH_PRECISION_OA_VALUE(propval);
+					/* latest setting */
+					pr_info("oa high precision fps %d[%d]\n", p_oplus_adfr_params->oa_high_precision_fps, p_oplus_adfr_params->oa_high_precision_fps_updated);
+				}
+			}
+
+			if (p_oplus_adfr_params->oa_high_precision_fps_updated) {
+				/* update oa high precision fps */
+				oplus_adfr_high_precision_fps_update(display, p_oplus_adfr_params->oa_high_precision_fps);
+				p_oplus_adfr_params->oa_high_precision_fps_updated = false;
+			}
+
+			stabilize_frame_type = oplus_adfr_get_stabilize_frame_type(display);
+			if ((priv_info->oplus_adfr_sw_stabilize_frame_config_table_count)
+				&& (stabilize_frame_type == OPLUS_ADFR_SW_STABILIZE_FRAME)
+				&& (oplus_panel_pwm_turbo_switch_state(display->panel) == PWM_SWITCH_DC_STATE)
+				&& p_oplus_adfr_params->osync_min_fps) {
+					oplus_adfr_high_precision_update_te_shift(display);
+			}
+		}
+	}
+	OPLUS_ADFR_TRACE_END("oplus_adfr_high_precision_handle");
+
+	ADFR_DEBUG("end\n");
+
+	return rc;
+}
+
+int oplus_adfr_high_precision_switch_state(void *dsi_panel)
+{
+	int rc = 0;
+	int i = 0;
+	unsigned int high_precision_switch_state = 0;
+	unsigned int high_precision_fps = 0;
+	unsigned int h_skew = STANDARD_ADFR;
+	static unsigned int last_high_precision_switch_state = 0;
+	struct dsi_panel *panel = dsi_panel;
+	struct dsi_display_mode_priv_info *priv_info = NULL;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	ADFR_DEBUG("start\n");
+
+	if (!panel || !panel->cur_mode)
+		return -EINVAL;
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(panel->type, "secondary"))) {
+		ADFR_INFO("no need to switch high precision pwm due to backlight change for iris chip\n");
+		return 0;
+	}
+#endif /* CONFIG_PXLW_IRIS */
+
+	p_oplus_adfr_params = oplus_adfr_get_params(panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params) || !oplus_adfr_high_precision_oa_mode_is_enabled(p_oplus_adfr_params)) {
+		ADFR_DEBUG("oa high precision mode is not enabled\n");
+		return 0;
+	}
+
+	/* oa high precision fps is available only after power on */
+	if (panel->power_mode != SDE_MODE_DPMS_ON) {
+		ADFR_DEBUG("should not switch oa high precision when power mode is %u\n", panel->power_mode);
+		return -EFAULT;
+	}
+
+	h_skew = panel->cur_mode->timing.h_skew;
+	if (!oplus_adfr_high_precision_switch_is_enabled(p_oplus_adfr_params) || h_skew != OPLUS_ADFR) {
+		ADFR_DEBUG("not in oa mode, should not switch oa high precision mode\n");
+		return 0;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_adfr_high_precision_switch_state");
+
+	priv_info = panel->cur_mode->priv_info;
+	high_precision_switch_state = oplus_panel_pwm_turbo_switch_state(panel);
+
+	/* check high precision fps */
+	high_precision_fps = oplus_adfr_high_precision_fps_check(panel, p_oplus_adfr_params->oa_high_precision_fps);
+	if (high_precision_fps <= 0) {
+		rc = high_precision_fps;
+		ADFR_ERR("failed to check high precision fps, rc=%d\n", rc);
+		goto end;
+	}
+
+	if (!priv_info->oplus_adfr_high_precision_fps_mapping_table_count) {
+		ADFR_DEBUG("no support high precision fps\n");
+		goto end;
+	} else {
+		/* find the high precision fps mapping cmd set */
+		for (i = 0; i < priv_info->oplus_adfr_high_precision_fps_mapping_table_count - 1; i++) {
+			if ((high_precision_fps <= priv_info->oplus_adfr_high_precision_fps_mapping_table[i])
+					&& (high_precision_fps > priv_info->oplus_adfr_high_precision_fps_mapping_table[i + 1])) {
+				break;
+			}
+		}
+	}
+
+	if (last_high_precision_switch_state != high_precision_switch_state) {
+		if (high_precision_switch_state == PWM_SWITCH_DC_STATE) {
+			rc = oplus_adfr_panel_cmd_set_nolock(panel, DSI_CMD_ADFR_HIGH_PRECISION_FPS_0 + i);
+			if (rc) {
+				ADFR_ERR("[%s] failed to send DSI_CMD_ADFR_HIGH_PRECISION_FPS_%d cmds, rc=%d\n", panel->name, i, rc);
+			}
+		} else {
+			rc = oplus_adfr_panel_cmd_set_nolock(panel, DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0 + i);
+			if (rc) {
+				ADFR_ERR("[%s] failed to send DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_%d cmds, rc=%d\n", panel->name, i, rc);
+			}
+		}
+	}
+
+	last_high_precision_switch_state = high_precision_switch_state;
+
+	ADFR_DEBUG("oplus_high_precision_fps_cmd:%u\n", high_precision_fps);
+	OPLUS_ADFR_TRACE_INT("oplus_high_precision_fps_cmd", high_precision_fps);
+
+end:
+	OPLUS_ADFR_TRACE_END("oplus_adfr_high_precision_switch_state");
+	ADFR_DEBUG("end\n");
+	return 0;
+}
 /* -------------------- node -------------------- */
 /* adfr_config */
 ssize_t oplus_adfr_set_config_attr(struct kobject *obj,
@@ -5029,3 +5844,56 @@ ssize_t oplus_adfr_get_test_te_attr(struct kobject *obj,
 
 	return sprintf(buf, "%u\n", refresh_rate);
 }
+ssize_t oplus_display_set_high_precision_rscc(struct kobject *obj,
+		struct kobj_attribute *attr,
+		const char *buf, size_t count)
+{
+	struct dsi_display *display = oplus_display_get_current_display();
+	struct dsi_display_mode_priv_info *priv_info;
+	struct oplus_adfr_params *p_oplus_adfr_params = NULL;
+
+	if (!display || !display->panel || !display->panel->cur_mode) {
+		ADFR_ERR("display is null\n");
+		return -EINVAL;
+	}
+	priv_info = display->panel->cur_mode->priv_info;
+
+	p_oplus_adfr_params = oplus_adfr_get_params(display->panel);
+	if (!p_oplus_adfr_params) {
+		ADFR_ERR("invalid p_oplus_adfr_params param\n");
+		return -EINVAL;
+	}
+
+	if (!oplus_adfr_is_supported(p_oplus_adfr_params) || !oplus_adfr_high_precision_sa_mode_is_enabled(p_oplus_adfr_params)) {
+		ADFR_DEBUG("sa high precision mode is not enabled\n");
+		return 0;
+	}
+
+	OPLUS_ADFR_TRACE_BEGIN("oplus_display_set_high_precision_rscc");
+	sscanf(buf, "%du", &(p_oplus_adfr_params->high_precision_rscc_state));
+	if (p_oplus_adfr_params->high_precision_rscc_state == OPLUS_ADFR_RSCC_CLK_STATE)
+		priv_info->disable_rsc_solver = true;
+	else
+		priv_info->disable_rsc_solver = false;
+	ADFR_INFO("set high precision rscc %d", priv_info->disable_rsc_solver);
+	OPLUS_ADFR_TRACE_INT("high_precision_rscc_state", priv_info->disable_rsc_solver);
+	OPLUS_ADFR_TRACE_END("oplus_display_set_high_precision_rscc");
+	return count;
+}
+
+ssize_t oplus_display_get_high_precision_rscc(struct kobject *obj,
+		struct kobj_attribute *attr, char *buf)
+{
+	struct dsi_display *display = oplus_display_get_current_display();
+	struct dsi_display_mode_priv_info *priv_info;
+
+	if (!display || !display->panel || !display->panel->cur_mode) {
+		ADFR_ERR("display is null\n");
+		return -EINVAL;
+	}
+	priv_info = display->panel->cur_mode->priv_info;
+
+	ADFR_INFO("kVRR:oplus_display_get_high_precision_rscc %d\n", priv_info->disable_rsc_solver);
+	return sprintf(buf, "%d\n", priv_info->disable_rsc_solver);
+}
+

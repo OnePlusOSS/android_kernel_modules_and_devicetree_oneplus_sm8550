@@ -1060,6 +1060,12 @@ int oplus_cpa_request(struct oplus_mms *topic, enum oplus_chg_protocol_type type
 		chg_err("wired is offline\n");
 		return -EFAULT;
 	}
+
+	if (type == CHG_PROTOCOL_PPS && !(oplus_cpa_is_supported_protocol(cpa, type))) {
+		chg_info("no support pps forced conversion to pd\n");
+		type = CHG_PROTOCOL_PD;
+	}
+
 	chg_info("%s protocol identify request\n", get_protocol_name_str(type));
 
 	mutex_lock(&cpa->cpa_request_lock);

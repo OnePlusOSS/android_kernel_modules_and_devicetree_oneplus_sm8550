@@ -15,6 +15,7 @@
 #include <linux/soc/qcom/panel_event_notifier.h>
 #include "oplus_display_private_api.h"
 #include "oplus_display_interface.h"
+#include "oplus_bl.h"
 
 #if defined(CONFIG_PXLW_IRIS)
 #include "../msm/iris/common/dsi_iris_loop_back.h"
@@ -1619,7 +1620,7 @@ inline bool oplus_panel_pwm_turbo_switch_state(struct dsi_panel *panel)
 		return false;
 	}
 
-	return (bool)(panel->oplus_priv.pwm_turbo_support &&
+	return (bool)((panel->oplus_priv.pwm_turbo_support || panel->oplus_priv.pwm_switch_support) &&
 			panel->oplus_pwm_switch_state);
 }
 
@@ -1744,7 +1745,10 @@ int oplus_panel_update_pwm_pulse_lock(struct dsi_panel *panel, bool enabled)
 	mutex_lock(&panel->panel_lock);
 
 	panel->oplus_priv.pwm_onepulse_enabled = enabled;
-	panel->oplus_pwm_switch_state = !panel->oplus_pwm_switch_state;
+
+	if (!panel->oplus_priv.directional_onepulse_switch) {
+		panel->oplus_pwm_switch_state = !panel->oplus_pwm_switch_state;
+	}
 
 	mutex_unlock(&panel->panel_lock);
 
@@ -2561,10 +2565,12 @@ int oplus_display_panel_set_demua()
 		return rc;
 	}
 
+#if defined(CONFIG_PXLW_IRIS)
 	/* if the mode is iris PT mode ,not allowed to set panel demua */
 	if (iris_is_pt_mode(panel)) {
 		return rc;
 	}
+#endif
 
 	bl_lvl = panel->bl_config.bl_level;
 	current_hbm_status = oplus_ofp_get_hbm_state();

@@ -1367,7 +1367,7 @@ static int sc8547a_retrieve_reg_flags(struct sc8547a_device *chip)
 		err_flag |= BIT(UFCS_COMM_ERR_RX_OVERFLOW);
 	if (flag_buf[2] & SC8547A_FLAG_BUS_CONFLICT)
 		err_flag |= BIT(UFCS_COMM_ERR_BUS_CONFLICT);
-	chip->ufcs->dev_err_flag |= err_flag;
+	chip->ufcs->err_flag_save = err_flag;
 
 	if (chip->ufcs->handshake_state == UFCS_HS_WAIT) {
 		if ((flag_buf[1] & SC8547A_FLAG_HANDSHAKE_SUCCESS) &&
@@ -1378,9 +1378,9 @@ static int sc8547a_retrieve_reg_flags(struct sc8547a_device *chip)
 		 }
 	}
 	chg_info("[0x%x, 0x%x, 0x%x], err_flag=0x%x\n", flag_buf[0], flag_buf[1], flag_buf[2],
-		 chip->ufcs->dev_err_flag);
+		 err_flag);
 
-	return 0;
+	return ufcs_set_error_flag(chip->ufcs, err_flag);
 }
 
 static int sc8547a_ufcs_init(struct ufcs_dev *ufcs)
@@ -1612,7 +1612,6 @@ static int sc8547_charger_choose(struct sc8547a_device *chip)
 static void sc8547a_ufcs_event_handler(struct sc8547a_device *chip)
 {
 	/* set awake */
-	ufcs_clr_error_flag(chip->ufcs);
 	sc8547a_retrieve_reg_flags(chip);
 	ufcs_msg_handler(chip->ufcs);
 }
