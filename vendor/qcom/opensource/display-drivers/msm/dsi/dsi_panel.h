@@ -183,6 +183,7 @@ struct dsi_panel_oplus_privite {
 	u32 hbm_max_state;
 	bool cmdq_pack_support;
 	bool cmdq_pack_state;
+	u32 pwm_sw_cmd_te_cnt;
 /********************************************
 	fp_type usage:
 	bit(0):lcd capacitive fingerprint(aod/fod are not supported)
@@ -423,6 +424,11 @@ struct dsi_panel {
 	/* for pwm disable duty worker*/
 	struct workqueue_struct *oplus_pwm_disable_duty_set_wq;
 	struct work_struct oplus_pwm_disable_duty_set_work;
+	u32 last_us_per_frame;
+	u32 last_vsync_width;
+	u32 last_refresh_rate;
+	struct workqueue_struct *oplus_pwm_switch_send_next_cmdq_wq;
+	struct work_struct oplus_pwm_switch_send_next_cmdq_work;
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 #if defined(CONFIG_PXLW_IRIS)

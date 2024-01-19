@@ -6732,6 +6732,18 @@ static int oplus_chg_wls_rx_enter_state_fast(struct oplus_chg_wls *wls_dev)
 	case OPLUS_CHG_WLS_FAST_SUB_STATE_WAIT_FAST:
 		if (wls_status->charge_type != WLS_CHARGE_TYPE_FAST)
 			return 500;
+		/* Offset exit fast charge and restore, packet F2 is not returned due to the encrypted packet */
+		if (wls_dev->static_config.fastchg_fod_enable) {
+			if (wls_status->fod_parm_for_fastchg)
+				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+					wls_dev->static_config.fastchg_fod_parm, wls_dev->static_config.fod_parm_len);
+			else if (wls_dev->static_config.fastchg_12v_fod_enable)
+				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+					wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
+		} else {
+			(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+				wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
+		}
 		(void)oplus_chg_wls_rx_set_vout(wls_dev->wls_rx, WLS_VOUT_FASTCHG_INIT_MV, -1);
 		oplus_chg_wls_nor_set_vindpm(wls_dev->wls_nor->nor_ic, WLS_VINDPM_AIRSVOOC);
 		vote(wls_dev->nor_icl_votable, USER_VOTER, true, WLS_CURR_WAIT_FAST_MA, false);
@@ -8376,8 +8388,15 @@ static void oplus_chg_wls_online_keep_remove_work(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);
 	struct oplus_chg_wls *wls_dev = container_of(dwork, struct oplus_chg_wls, online_keep_remove_work);
+	union mms_msg_data pre_present = { 0 };
+	union mms_msg_data cur_present = { 0 };
 
+	oplus_mms_get_item_data(wls_dev->wls_topic, WLS_ITEM_PRESENT, &pre_present, true);
 	wls_dev->wls_status.online_keep = false;
+	oplus_mms_get_item_data(wls_dev->wls_topic, WLS_ITEM_PRESENT, &cur_present, true);
+	if (pre_present.intval != cur_present.intval)
+		schedule_work(&wls_dev->wls_present_handler_work);
+
 	if (!wls_dev->wls_status.rx_online) {
 		if (wls_dev->rx_wake_lock_on) {
 			chg_info("release rx_wake_lock\n");
@@ -9635,21 +9654,42 @@ static ssize_t oplus_chg_wls_proc_user_sleep_mode_write(struct file *file,
 	if (rc != 0)
 		return -EINVAL;
 	if (pmw_pulse == WLS_FASTCHG_MODE) {
-		/*pval.intval = 0;
-		rc = oplus_chg_mod_set_property(wls_dev->wls_ocm,
-				OPLUS_CHG_PROP_QUIET_MODE, &pval);
-		if (rc == 0)*/
+		if (!wls_dev->wls_status.rx_present ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_USB ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_NORMAL ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_UNKNOWN) {
+			chg_err("wls not present or isn't op_tx, can't enter quiet mode!\n");
+		} else {
+			wls_dev->wls_status.switch_quiet_mode = false;
+			if (wls_dev->wls_status.switch_quiet_mode != wls_dev->wls_status.quiet_mode
+				|| wls_dev->wls_status.quiet_mode_init == false) {
+				cancel_delayed_work(&wls_dev->wls_rx_sm_work);
+				queue_delayed_work(wls_dev->wls_wq, &wls_dev->wls_rx_sm_work, 0);
+			}
 			wls_dev->wls_status.quiet_mode_need = WLS_FASTCHG_MODE;
-		chg_info("set user mode: %d, fastchg mode, rc: %d\n", pmw_pulse,
-		       rc);
+		}
+
+		chg_info("set user mode: %d, switch_quiet_mode: %d fastchg mode, rc: %d\n", pmw_pulse,
+		       wls_dev->wls_status.switch_quiet_mode, rc);
 	} else if (pmw_pulse == WLS_SILENT_MODE) {
-		/*pval.intval = 1;
-		rc = oplus_chg_mod_set_property(wls_dev->wls_ocm,
-				OPLUS_CHG_PROP_QUIET_MODE, &pval);
-		if (rc == 0)*/
+		if (!wls_dev->wls_status.rx_present ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_USB ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_NORMAL ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_UNKNOWN) {
+			rc = -EINVAL;
+			chg_err("wls not present or isn't op_tx, can't enter quiet mode!\n");
+		} else {
+			wls_dev->wls_status.switch_quiet_mode = true;
+			if (wls_dev->wls_status.switch_quiet_mode != wls_dev->wls_status.quiet_mode
+				|| wls_dev->wls_status.quiet_mode_init == false) {
+				cancel_delayed_work(&wls_dev->wls_rx_sm_work);
+				queue_delayed_work(wls_dev->wls_wq, &wls_dev->wls_rx_sm_work, 0);
+			}
 			wls_dev->wls_status.quiet_mode_need = WLS_SILENT_MODE;
-		chg_info("set user mode: %d, silent mode, rc: %d\n", pmw_pulse,
-		       rc);
+		}
+
+		chg_info("set user mode: %d, switch_quiet_mode: %d silent mode, rc: %d\n", pmw_pulse,
+		       wls_dev->wls_status.switch_quiet_mode, rc);
 		/*nu1619_set_dock_led_pwm_pulse(3);*/
 	} else if (pmw_pulse == WLS_BATTERY_FULL_MODE) {
 		chg_info("set user mode: %d, battery full mode\n", pmw_pulse);

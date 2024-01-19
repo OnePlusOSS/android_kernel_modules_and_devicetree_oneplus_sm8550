@@ -14,6 +14,7 @@
 #include <linux/irqnr.h>
 #include <linux/cpufreq.h>
 #include <linux/module.h>
+#include <oplus_battery_log.h>
 
 #include "../oplus_charger.h"
 #include "../oplus_gauge.h"
@@ -5414,6 +5415,15 @@ bool oplus_voocphy_btb_and_usb_temp_detect(void)
 	return detect_over;
 }
 
+bool oplus_voocphy_get_vbatt_ovp_status(void)
+{
+	if (!g_voocphy_chip) {
+		return false;
+	} else {
+		return g_voocphy_chip->vbatt_ovp_status;
+	}
+}
+
 bool oplus_voocphy_get_btb_temp_over(void)
 {
 	if (!g_voocphy_chip) {
@@ -6891,6 +6901,44 @@ void update_highcap_mask(struct cpumask *cpu_highcap_mask)
 }
 #endif
 
+static int voocphy_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct oplus_voocphy_manager *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size, ",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+		chip->current_max, chip->current_ap, chip->current_batt_temp,
+		chip->current_bcc, chip->current_slow_chg, chip->fast_chg_type,
+		chip->fastchg_notify_status, chip->fastchg_to_warm,
+		oplus_voocphy_get_fastchg_to_warm(), chip->fastchg_dummy_start,
+		chip->fastchg_err_commu, chip->fastchg_check_stop, chip->fastchg_real_allow);
+
+	return 0;
+}
+
+static int voocphy_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct oplus_voocphy_manager *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		", [voocphy]:current_max, current_ap, current_batt_temp, current_bcc, current_slow_chg, adapter_version,"
+		"fastchg_notify_status, fastchg_to_warm, oplus_voocphy_get_fastchg_to_warm, fastchg_dummy_start,"
+		"fastchg_err_commu, fastchg_check_stop, fastchg_real_allow");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_voocphy_ops = {
+	.dev_name = "voocphy",
+	.dump_log_head = voocphy_get_log_head,
+	.dump_log_content = voocphy_dump_log_data,
+};
+
 void oplus_voocphy_init(struct oplus_voocphy_manager *chip)
 {
 	struct irq_desc *desc;
@@ -6952,6 +7000,10 @@ void oplus_voocphy_init(struct oplus_voocphy_manager *chip)
 			round_jiffies_relative(msecs_to_jiffies(RECOVERY_SYSTEM_DELAY)));
 	} else {
 		chip->recovery_system_done = true;
+	}
+	if(oplus_chg_get_voocphy_support() != ADSP_VOOCPHY) {
+		battlog_voocphy_ops.dev_data = (void *)chip;
+		battery_log_ops_register(&battlog_voocphy_ops);
 	}
 }
 
@@ -8328,6 +8380,7 @@ void oplus_adsp_voocphy_clear_status(void)
 
 	g_voocphy_chip->fastchg_dummy_start = false;
 	g_voocphy_chip->btb_temp_over = false;
+	g_voocphy_chip->vbatt_ovp_status = false;
 	g_voocphy_chip->fastchg_ing = false;
 	g_voocphy_chip->fastchg_start = false;
 	g_voocphy_chip->fastchg_to_normal = false;

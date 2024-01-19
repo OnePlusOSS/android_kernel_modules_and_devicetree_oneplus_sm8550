@@ -656,6 +656,7 @@ struct oplus_chg_track_status {
 	int wls_max_power;
 	struct oplus_chg_track_app_status app_status;
 	int once_chg_cycle_status;
+	int once_vbatt_ovp_status;
 	int allow_reading_err;
 	int fastchg_break_val;
 };
@@ -3452,6 +3453,9 @@ static void oplus_chg_track_record_charger_info(struct oplus_chg_chip *chip, opl
 	index += snprintf(&(p_trigger_data->crux_info[index]),
 			  OPLUS_CHG_TRACK_CURX_INFO_LEN - index,
 			  "$$chg_cycle_status@@%d", track_status->once_chg_cycle_status);
+	index += snprintf(&(p_trigger_data->crux_info[index]),
+			  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$vbatt_ovp@@%d",
+			  track_status->once_vbatt_ovp_status);
 
 	oplus_chg_track_record_general_info(chip, track_status, p_trigger_data, index);
 }
@@ -4503,6 +4507,9 @@ static int oplus_chg_track_cal_chg_common_mesg(struct oplus_chg_chip *chip, stru
 
 	if (!track_status->once_chg_cycle_status && chip->chg_cycle_status)
 		track_status->once_chg_cycle_status = chip->chg_cycle_status;
+
+	if (!track_status->once_vbatt_ovp_status && oplus_voocphy_get_vbatt_ovp_status())
+		track_status->once_vbatt_ovp_status = true;
 
 	mutex_lock(&chip->slow_chg_mutex);
 	if (!pre_slow_chg && chip->slow_chg_enable) {
@@ -6234,6 +6241,7 @@ static int oplus_chg_track_status_reset_when_plugin(struct oplus_chg_chip *chip,
 	track_status->prop_status = chip->prop_status;
 	track_status->once_mmi_chg = false;
 	track_status->once_chg_cycle_status = CHG_CYCLE_VOTER__NONE;
+	track_status->once_vbatt_ovp_status = false;
 	track_status->fastchg_to_normal = false;
 	track_status->mmi_chg_open_t = 0;
 	track_status->mmi_chg_close_t = 0;

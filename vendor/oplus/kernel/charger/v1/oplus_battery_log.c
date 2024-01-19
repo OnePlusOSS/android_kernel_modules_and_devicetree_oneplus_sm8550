@@ -18,7 +18,8 @@ static int register_fail_num = 0;
 
 static const char * const g_battery_log_device_id_table[] = {
 	[BATTERY_LOG_DEVICE_ID_COMM_INFO] = "comm_info",
-	[BATTERY_LOG_DEVICE_ID_VOOC] = "vooc",
+	[BATTERY_LOG_DEVICE_ID_VOOCPHY] = "voocphy",
+	[BATTERY_LOG_DEVICE_ID_PPS] = "pps",
 	[BATTERY_LOG_DEVICE_ID_BUCK_IC] = "buck_ic",
 	/*[BATTERY_LOG_DEVICE_ID_BQ27541] = "bq27541",*/
 };

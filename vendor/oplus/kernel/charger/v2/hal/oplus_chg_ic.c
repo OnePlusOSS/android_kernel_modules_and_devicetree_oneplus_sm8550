@@ -44,6 +44,7 @@ static const char * const err_type_text[] = {
 	[OPLUS_IC_ERR_MOS_ERROR]	= "MosError",
 	[OPLUS_IC_ERR_OFFLINE]		= "Offline",
 	[OPLUS_IC_ERR_UFCS]		= "UFCS",
+	[OPLUS_IC_ERR_GAN_MOS_ERROR]	= "GanMosError",
 };
 
 static DEFINE_MUTEX(list_lock);

@@ -26,6 +26,7 @@
 #include "dsi_iris_i3c.h"
 #include "dsi_iris_cmpt.h"
 #include "dsi_iris_dts_fw.h"
+#include "dsi_iris_emv_i7.h"
 
 
 int iris_dbgfs_status_init(struct dsi_display *display);
@@ -174,6 +175,7 @@ int iris_lightoff_i7(struct dsi_panel *panel, bool dead,
 		else
 			iris_abyp_send_panel_cmd(panel, off_cmds);
 	}
+	irisSetDisableDsppPq_i7(false);
 	iris_lightoff_memc();
 	iris_quality_setting_off();
 	iris_lp_setting_off();

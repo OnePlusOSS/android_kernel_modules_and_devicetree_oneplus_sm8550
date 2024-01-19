@@ -38,6 +38,7 @@
 #define UFCS_WATCHDOG_TIME_MS		3000
 #define UFCS_START_DEF_CURR_MA		1000
 #define UFCS_START_DEF_VOL_MV		5000
+#define UFCS_START_MAX_VOL_MV		5500
 #define UFCS_MONITOR_TIME_MS		500
 #define UFCS_STOP_DELAY_TIME		300
 #define UFCS_TEMP_SWITCH_DELAY		100
@@ -1570,6 +1571,7 @@ static void oplus_ufcs_switch_check_work(struct work_struct *work)
 	int i;
 	bool pdo_ok = false;
 	int max_curr = 0;
+	int pdo_vol;
 
 	oplus_ufcs_set_charging(chip, false);
 	oplus_cpa_switch_start(chip->cpa_topic, CHG_PROTOCOL_UFCS);
@@ -1668,11 +1670,6 @@ static void oplus_ufcs_switch_check_work(struct work_struct *work)
 				chg_err("the output voltage range is discontinuous\n");
 				break;
 			}
-		} else {
-			if (UFCS_OUTPUT_MODE_VOL_MIN(chip->pdo[0]) > 5000) {
-				chg_err("The output voltage does not support 5V\n");
-				break;
-			}
 		}
 		if (target_vbus <= UFCS_OUTPUT_MODE_VOL_MAX(chip->pdo[i]) &&
 		    target_vbus >= UFCS_OUTPUT_MODE_VOL_MIN(chip->pdo[i])) {
@@ -1726,7 +1723,10 @@ static void oplus_ufcs_switch_check_work(struct work_struct *work)
 	if (is_wired_suspend_votable_available(chip))
 		vote(chip->wired_suspend_votable, UFCS_VOTER, true, 1, false);
 
-	rc = oplus_ufcs_pdo_set(chip, UFCS_START_DEF_VOL_MV, UFCS_START_DEF_CURR_MA);
+	pdo_vol = UFCS_OUTPUT_MODE_VOL_MIN(chip->pdo[0]) > UFCS_START_DEF_VOL_MV ?
+		  UFCS_OUTPUT_MODE_VOL_MIN(chip->pdo[0]) : UFCS_START_DEF_VOL_MV;
+	pdo_vol = pdo_vol > UFCS_START_MAX_VOL_MV ? UFCS_START_MAX_VOL_MV : pdo_vol;
+	rc = oplus_ufcs_pdo_set(chip, pdo_vol, UFCS_START_DEF_CURR_MA);
 	if (rc < 0) {
 		chg_err("pdo set error, rc=%d\n", rc);
 		goto err;
@@ -1830,8 +1830,13 @@ static int oplus_ufcs_charge_start(struct oplus_ufcs *chip)
 					chip->start_check = false;
 					oplus_ufcs_set_charging(chip, true);
 					chip->target_vbus_mv = chip->config.target_vbus_mv;
+					rc = oplus_ufcs_pdo_set(chip, chip->target_vbus_mv, UFCS_START_DEF_CURR_MA);
+					if (rc < 0) {
+						chg_err("pdo set error, rc=%d\n", rc);
+						return rc;
+					}
 					chip->timer.monitor_jiffies = jiffies;
-					schedule_delayed_work(&chip->current_work, 0);
+					schedule_delayed_work(&chip->current_work,  msecs_to_jiffies(UFCS_START_CHECK_DELAY_MS));
 					oplus_ufcs_cp_reg_dump(chip);
 					return 0;
 				}
@@ -1858,11 +1863,6 @@ static int oplus_ufcs_charge_start(struct oplus_ufcs *chip)
 		rc = oplus_ufcs_cp_set_work_start(chip, true);
 		if (rc < 0) {
 			chg_err("set cp work start error, rc=%d\n", rc);
-			return rc;
-		}
-		rc = oplus_ufcs_pdo_set(chip, chip->config.target_vbus_mv, UFCS_START_DEF_CURR_MA);
-		if (rc < 0) {
-			chg_err("pdo set error, rc=%d\n", rc);
 			return rc;
 		}
 		chip->start_retry_count = 0;

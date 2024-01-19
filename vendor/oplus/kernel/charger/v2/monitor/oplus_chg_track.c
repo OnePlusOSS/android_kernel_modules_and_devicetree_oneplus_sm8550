@@ -5331,7 +5331,7 @@ static int oplus_chg_track_get_err_comm_info(struct oplus_chg_track *track, char
 static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 {
 	union mms_msg_data data = { 0 };
-	int index;
+	int index, copy_size;
 	int name_index, msg_index;
 	int err_type, sub_err_type;
 	char *msg_buf, *track_buf;
@@ -5343,7 +5343,6 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 		chg_err("get msg data error, rc=%d\n", rc);
 		return rc;
 	}
-	msg_buf = data.strval;
 	track_buf = track->ic_err_msg_load_trigger.crux_info;
 
 	msg_buf = kzalloc(TOPIC_MSG_STR_BUF, GFP_KERNEL);
@@ -5351,7 +5350,8 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 		chg_err("alloc msg buf error");
 		return -ENOMEM;
 	}
-	memcpy(msg_buf, data.strval, TOPIC_MSG_STR_BUF);
+	copy_size = strlen(data.strval) > TOPIC_MSG_STR_BUF ? TOPIC_MSG_STR_BUF : strlen(data.strval);
+	memcpy(msg_buf, data.strval, copy_size);
 
 	rc = oplus_mms_analysis_ic_err_msg(msg_buf, TOPIC_MSG_STR_BUF,
 					   &name_index, &err_type,
@@ -5413,6 +5413,10 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 			TRACK_NOTIFY_FLAG_UFCS_IC_ABNORMAL;
 		index += oplus_chg_track_obtain_power_info(track_buf + index,
 			OPLUS_CHG_TRIGGER_MSG_LEN - index);
+		break;
+	case OPLUS_IC_ERR_GAN_MOS_ERROR:
+		track->ic_err_msg_load_trigger.flag_reason =
+			TRACK_NOTIFY_FLAG_DCHG_ABNORMAL;
 		break;
 	case OPLUS_IC_ERR_I2C:
 	case OPLUS_IC_ERR_UNKNOWN:

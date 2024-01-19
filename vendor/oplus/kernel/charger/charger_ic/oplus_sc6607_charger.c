@@ -5489,7 +5489,7 @@ static int sc6607_voocphy_dump_registers(struct oplus_voocphy_manager *chip)
 	}
 
 	for (addr = SC6607_REG_VBATSNS_OVP; addr <= SC6607_REG_CP_PMID2OUT_FLG; addr++) {
-		rc = sc6607_voocphy_read_byte(chip->client, addr, &val_buf[addr]);
+		rc = sc6607_voocphy_read_byte(chip->client, addr, &val_buf[addr - SC6607_REG_VBATSNS_OVP]);
 		if (rc < 0) {
 			pr_err("Couldn't read 0x%02x, rc = %d\n", addr, rc);
 			break;

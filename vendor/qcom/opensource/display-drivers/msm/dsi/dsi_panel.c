@@ -590,6 +590,10 @@ int dsi_panel_tx_cmd_set(struct dsi_panel *panel,
 
 #ifdef OPLUS_FEATURE_DISPLAY
 	oplus_panel_cmd_switch(panel, &type);
+	if (panel->oplus_priv.directional_onepulse_switch) {
+		if (oplus_panel_pwm_switch_cmdq_delay_handle(panel, type))
+			return rc;
+	}
 	oplus_panel_cmdq_pack_handle(panel, type, true);
 	oplus_panel_cmd_print(panel, type);
 #endif /* OPLUS_FEATURE_DISPLAY */
@@ -2241,6 +2245,11 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-bl-demua6-command",
 	"qcom,mdss-dsi-on-evt-command",
 	"qcom,mdss-dsi-on-dvt-command",
+	"qcom,mdss-dsi-on-gamma-command",
+	"qcom,mdss-dsi-gamma-pre-read-120hz-command",
+	"qcom,mdss-dsi-gamma-pre-read-90hz-command",
+	"qcom,mdss-dsi-gamma-pre-read-off-command",
+	"qcom,mdss-dsi-gamma-remap-command",
 #endif /* OPLUS_FEATURE_DISPLAY */
 #if defined(CONFIG_PXLW_IRIS)
 	"qcom,mdss-dsi-iris-switch-tsp-vsync-scanline-command",
@@ -2418,6 +2427,11 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-bl-demua6-command-state",
 	"qcom,mdss-dsi-on-evt-command-state",
 	"qcom,mdss-dsi-on-dvt-command-state",
+	"qcom,mdss-dsi-on-gamma-command-state",
+	"qcom,mdss-dsi-gamma-pre-read-120hz-command-state",
+	"qcom,mdss-dsi-gamma-pre-read-90hz-command-state",
+	"qcom,mdss-dsi-gamma-pre-read-off-command-state",
+	"qcom,mdss-dsi-gamma-remap-command-state",
 #endif /* OPLUS_FEATURE_DISPLAY */
 #if defined(CONFIG_PXLW_IRIS)
 	"qcom,mdss-dsi-iris-switch-tsp-vsync-scanline-command-state",
@@ -5152,6 +5166,7 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 		DSI_ERR("[%s] failed to send DSI_CMD_SET_NOLP cmd, rc=%d\n",
 		       panel->name, rc);
 #ifdef OPLUS_FEATURE_DISPLAY
+	oplus_panel_set_aod_off_te_timestamp(panel);
 	__oplus_set_power_status(OPLUS_DISPLAY_POWER_ON);
 #endif /* OPLUS_FEATURE_DISPLAY */
 exit:
@@ -5482,7 +5497,14 @@ int dsi_panel_switch(struct dsi_panel *panel)
 	mutex_lock(&panel->panel_lock);
 
 #ifdef OPLUS_FEATURE_DISPLAY
-	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+	if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel")) {
+		if (panel->last_refresh_rate == 60) {
+			oplus_sde_early_wakeup(panel);
+			oplus_wait_for_vsync(panel);
+			oplus_panel_switch_to_sync_te(panel);
+			usleep_range(120, 120);
+		}
+	} else if(oplus_panel_pwm_onepulse_is_enabled(panel)) {
 		oplus_sde_early_wakeup(panel);
 		oplus_wait_for_vsync(panel);
 	}
@@ -5569,6 +5591,11 @@ int dsi_panel_enable(struct dsi_panel *panel)
 		}
 	}
 #endif
+#ifdef OPLUS_FEATURE_DISPLAY
+	if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel"))
+		oplus_display_panel_gamma_update();
+#endif /* OPLUS_FEATURE_DISPLAY */
+
 	rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_ON);
 	if (rc) {
 		DSI_ERR("[%s] failed to send DSI_CMD_SET_ON cmds, rc=%d\n",
@@ -5616,6 +5643,15 @@ int dsi_panel_enable(struct dsi_panel *panel)
 
 	if (panel->oplus_priv.ffc_enabled) {
 		oplus_panel_set_ffc_mode_unlock(panel);
+	}
+
+	if (panel->oplus_priv.directional_onepulse_switch
+		&& oplus_panel_pwm_onepulse_is_enabled(panel)) {
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_POWER_ON_PWM_SWITCH_ONEPULSE);
+		panel->oplus_pwm_switch_state = PWM_SWITCH_ONEPULSE_STATE;
+		if (rc)
+			DSI_ERR("[%s] failed to send DSI_CMD_POWER_ON_PWM_SWITCH_HIGH cmds rc=%d\n",
+				panel->name, rc);
 	}
 
 	rc = dsi_panel_seed_mode(panel, __oplus_get_seed_mode());

@@ -2132,12 +2132,15 @@ static irqreturn_t swr_mstr_interrupt(int irq, void *dev)
 		goto err_audio_hw_vote;
 	}
 	ret = swrm_clk_request(swrm, true);
+#if IS_ENABLED(CONFIG_OPLUS_FEATURE_MM_FEEDBACK)
+#define SWRM_CLK_FAILED_FB_COUNT    10
+#define SWRM_CLK_FAILED_FB_LIMIT_MS 800
+	ratelimited_count_limit_fb(ret, SWRM_CLK_FAILED_FB_COUNT, SWRM_CLK_FAILED_FB_LIMIT_MS,
+		"payload@@%s %s:swrm clk failed,ret=%d",
+		dev_driver_string(dev), dev_name(dev), ret);
+#endif /* CONFIG_OPLUS_FEATURE_MM_FEEDBACK */
 	if (ret) {
 		dev_err_ratelimited(dev, "%s: swrm clk failed\n", __func__);
-#if IS_ENABLED(CONFIG_OPLUS_FEATURE_MM_FEEDBACK)
-		ratelimited_fb("payload@@%s %s:swrm clk failed,ret=%d",
-			dev_driver_string(dev), dev_name(dev), ret);
-#endif /* CONFIG_OPLUS_FEATURE_MM_FEEDBACK */
 		ret = IRQ_NONE;
 		goto err_audio_core_vote;
 	}

@@ -100,6 +100,7 @@ struct ssc_interactive{
 	uint16_t last_freq;
 #endif
 	bool sup_power_fb;
+	bool report_blank_mode;
 	uint8_t sup_hbm_mode;
 	bool notify_work_regiseted;
 	bool notify_work_regiseted_second;

@@ -80,6 +80,7 @@ static struct oplus_adfr_params g_oplus_adfr_params[2] = {0};
 /* extern params */
 /* dsi cmd set prop map */
 extern const char *cmd_set_prop_map[DSI_CMD_SET_MAX];
+extern u32 oplus_last_backlight;
 
 /* extern functions */
 int _get_tearcheck_threshold(struct sde_encoder_phys *phys_enc);
@@ -5263,7 +5264,8 @@ int oplus_adfr_high_precision_handle(void *sde_enc_v)
 	}
 
 	/* oa high precision fps is available only after power on */
-	if (display->panel->power_mode != SDE_MODE_DPMS_ON) {
+	if ((display->panel->power_mode != SDE_MODE_DPMS_ON)
+			|| (oplus_last_backlight == 0 || oplus_last_backlight == 1)) {
 		ADFR_DEBUG("should not handle high precision mode when power mode is %u\n", display->panel->power_mode);
 		return -EFAULT;
 	}

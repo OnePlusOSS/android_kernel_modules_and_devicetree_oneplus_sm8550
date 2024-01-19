@@ -8172,6 +8172,9 @@ int dsi_display_set_mode(struct dsi_display *display,
 			goto error;
 		}
 	}
+#ifdef OPLUS_FEATURE_DISPLAY
+	oplus_save_last_mode(display);
+#endif /* OPLUS_FEATURE_DISPLAY */
 
 	rc = dsi_display_restore_bit_clk(display, &adj_mode);
 	if (rc) {

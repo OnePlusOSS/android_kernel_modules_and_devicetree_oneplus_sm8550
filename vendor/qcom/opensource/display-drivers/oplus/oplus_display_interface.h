@@ -184,5 +184,6 @@ int oplus_display_send_dcs_lock(struct dsi_display *display,
 int oplus_panel_cmdq_pack_handle(void *dsi_panel, enum dsi_cmd_set_type type, bool before_cmd);
 int oplus_panel_cmdq_pack_status_reset(void *sde_connector);
 int oplus_panel_get_id(struct dsi_display *display, char *boot_str);
+int oplus_panel_pwm_switch_cmdq_delay_handle(void *dsi_panel, enum dsi_cmd_set_type type);
 #endif /* __OPLUS_DISPLAY_INTERFACE_H__ */
 

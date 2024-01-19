@@ -84,9 +84,9 @@ struct validate_bss_data {
 	struct qdf_mac_addr peer_addr;
 	qdf_freq_t chan_freq;
 	uint16_t beacon_interval;
+	struct scan_cache_entry *scan_entry;
 #ifdef WLAN_FEATURE_11BE_MLO
 	bool is_mlo;
-	struct scan_cache_entry *scan_entry;
 #endif
 };
 

@@ -153,5 +153,9 @@ void oplus_apollo_async_bl_delay(struct dsi_panel *panel);
 void oplus_disable_bl_delay_with_frame(struct dsi_panel *panel, u32 disable_frames);
 int oplus_display_panel_set_hbm_max(void *data);
 int oplus_display_panel_get_hbm_max(void *data);
+int oplus_display_panel_gamma_update(void);
+void oplus_panel_switch_to_sync_te(struct dsi_panel *panel);
+void oplus_save_last_mode(struct dsi_display *display);
+void oplus_set_pwm_switch_cmd_te_flag(struct sde_connector *c_conn);
 #endif /* _OPLUS_DISPLAY_PANEL_COMMON_H_ */
 

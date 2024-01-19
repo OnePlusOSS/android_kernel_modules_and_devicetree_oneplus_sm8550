@@ -618,6 +618,17 @@ int oplus_thermal_tmp_get_batt(void)
 }
 EXPORT_SYMBOL(oplus_thermal_tmp_get_batt);
 
+int oplus_get_subboard_temp(void)
+{
+	int temp = 0;
+
+	temp = oplus_thermal_tmp_get_batt();
+	temp = temp / 100;
+
+	return temp;
+}
+EXPORT_SYMBOL(oplus_get_subboard_temp);
+
 int oplus_thermal_tmp_get_vbus_btb(void)
 {
 	struct sy697x *chg = NULL;

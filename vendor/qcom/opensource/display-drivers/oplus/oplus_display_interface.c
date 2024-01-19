@@ -12,6 +12,7 @@
 #include <linux/msm_drm_notify.h>
 #include <linux/module.h>
 
+#include "oplus_bl.h"
 #include "oplus_display_interface.h"
 #include "oplus_display_panel_common.h"
 #include "sde_color_processing.h"
@@ -29,6 +30,7 @@ extern const char *cmd_set_prop_map[];
 extern int oplus_debug_max_brightness;
 bool is_evt_panel = false;
 bool is_dvt_0_panel = false;
+bool is_gamma_panel = false;
 
 int oplus_panel_cmd_print(struct dsi_panel *panel, enum dsi_cmd_set_type type)
 {
@@ -117,6 +119,10 @@ int oplus_panel_get_id(struct dsi_display *display, char *boot_str)
 				is_dvt_0_panel = true;
 				LCD_INFO("is_dvt_panel true\n");
 			}
+			if((0x07 == display->panel_id_db) && (0x00 == display->panel_id_dc)) {
+				is_gamma_panel = true;
+				LCD_INFO("is_gamma_panel true\n");
+			}
 		} else {
 			LCD_INFO("fail to parse panel id\n");
 		}
@@ -198,6 +204,15 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 				*type = DSI_CMD_TIMMING_PWM_SWITCH_ONEPULSE;
 				break;
 			}
+			default:
+				break;
+			}
+		}
+		if (is_gamma_panel) {
+			switch (*type) {
+			case DSI_CMD_SET_ON:
+				*type = DSI_CMD_SET_ON_GAMMA;
+				break;
 			default:
 				break;
 			}
@@ -903,11 +918,61 @@ int oplus_display_send_dcs_lock(struct dsi_display *display,
 	return rc;
 }
 
+int oplus_panel_pwm_switch_cmdq_delay_handle(void *dsi_panel, enum dsi_cmd_set_type type)
+{
+	struct dsi_panel *panel = dsi_panel;
+	struct dsi_display_mode *mode;
+	int i;
+	LCD_DEBUG("start\n");
+
+	if (!panel || !panel->cur_mode) {
+		LCD_ERR("invalid panel param\n");
+		return -EINVAL;
+	}
+	mode = panel->cur_mode;
+
+	if(!panel->oplus_priv.cmdq_pack_support || !mode->priv_info->cmd_sets[type].pack) {
+		return 0;
+	}
+
+	OPLUS_LCD_TRACE_BEGIN("oplus_panel_pwm_switch_cmdq_delay_handle");
+
+	if (panel->oplus_priv.pwm_sw_cmd_te_cnt > 0 && panel->oplus_priv.pwm_sw_cmd_te_cnt <= 2) {
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR
+		if ((type >= DSI_CMD_ADFR_MIN_FPS_0 && type <= DSI_CMD_HPWM_ADFR_MIN_FPS_14)
+			|| type == DSI_CMD_ADFR_HIGH_PRECISION_FPS_0
+			|| type == DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0) {
+			oplus_panel_set_pwm_switch_next_cmdq(type);
+			queue_work(panel->oplus_pwm_switch_send_next_cmdq_wq, &panel->oplus_pwm_switch_send_next_cmdq_work);
+			LCD_INFO("[%s] dsi_cmd: cmd %s turn to oplus_pwm_switch_send_next_cmdq_work to send\n",
+				panel->oplus_priv.vendor_name,
+				cmd_set_prop_map[type]);
+			OPLUS_LCD_TRACE_END("oplus_panel_pwm_switch_cmdq_delay_handle");
+			return 1;
+		}
+#endif
+		LCD_INFO("[%s] dsi_cmd: %s block to the next 2 frames due to 2 frames cmdq\n",
+					panel->oplus_priv.vendor_name,
+					cmd_set_prop_map[type]);
+		for (i = panel->oplus_priv.pwm_sw_cmd_te_cnt; i > 0; i--) {
+			oplus_sde_early_wakeup(panel);
+			oplus_wait_for_vsync(panel);
+		}
+		if (panel->cur_mode->timing.refresh_rate == 60) {
+			oplus_need_to_sync_te(panel);
+		}
+	}
+
+	OPLUS_LCD_TRACE_END("oplus_panel_pwm_switch_cmdq_delay_handle");
+	LCD_DEBUG("end\n");
+
+	return 0;
+}
+
 int oplus_panel_cmdq_pack_handle(void *dsi_panel, enum dsi_cmd_set_type type, bool before_cmd)
 {
 	struct dsi_panel *panel = dsi_panel;
 	struct dsi_display_mode *mode;
-
 	LCD_DEBUG("start\n");
 
 	if (!panel || !panel->cur_mode) {

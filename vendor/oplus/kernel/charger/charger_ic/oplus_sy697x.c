@@ -667,6 +667,8 @@ extern void oplus_usbtemp_recover_func(struct oplus_chg_chip *chip);
 extern int oplus_voocphy_get_cp_vbus(void);
 
 extern int get_usb_enum_status(void);
+extern void oplus_notify_device_mode(bool enable);
+extern void oplus_notify_usb_host(bool enable);
 static void usb_enum_check(struct work_struct *work);
 static void start_usb_enum_check(void);
 static void stop_usb_enum_check(void);
@@ -678,6 +680,15 @@ int __attribute__((weak)) get_usb_enum_status(void)
 {
 	return 1;
 }
+
+void __attribute__((weak)) oplus_notify_device_mode(bool enable)
+{
+}
+
+void __attribute__((weak)) oplus_notify_usb_host(bool enable)
+{
+}
+
 static int oplus_get_iio_channel(struct sy697x *chip, const char *propname,
 					struct iio_channel **chan);
 int oplus_sy697x_get_usb_status(void)
@@ -1433,58 +1444,6 @@ static void oplus_keep_resume_wakelock(struct sy697x *chip, bool awake)
 		pr_err("[%s] false\n", __func__);
 	}
 	return;
-}
-
-static void oplus_notify_extcon_props(struct sy697x *chg, int id)
-{
-	union extcon_property_value val;
-	union power_supply_propval prop_val;
-
-	opluschg_get_typec_cc_orientation(&prop_val);
-	val.intval = ((prop_val.intval == 2) ? 1 : 0);
-	extcon_set_property(chg->extcon, id,
-			EXTCON_PROP_USB_TYPEC_POLARITY, val);
-	val.intval = true;
-	extcon_set_property(chg->extcon, id,
-			EXTCON_PROP_USB_SS, val);
-}
-
-static void oplus_notify_device_mode(bool enable)
-{
-	struct sy697x *chg = g_sy;
-
-	if (!chg) {
-		pr_err("[%s] chg is null\n", __func__);
-		return;
-	}
-	
-	if (enable)
-		oplus_notify_extcon_props(chg, EXTCON_USB);
-
-	extcon_set_state_sync(chg->extcon, EXTCON_USB, enable);
-	pr_err("[%s] enable[%d]\n", __func__, enable);
-}
-
-static void oplus_notify_usb_host(bool enable)
-{
-	struct sy697x *chg = g_sy;
-
-	if (!chg || !g_oplus_chip) {
-		pr_err("[%s] chg or g_oplus_chip is null\n", __func__);
-		return;
-	}
-	if (enable) {
-		pr_debug("enabling VBUS in OTG mode\n");
-		oplus_sy697x_enable_otg();
-		oplus_notify_extcon_props(chg, EXTCON_USB_HOST);
-	} else {
-		pr_debug("disabling VBUS in OTG mode\n");
-		oplus_sy697x_disable_otg();
-	}
-
-	power_supply_changed(g_oplus_chip->usb_psy);
-	extcon_set_state_sync(chg->extcon, EXTCON_USB_HOST, enable);
-	pr_debug("[%s] enable[%d]\n", __func__, enable);
 }
 
 void oplus_sy697x_typec_sink_insertion(void)
@@ -2831,7 +2790,7 @@ static irqreturn_t sy697x_irq_handler(int irq, void *data)
 	pr_notice("[%s]:(%d,%d %d, otg[%d])\n", __func__,
 		prev_pg,sy->power_good, reg_val, oplus_get_otg_enable());
 
-//	oplus_chg_track_check_wired_charging_break(curr_pg);
+	oplus_chg_track_check_wired_charging_break(curr_pg);
 
 	if (oplus_vooc_get_fastchg_started() == true
 			&& oplus_vooc_get_adapter_update_status() != 1) {
@@ -5819,6 +5778,7 @@ struct oplus_chg_operations  oplus_chg_sy697x_ops = {
 	.get_usbtemp_volt = oplus_sy697x_get_usbtemp_volt,
 	.oplus_usbtemp_monitor_condition = oplus_usbtemp_condition,
 	.vooc_timeout_callback = sy697x_vooc_timeout_callback,
+	.get_subboard_temp = oplus_get_subboard_temp,
 	.set_typec_cc_open = sgm7220_set_typec_cc_open,
 	.set_typec_sinkonly = sgm7220_set_typec_sinkonly,
 	.get_charger_current = sy697x_get_input_current,
@@ -6442,6 +6402,32 @@ static int oplus_sy697x_iio_init(struct smb5 *chip, struct device *pdev,
 	return rc;
 }
 
+#ifdef CONFIG_TCPC_CLASS
+#define TCPC_COMPLETE_RETRY_COUNT 10
+#define TCPC_COMPLETE_WORK_DELAY round_jiffies_relative(msecs_to_jiffies(300))
+static struct delayed_work tcpc_complete_work;
+static void oplus_sy697x_tcpc_complete_work(struct work_struct *data)
+{
+	static int count = 0;
+
+	if (!g_sy) {
+		pr_info("%s, sy697x chip handle(g_sy) is NULL");
+		return;
+	}
+
+	g_sy->tcpc = tcpc_dev_get_by_name("type_c_port0");
+
+	if (!g_sy->tcpc) {
+		count++;
+		pr_info("%s type_c_port0 not found, retry count=%d\n", __func__, count);
+		if (count < TCPC_COMPLETE_RETRY_COUNT)
+			schedule_delayed_work(&tcpc_complete_work, TCPC_COMPLETE_WORK_DELAY);
+	} else {
+		pr_info("%s type_c_port0 found\n", __func__);
+	}
+}
+#endif
+
 extern int rt_pd_manager_init(void);
 extern void rt_pd_manager_exit(void);
 #define INIT_WORK_NORMAL_DELAY 7000
@@ -6548,8 +6534,11 @@ static int sy697x_charger_probe(struct i2c_client *client,
 #ifdef CONFIG_TCPC_CLASS
 	if(use_rt1715) {
 		sy->tcpc = tcpc_dev_get_by_name("type_c_port0");
-		if (!sy->tcpc)
+		if (!sy->tcpc) {
 			pr_err("%s: type_c_port0 device not yet up");
+			INIT_DELAYED_WORK(&tcpc_complete_work, oplus_sy697x_tcpc_complete_work);
+			schedule_delayed_work(&tcpc_complete_work, TCPC_COMPLETE_WORK_DELAY);
+		}
 	}
 #endif
 
@@ -6663,7 +6652,6 @@ static int sy697x_charger_probe(struct i2c_client *client,
 
 	pr_err("sy697x probe successfully Part Num:%d, Revision:%d\n!", sy->part_no, sy->revision);
 	chg_init_done = 1;
-	rt_pd_manager_init();
 	return 0;
 err_init:
 err_parse_dt:
@@ -6847,7 +6835,6 @@ static void sy697x_charger_shutdown(struct i2c_client *client)
 		}
 		chg_err("sy697x_charger_shutdown disable adc and otg sinkonly\n!");
 	}
-	rt_pd_manager_exit();
 }
 
 static struct i2c_driver sy697x_charger_driver = {
@@ -6876,6 +6863,7 @@ module_i2c_driver(sy697x_charger_driver);
 #else
 void __exit sy697x_charger_exit(void)
 {
+	rt_pd_manager_exit();
 	sc8547_subsys_exit();
 	sgm7220_i2c_exit();
 	rt1711_driver_exit();
@@ -6898,6 +6886,7 @@ int __init sy697x_charger_init(void)
 	sc8547_subsys_init();
 	sgm7220_i2c_init();
 	rt1711_driver_init();
+	rt_pd_manager_init();
 	return ret;
 }
 oplus_chg_module_register(sy697x_charger);

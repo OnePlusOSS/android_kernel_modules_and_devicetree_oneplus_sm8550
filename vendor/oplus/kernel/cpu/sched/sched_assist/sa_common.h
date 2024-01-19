@@ -300,6 +300,11 @@ struct oplus_task_struct {
 	u64 pipeline_switch_out_ts;
 	int pipeline_cpu;
 #endif
+	/* for binder ux */
+	int binder_async_ux_enable;
+	bool binder_async_ux_sts;
+	int binder_thread_mode;
+	struct binder_node *binder_thread_node;
 } ____cacheline_aligned;
 
 #if IS_ENABLED(CONFIG_OPLUS_FEATURE_LOADBALANCE)

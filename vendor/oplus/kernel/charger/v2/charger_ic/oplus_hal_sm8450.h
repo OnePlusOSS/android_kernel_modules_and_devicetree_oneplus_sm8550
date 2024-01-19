@@ -509,6 +509,26 @@ enum usb_property_id {
 #ifdef OPLUS_FEATURE_CHG_BASIC
 	USB_PPS_FORCE_SVOOC,
 #endif /*OPLUS_FEATURE_CHG_BASIC*/
+	USB_SCOPE,           /* <0 : when nothing is connected, 1 : OTG is connected, 2 : Charger is connected > */
+	USB_CONNECTOR_TYPE,  /* <0: TypeC 1:microUSB > */
+	USB_FLASH_ACTIVE,    /* flash status */
+#ifdef OPLUS_FEATURE_CHG_BASIC
+	USB_SET_RERUN_AICl,
+	USB_SET_UFCS_START, /* TODO: add the following cmd to fix compile error */
+	USB_SET_UFCS_VOLT,
+	USB_SET_UFCS_CURRENT,
+	USB_GET_UFCS_STATUS,
+	USB_GET_DEV_INFO_L,
+	USB_GET_DEV_INFO_H,
+	USB_SET_WD_TIME,
+	USB_GET_PDO_INFO_CURR,
+	USB_GET_PDO_INFO_VOLT,
+	USB_GET_PDO_INFO_STEP,
+	USB_SET_EXIT,
+	USB_GET_SRC_INFO_L,
+	USB_GET_SRC_INFO_H,
+	USB_SET_GET_SRC,
+#endif /*OPLUS_FEATURE_CHG_BASIC*/
 	USB_PROP_MAX,
 };
 #endif
@@ -770,6 +790,7 @@ struct battery_chg_dev {
 	int vchg_trig_irq;
 	struct delayed_work vchg_trig_work;
 	struct delayed_work vbus_collapse_rerun_icl_work;
+	struct delayed_work ibus_collapse_rerun_aicl_work;
 	struct delayed_work wait_wired_charge_on;
 	struct delayed_work wait_wired_charge_off;
 	struct delayed_work mcu_en_init_work;

@@ -61,5 +61,8 @@ int dsi_panel_read_panel_reg_unlock(struct dsi_display_ctrl *ctrl,
 
 int dsi_display_read_panel_reg(struct dsi_display *display, u8 cmd, void *data, size_t len);
 
+int dsi_panel_read_panel_gamma_reg_unlock(struct dsi_display_ctrl *ctrl,
+		struct dsi_panel *panel, u8 cmd, void *rbuf,  size_t len);
+
 #endif /* _OPLUS_DISPLAY_PRIVATE_API_H_ */
 

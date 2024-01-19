@@ -1004,21 +1004,25 @@ void iris_dtg_te_n2m_ctrl_setting_send_i7p(bool enable)
 
 void iris_hangup_timeout_cnt_update_i7p(bool enable)
 {
-	u32 cmd[4];
+	u32 cmd[6];
 	u32 *payload = NULL;
 
 	payload = iris_get_ipopt_payload_data(IRIS_IP_PWIL, 0xe2, 2);
 	if (!payload)
 		return;
 	cmd[0] = IRIS_PWIL_ADDR + PWIL_HANGUP_TIMEOUT_CNT;
-	if (enable)
+	cmd[2] = IRIS_PWIL_ADDR + PWIL_IDLE_MASK;
+	if (enable) {
 		cmd[1] = payload[0];
-	else
+		cmd[3] = 0x147;
+	} else {
 		cmd[1] = 0x01ffffff;
-	cmd[2] = IRIS_PWIL_ADDR + PWIL_REG_UPDATE;
-	cmd[3] = 0x00000100;
+		cmd[3] = 0;
+	}
+	cmd[4] = IRIS_PWIL_ADDR + PWIL_REG_UPDATE;
+	cmd[5] = 0x00000100;
 
-	iris_ocp_write_mult_vals(4, cmd);
+	iris_ocp_write_mult_vals(6, cmd);
 }
 
 void iris_parse_ap_panel_te_i7p(struct device_node *np)

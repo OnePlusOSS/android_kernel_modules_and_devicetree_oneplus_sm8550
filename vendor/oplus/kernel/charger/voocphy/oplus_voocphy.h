@@ -717,6 +717,7 @@ struct oplus_voocphy_manager {
 	bool force_3a_flag;
 	bool btb_temp_over;
 	bool btb_err_first;
+	bool vbatt_ovp_status;
 	bool usb_bad_connect;
 	bool fastchg_ing;
 	bool fastchg_dummy_start;
@@ -1058,4 +1059,5 @@ void oplus_voocphy_clear_variables(void);
 void oplus_voocphy_turn_off_fastchg(void);
 int oplus_voocphy_get_cp_enable(void);
 int oplus_voocphy_set_ufcs_enable(bool enable);
+bool oplus_voocphy_get_vbatt_ovp_status(void);
 #endif /* _OPLUS_VOOCPHY_H_ */

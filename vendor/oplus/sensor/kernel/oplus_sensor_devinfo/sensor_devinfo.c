@@ -88,6 +88,7 @@ enum {
 #define GOLD_ALS_FACTOR             (0x0F)
 #define GOLD_REAR_ALS_FACTOR        (0x10)
 #define GOLD_REAR_CCT_FACTOR        (0x11)
+#define GYRO_CALI_RANGE             (0x12)
 
 #define RED_MAX_LUX                 (0x01)
 #define GREEN_MAX_LUX               (0x02)
@@ -123,6 +124,7 @@ static bool acc_cali_adapt_q = false;
 static struct oplus_als_cali_data *gdata = NULL;
 static struct proc_dir_entry *sensor_proc_dir = NULL;
 static int gyro_cali_version = 1;
+static int gyro_cali_range = 200;
 static int g_reg_address = 0;
 static int g_reg_value = 0;
 static int g_sar_num = ID_SAR;
@@ -960,6 +962,14 @@ static void get_accgyro_cali_version(void)
 	}
 	DEVINFO_LOG("gyro_cali_version = %d", gyro_cali_version);
 
+	accgyro_prop = oplus_get_dts_feature(accel, "/odm/gsensor", "gyro_cali_range");
+	if (accgyro_prop == NULL) {
+		gyro_cali_range = 200;
+	} else {
+		gyro_cali_range = fdt32_to_cpu(*(uint32_t *)accgyro_prop->data);
+	}
+	DEVINFO_LOG("gyro range  [%d]", gyro_cali_range);
+
 	accgyro_prop = oplus_get_dts_feature(accel, "/odm/gsensor", "acc_cali_range");
 	if (accgyro_prop == NULL) {
 		return;
@@ -1604,6 +1614,9 @@ static int sensor_feature_read_func(struct seq_file *s, void *v)
 		DEVINFO_LOG("gold_rear_cct_factor = %s \n", gold_rear_cct_factor);
 		seq_printf(s, "%s", gold_rear_cct_factor);
 		break;
+	case GYRO_CALI_RANGE:
+		seq_printf(s, "%d", gyro_cali_range);
+		break;
 	default:
 		seq_printf(s, "not support chendai\n");
 	}
@@ -1736,6 +1749,13 @@ static int oplus_sensor_feature_init()
 			UINT2Ptr(GYRO_CALI_VERSION));
 	if (!p_entry) {
 		DEVINFO_LOG("gyro_cali_version err\n ");
+		return -ENOMEM;
+	}
+
+	p_entry = proc_create_data("gyro_cali_range", S_IRUGO, oplus_sensor, &Sensor_info_fops,
+			UINT2Ptr(GYRO_CALI_RANGE));
+	if (!p_entry) {
+		DEVINFO_LOG("gyro_cali_range err\n ");
 		return -ENOMEM;
 	}
 

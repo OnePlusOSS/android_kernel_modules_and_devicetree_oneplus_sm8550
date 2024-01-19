@@ -1526,6 +1526,12 @@ static int sc8547a_ufcs_enable(struct ufcs_dev *ufcs)
 	}
 	chip->ufcs_enable = true;
 
+	rc = sc8547_write_byte(chip->client, SC8547_REG_09, SC8547_WATCHDOG_1S); /* WD:1000ms */
+	if (rc < 0) {
+		chg_err("failed to set sc8547a_ufcs_enable (%d)\n", rc);
+		return rc;
+	}
+
 	return 0;
 }
 
@@ -1540,6 +1546,12 @@ static int sc8547a_ufcs_disable(struct ufcs_dev *ufcs)
 				SC8547A_CMD_DIS_CHIP);
 	if (rc < 0) {
 		chg_err("write i2c failed\n");
+		return rc;
+	}
+
+	rc = sc8547_write_byte(chip->client, SC8547_REG_09, SC8547_WATCHDOG_DIS); /* dsiable wdt */
+	if (rc < 0) {
+		chg_err("failed to set sc8547a_ufcs_disable (%d)\n", rc);
 		return rc;
 	}
 

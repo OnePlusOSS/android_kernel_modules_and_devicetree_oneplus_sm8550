@@ -241,6 +241,57 @@ error:
 	return rc;
 }
 
+int dsi_panel_read_panel_gamma_reg_unlock(struct dsi_display_ctrl *ctrl,
+		struct dsi_panel *panel, u8 cmd, void *rbuf,  size_t len)
+{
+	int rc = 0;
+	struct dsi_cmd_desc cmdsreq;
+	struct dsi_display *display = get_main_display();
+
+	if (!panel || !ctrl || !ctrl->ctrl) {
+		return -EINVAL;
+	}
+
+	if (!dsi_ctrl_validate_host_state(ctrl->ctrl)) {
+		return 1;
+	}
+
+	memset(&cmdsreq, 0x0, sizeof(cmdsreq));
+	cmdsreq.msg.type = 0x06;
+	cmdsreq.msg.tx_buf = &cmd;
+	cmdsreq.msg.tx_len = 1;
+	cmdsreq.msg.rx_buf = rbuf;
+	cmdsreq.msg.rx_len = len;
+	cmdsreq.msg.flags |= MIPI_DSI_MSG_UNICAST_COMMAND;
+
+	cmdsreq.ctrl_flags = DSI_CTRL_CMD_READ;
+
+	/* For ovaltine rubbish panel, some register need read with LP even if hs cmd on */
+	if (!strcmp(display->panel->name, "boe rm692e5 dsc cmd mode panel")) {
+		cmdsreq.msg.flags |= MIPI_DSI_MSG_USE_LPM;
+	}
+
+	dsi_display_set_cmd_tx_ctrl_flags(display, &cmdsreq);
+	rc = dsi_ctrl_transfer_prepare(ctrl->ctrl, cmdsreq.ctrl_flags);
+	if (rc) {
+		DSI_ERR("prepare for rx cmd transfer failed rc=%d\n", rc);
+		goto error;
+	}
+
+	rc = dsi_ctrl_cmd_transfer(ctrl->ctrl, &cmdsreq);
+
+	if (rc < 0) {
+		pr_err("%s, dsi_display_read_panel_reg rx cmd transfer failed rc=%d\n",
+				__func__,
+				rc);
+	}
+
+	dsi_ctrl_transfer_unprepare(ctrl->ctrl, cmdsreq.ctrl_flags);
+
+error:
+	return rc;
+}
+
 int dsi_panel_read_panel_reg_unlock(struct dsi_display_ctrl *ctrl,
 		struct dsi_panel *panel, u8 cmd, void *rbuf,  size_t len)
 {

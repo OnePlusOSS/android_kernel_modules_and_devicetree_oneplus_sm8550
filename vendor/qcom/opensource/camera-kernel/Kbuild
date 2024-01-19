@@ -256,7 +256,8 @@ camera-$(CONFIG_SPECTRA_OPLUS) += \
 	drivers/oplus/cam_sensor_module/cam_tof8801/tof8801_driver.o \
 	drivers/oplus/cam_sensor_module/cam_tof8801/tof8801_bootloader.o \
 	drivers/oplus/cam_sensor_module/cam_tof8801/tof_hex_interpreter.o \
-	drivers/oplus/cam_sensor_module/cam_tof8801/tof8801_app0.o
+	drivers/oplus/cam_sensor_module/cam_tof8801/tof8801_app0.o \
+	drivers/oplus/cam_sensor_module/cam_sensor_utils/oplus_cam_sensor_util.o
 
 camera-$(CONFIG_LEDS_QPNP_FLASH_V2) += \
 	drivers/cam_sensor_module/cam_flash/cam_flash_dev.o \

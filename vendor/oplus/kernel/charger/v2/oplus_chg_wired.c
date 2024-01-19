@@ -51,6 +51,9 @@
 #define SALE_MODE_COOL_DOWN_TWO		502
 #define OPLUS_CHG_500_CHARGING_CURRENT	500
 #define OPLUS_CHG_900_CHARGING_CURRENT	900
+#define OPLUS_CHG_VBUS_5V		5000
+#define OPLUS_CHG_VBUS_9V		9000
+#define OPLUS_CHG_SHUTDOWN_WAIT		100
 
 struct oplus_wired_spec_config {
 	int32_t pd_iclmax_ma;
@@ -341,7 +344,7 @@ static void oplus_wired_vbus_check(struct oplus_chg_wired *chip)
 	if (chip->vooc_started)
 		goto done;
 
-	if (chip->vbus_set_mv == 9000)
+	if (chip->vbus_set_mv == OPLUS_CHG_VBUS_9V)
 		vbus_type = OPLUS_VBUS_9V;
 	else
 		vbus_type = OPLUS_VBUS_5V;
@@ -534,7 +537,7 @@ static void oplus_wired_variables_init(struct oplus_chg_wired *chip)
 	chip->chg_online = false;
 
 	chip->chg_type = OPLUS_CHG_USB_TYPE_UNKNOWN;
-	chip->vbus_set_mv = 5000;
+	chip->vbus_set_mv = OPLUS_CHG_VBUS_5V;
 	chip->temp_region = TEMP_REGION_HOT;
 	chip->chg_mode = OPLUS_WIRED_CHG_MODE_UNKNOWN;
 	chip->qc_action = OPLUS_ACTION_NULL;
@@ -575,7 +578,7 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 		container_of(work, struct oplus_chg_wired, qc_config_work.work);
 	struct oplus_wired_spec_config *spec = &chip->spec;
 	int cool_down, cool_down_vol;
-	int vbus_set_mv = 5000; /* vbus default setting voltage is 5V */
+	int vbus_set_mv = OPLUS_CHG_VBUS_5V; /* vbus default setting voltage is 5V */
 	bool vbus_changed = false;
 	int rc;
 
@@ -593,7 +596,7 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 	chip->vbus_mv = oplus_wired_get_vbus();
 	switch (chip->qc_action) {
 	case OPLUS_ACTION_BOOST:
-		if (cool_down_vol > 0 && cool_down_vol < 9000) {
+		if (cool_down_vol > 0 && cool_down_vol < OPLUS_CHG_VBUS_9V) {
 			chg_info("cool down limit, qc cannot be boosted\n");
 			chip->qc_action = OPLUS_ACTION_NULL;
 			goto set_curr;
@@ -608,7 +611,7 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 		    chip->vbat_mv < spec->vbatt_pdqc_to_9v_thr) {
 			chg_info("qc starts to boost, retry count %d.\n", chip->qc_retry_count);
 			mutex_lock(&chip->icl_lock);
-			rc = oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, 9000);
+			rc = oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, OPLUS_CHG_VBUS_9V);
 			mutex_unlock(&chip->icl_lock);
 			if (rc == -EAGAIN) {
 				chg_err("vbus_mv = %d mv, try again.\n", chip->vbus_mv);
@@ -636,7 +639,7 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 			chip->qc_action = OPLUS_ACTION_NULL;
 			goto set_curr;
 		}
-		chip->vbus_set_mv = 9000;
+		chip->vbus_set_mv = OPLUS_CHG_VBUS_9V;
 		break;
 	case OPLUS_ACTION_BUCK:
 		chg_info("qc starts to buck\n");
@@ -650,13 +653,13 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 		vote(chip->icl_votable, SPEC_VOTER, true, PDQC_BUCK_DEF_CURR_MA,
 		     true);
 		mutex_lock(&chip->icl_lock);
-		rc = oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, 5000);
+		rc = oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, OPLUS_CHG_VBUS_5V);
 		mutex_unlock(&chip->icl_lock);
 		if (rc < 0) {
 			chip->qc_action = OPLUS_ACTION_NULL;
 			goto set_curr;
 		}
-		chip->vbus_set_mv = 5000;
+		chip->vbus_set_mv = OPLUS_CHG_VBUS_5V;
 		break;
 	default:
 		goto set_curr;
@@ -675,15 +678,15 @@ static void oplus_wired_qc_config_work(struct work_struct *work)
 		chg_err("qc config timeout\n");
 		chip->vbus_mv = oplus_wired_get_vbus();
 		if (chip->vbus_mv >= 7500)
-			vbus_set_mv = 9000;
+			vbus_set_mv = OPLUS_CHG_VBUS_9V;
 		else
-			vbus_set_mv = 5000;
+			vbus_set_mv = OPLUS_CHG_VBUS_5V;
 		chip->qc_action = OPLUS_ACTION_NULL;
 	}
 	if (chip->qc_action == OPLUS_ACTION_BOOST)
-		vbus_set_mv = 9000;
+		vbus_set_mv = OPLUS_CHG_VBUS_9V;
 	else if (chip->qc_action == OPLUS_ACTION_BUCK)
-		vbus_set_mv = 5000;
+		vbus_set_mv = OPLUS_CHG_VBUS_5V;
 	chip->qc_action = OPLUS_ACTION_NULL;
 
 	if (vbus_set_mv != chip->vbus_set_mv) {
@@ -723,7 +726,7 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 		container_of(work, struct oplus_chg_wired, pd_config_work.work);
 	struct oplus_wired_spec_config *spec = &chip->spec;
 	int cool_down, cool_down_vol;
-	int vbus_set_mv = 5000; /* vbus default setting voltage is 5V */
+	int vbus_set_mv = OPLUS_CHG_VBUS_5V; /* vbus default setting voltage is 5V */
 	bool vbus_changed = false;
 	int rc;
 	int vbus_get_mv = 0;
@@ -771,7 +774,7 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 			chip->pd_action = OPLUS_ACTION_NULL;
 			goto set_curr;
 		}
-		if (cool_down_vol > 0 && cool_down_vol < 9000) {
+		if (cool_down_vol > 0 && cool_down_vol < OPLUS_CHG_VBUS_9V) {
 			chg_info("cool down limit, pd cannot be boosted\n");
 			chip->pd_action = OPLUS_ACTION_NULL;
 			goto set_curr;
@@ -806,7 +809,7 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 			chip->pd_action = OPLUS_ACTION_NULL;
 			goto set_curr;
 		}
-		chip->vbus_set_mv = 9000;
+		chip->vbus_set_mv = OPLUS_CHG_VBUS_9V;
 		break;
 	case OPLUS_ACTION_BUCK:
 		chg_info("pd starts to buck\n");
@@ -825,7 +828,7 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 			chip->pd_action = OPLUS_ACTION_NULL;
 			goto set_curr;
 		}
-		chip->vbus_set_mv = 5000;
+		chip->vbus_set_mv = OPLUS_CHG_VBUS_5V;
 		break;
 	default:
 		goto set_curr;
@@ -844,15 +847,15 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 		chg_err("pd config timeout\n");
 		chip->vbus_mv = oplus_wired_get_vbus();
 		if (chip->vbus_mv >= 7500)
-			vbus_set_mv = 9000;
+			vbus_set_mv = OPLUS_CHG_VBUS_9V;
 		else
-			vbus_set_mv = 5000;
+			vbus_set_mv = OPLUS_CHG_VBUS_5V;
 		chip->pd_action = OPLUS_ACTION_NULL;
 	}
 	if (chip->pd_action == OPLUS_ACTION_BOOST)
-		vbus_set_mv = 9000;
+		vbus_set_mv = OPLUS_CHG_VBUS_9V;
 	else if (chip->pd_action == OPLUS_ACTION_BUCK)
-		vbus_set_mv = 5000;
+		vbus_set_mv = OPLUS_CHG_VBUS_5V;
 	chip->pd_action = OPLUS_ACTION_NULL;
 
 	if (vbus_set_mv != chip->vbus_set_mv) {
@@ -928,7 +931,7 @@ static void oplus_wired_gauge_update_work(struct work_struct *work)
 	if (chip->vbus_mv > 7500 &&
 	    ((spec->vbatt_pdqc_to_5v_thr > 0 &&
 	      chip->vbat_mv >= spec->vbatt_pdqc_to_5v_thr) ||
-	     (cool_down_vol > 0 && cool_down_vol < 9000))) {
+	     (cool_down_vol > 0 && cool_down_vol < OPLUS_CHG_VBUS_9V))) {
 		if (chip->chg_mode == OPLUS_WIRED_CHG_MODE_QC) {
 			chip->qc_action = OPLUS_ACTION_BUCK;
 			schedule_delayed_work(&chip->qc_config_work, 0);
@@ -1154,7 +1157,7 @@ static void oplus_wired_plugin_work(struct work_struct *work)
 		cancel_delayed_work_sync(&chip->pd_config_work);
 		cancel_work_sync(&chip->qc_check_work);
 		cancel_work_sync(&chip->pd_check_work);
-		chip->vbus_set_mv = 5000;
+		chip->vbus_set_mv = OPLUS_CHG_VBUS_5V;
 		oplus_wired_set_err_code(chip, 0);
 
 		if (is_pd_svooc_votable_available(chip))
@@ -2044,6 +2047,40 @@ static int oplus_wired_strategy_init(struct oplus_chg_wired *chip)
 	return 0;
 }
 
+static void oplus_wired_shutdown(struct platform_device *pdev)
+{
+	struct oplus_chg_wired *chip = platform_get_drvdata(pdev);
+
+	if (!chip || !chip->chg_online) {
+		chg_err("chip NULL or charger not online");
+		return;
+	}
+
+	chip->chg_type = oplus_wired_get_chg_type();
+	chg_info("wired_type=%s, chg_mode = %d\n", oplus_wired_get_chg_type_str(chip->chg_type),
+		chip->chg_mode);
+	switch (chip->chg_type) {
+	case OPLUS_CHG_USB_TYPE_PD:
+	case OPLUS_CHG_USB_TYPE_PD_DRP:
+	case OPLUS_CHG_USB_TYPE_PD_PPS:
+		if (chip->chg_mode == OPLUS_WIRED_CHG_MODE_PD) {
+			oplus_wired_set_pd_config(OPLUS_PD_5V_PDO);
+			msleep(OPLUS_CHG_SHUTDOWN_WAIT);
+		}
+		break;
+	case OPLUS_CHG_USB_TYPE_QC2:
+	case OPLUS_CHG_USB_TYPE_QC3:
+		if (chip->chg_mode == OPLUS_WIRED_CHG_MODE_QC) {
+			oplus_wired_set_qc_config(OPLUS_CHG_QC_2_0, OPLUS_CHG_VBUS_5V);
+			msleep(OPLUS_CHG_SHUTDOWN_WAIT);
+		}
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
 #if IS_ENABLED(CONFIG_OPLUS_DYNAMIC_CONFIG_CHARGER)
 #include "config/dynamic_cfg/oplus_wired_cfg.c"
 #endif
@@ -2179,6 +2216,7 @@ static struct platform_driver oplus_wired_driver = {
 	},
 	.probe		= oplus_wired_probe,
 	.remove		= oplus_wired_remove,
+	.shutdown   = oplus_wired_shutdown,
 };
 
 static __init int oplus_wired_init(void)

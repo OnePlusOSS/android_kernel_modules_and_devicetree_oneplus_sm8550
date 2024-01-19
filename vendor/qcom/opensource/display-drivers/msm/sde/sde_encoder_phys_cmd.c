@@ -419,6 +419,7 @@ static void sde_encoder_phys_cmd_te_rd_ptr_irq(void *arg, int irq_idx)
 	conn = to_sde_connector(phys_enc->connector);
 	if (conn) {
 		oplus_panel_cmdq_pack_status_reset(conn);
+		oplus_set_pwm_switch_cmd_te_flag(conn);
 	}
 #endif /* OPLUS_FEATURE_DISPLAY */
 

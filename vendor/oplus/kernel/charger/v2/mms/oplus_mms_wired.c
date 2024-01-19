@@ -395,8 +395,6 @@ int oplus_wired_get_charger_cycle(void)
 	if (rc < 0) {
 		if (rc != -ENOTSUPP)
 			chg_err("error: get charger cycle, rc=%d\n", rc);
-	} else {
-		chg_info("charger_cycle = %d\n", cycle);
 	}
 
 	return cycle;

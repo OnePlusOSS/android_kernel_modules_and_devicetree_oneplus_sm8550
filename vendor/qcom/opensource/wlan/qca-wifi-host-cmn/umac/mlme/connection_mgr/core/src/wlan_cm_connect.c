@@ -547,7 +547,6 @@ cm_candidate_mlo_update(struct scan_cache_entry *scan_entry,
 			struct validate_bss_data *validate_bss_info)
 {
 	validate_bss_info->is_mlo = !!scan_entry->ie_list.multi_link_bv;
-	validate_bss_info->scan_entry = scan_entry;
 }
 #else
 static inline
@@ -637,6 +636,7 @@ QDF_STATUS cm_if_mgr_validate_candidate(struct cnx_mgr *cm_ctx,
 	event_data.validate_bss_info.beacon_interval = scan_entry->bcn_int;
 	qdf_copy_macaddr(&event_data.validate_bss_info.peer_addr,
 			 &scan_entry->bssid);
+	event_data.validate_bss_info.scan_entry = scan_entry;
 	cm_candidate_mlo_update(scan_entry, &event_data.validate_bss_info);
 
 	return if_mgr_deliver_event(cm_ctx->vdev,

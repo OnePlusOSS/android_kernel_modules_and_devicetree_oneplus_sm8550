@@ -4796,6 +4796,7 @@ static bool _sde_cp_feature_in_activelist(u32 feature, struct list_head *list)
 void oplus_sde_cp_crtc_pcc_change(struct drm_crtc *crtc_drm)
 {
 	struct sde_cp_node *prop_node = NULL;
+	struct sde_cp_node *n = NULL;
 	struct sde_crtc *crtc;
 
 	if (!crtc_drm) {
@@ -4804,7 +4805,7 @@ void oplus_sde_cp_crtc_pcc_change(struct drm_crtc *crtc_drm)
 	}
 	crtc = to_sde_crtc(crtc_drm);
 	mutex_lock(&crtc->crtc_cp_lock);
-	list_for_each_entry(prop_node, &crtc->cp_feature_list, cp_feature_list) {
+	list_for_each_entry_safe(prop_node, n, &crtc->cp_feature_list, cp_feature_list) {
 		if (prop_node->feature != SDE_CP_CRTC_DSPP_PCC
 			&& prop_node->feature != SDE_CP_CRTC_DSPP_GAMUT) /* Gamut should be taken care of too */
 			continue;

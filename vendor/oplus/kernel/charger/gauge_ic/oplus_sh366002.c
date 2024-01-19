@@ -142,7 +142,7 @@
 #define LINELEN_READ 4
 #define LINELEN_COMPARE 4
 #define LINELEN_WRITE 4
-#define FILEDECODE_STRLEN 96
+#define FILEDECODE_STRLEN 128
 #define COMPARE_RETRY_CNT 2
 #define COMPARE_RETRY_WAIT 50
 #define BUF_MAX_LENGTH 512
@@ -668,6 +668,11 @@ static s32 print_buffer(char *str, s32 strlen, u8 *buf, s32 buflen)
 	memset(str, 0, strlen * sizeof(char));
 
 	j = min(buflen, strlen / PRINT_BUFFER_FORMAT_LEN);
+	if (j * PRINT_BUFFER_FORMAT_LEN >= strlen) {
+		chg_err("buflen is more than max\n");
+		return -1;
+	}
+
 	for (i = 0; i < j; i++) {
 		sprintf(&str[i * PRINT_BUFFER_FORMAT_LEN], "%02X ", buf[i]);
 	}

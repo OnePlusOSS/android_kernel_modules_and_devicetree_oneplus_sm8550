@@ -376,8 +376,8 @@ void print_mode_chosen(struct seq_file *seq, subsys_lprinfo *g_subsys_lprinfo, s
 		seq_printf(seq, "Sleep mode chosen: %d from 0 - %d. (0 is deepest sleep level)\n",
 				g_subsys_sleepmon->synth_mode_voters.modeChosen, (synth_modes_cnt - 1));
 		reason_id = check_sleep_mode_chosen(g_adsp_lprinfo, g_adsp_sleepmon);
-		seq_printf(seq, "| active thread  |      LPRM      | sleep duration |    latency     |\n");
-		seq_printf(seq, "---------------------------------------------------------------------\n");
+		seq_printf(seq, "| active thread  |      LPRM      | sleep duration |    latency     |     clock      |\n");
+		seq_printf(seq, "--------------------------------------------------------------------------------------\n");
 		seq_printf(seq, "|");
 		for(i = 0; i < MODE_CHECK_REASON_NUM; i++) {
 			if(!(reason_id & (1 << i))) {
@@ -476,11 +476,15 @@ static int adsp_sleepmon_open(struct inode *inode, struct file *file)
 static const struct proc_ops adsp_sleepmon_fops = {
 	.proc_open		= adsp_sleepmon_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations adsp_sleepmon_fops = {
-	.open		= adsp_sleepmon_open,
-	.read		= seq_read,
+	.open			= adsp_sleepmon_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 
@@ -532,11 +536,15 @@ static int adsp_sleepmon_compact_open(struct inode *inode, struct file *file)
 static const struct proc_ops adsp_sleepmon_compact_fops = {
 	.proc_open		= adsp_sleepmon_compact_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations adsp_sleepmon_compact_fops = {
-	.open		= adsp_sleepmon_compact_open,
-	.read		= seq_read,
+	.open			= adsp_sleepmon_compact_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 /*----adsp subsystem sleep info node end----*/
@@ -592,11 +600,15 @@ static int cdsp_sleepmon_open(struct inode *inode, struct file *file)
 static const struct proc_ops cdsp_sleepmon_fops = {
 	.proc_open		= cdsp_sleepmon_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations cdsp_sleepmon_fops = {
-	.open		= cdsp_sleepmon_open,
-	.read		= seq_read,
+	.open			= cdsp_sleepmon_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 
@@ -648,11 +660,15 @@ static int cdsp_sleepmon_compact_open(struct inode *inode, struct file *file)
 static const struct proc_ops cdsp_sleepmon_compact_fops = {
 	.proc_open		= cdsp_sleepmon_compact_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations cdsp_sleepmon_compact_fops = {
-	.open		= cdsp_sleepmon_compact_open,
-	.read		= seq_read,
+	.open			= cdsp_sleepmon_compact_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 /*----cdsp subsystem sleep info node end----*/
@@ -708,11 +724,15 @@ static int slpi_sleepmon_open(struct inode *inode, struct file *file)
 static const struct proc_ops slpi_sleepmon_fops = {
 	.proc_open		= slpi_sleepmon_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations slpi_sleepmon_fops = {
-	.open		= slpi_sleepmon_open,
-	.read		= seq_read,
+	.open			= slpi_sleepmon_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 
@@ -765,11 +785,15 @@ static int slpi_sleepmon_compact_open(struct inode *inode, struct file *file)
 static const struct proc_ops slpi_sleepmon_compact_fops = {
 	.proc_open		= slpi_sleepmon_compact_open,
 	.proc_read		= seq_read,
+	.proc_lseek 		= default_llseek,
+	.proc_release		= seq_release,
 };
 #else
 static const struct file_operations slpi_sleepmon_compact_fops = {
-	.open		= slpi_sleepmon_compact_open,
-	.read		= seq_read,
+	.open			= slpi_sleepmon_compact_open,
+	.read			= seq_read,
+	.proc_lseek 		= seq_lseek,
+	.proc_release		= seq_release,
 };
 #endif
 /*----slpi subsystem sleep info node end----*/

@@ -5274,10 +5274,6 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool config_changed)
 	if (sde_enc->cur_master)
 		_sde_encoder_update_retire_txq(sde_enc->cur_master, sde_kms);
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_panel_cmdq_pack_status_reset(c_conn);
-#endif
-
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	if (oplus_ofp_is_supported()) {
 		oplus_ofp_hbm_handle(sde_enc);

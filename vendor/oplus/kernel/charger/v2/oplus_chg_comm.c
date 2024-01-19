@@ -74,6 +74,7 @@
 #define VBAT_MAX_GAP		50
 #define TEMP_BATTERY_STATUS__REMOVED 190
 #define COUNT_TIMELIMIT		4
+#define MIN_DELTA_SOC		1
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 #define pde_data(inode) PDE_DATA(inode)
@@ -1233,11 +1234,9 @@ static void oplus_comm_check_rechg(struct oplus_chg_comm *chip)
 		chip->rechg_count = 0;
 		chip->sw_full = false;
 		chip->hw_full_by_sw = false;
-		oplus_comm_set_batt_full(chip, false);
 		if (is_support_parallel_battery(chip->gauge_topic)) {
 			chip->sw_sub_batt_full = false;
 			chip->hw_sub_batt_full_by_sw = false;
-			oplus_comm_set_sub_batt_full(chip, false);
 		}
 		oplus_comm_set_rechging(chip, true);
 		if (chip->wls_online) {
@@ -1884,7 +1883,7 @@ static void oplus_comm_ui_soc_update(struct oplus_chg_comm *chip)
 			ui_soc = (ui_soc < 100) ? (ui_soc + 1) : 100;
 			chip->sleep_tm_sec = 0;
 			chip->save_sleep_tm_sec = 0;
-		} else if (ui_soc > smooth_soc &&
+		} else if (ui_soc > (smooth_soc + MIN_DELTA_SOC) &&
 			   !(chip->sw_full || chip->hw_full_by_sw) &&
 			   time_is_before_jiffies(soc_down_jiffies)) {
 			ui_soc = (ui_soc > 1) ? (ui_soc - 1) : 1;
@@ -1977,9 +1976,6 @@ done:
 		}
 	}
 
-	chg_info("ui_soc=%d, real_soc=%d, update_delay=%u force_down =%d\n",
-		 chip->ui_soc, smooth_soc, jiffies_to_msecs(update_delay),
-		 force_down);
 
 	if (update_delay > 0)
 		schedule_delayed_work(&chip->ui_soc_update_work, update_delay);
@@ -2758,8 +2754,6 @@ static void oplus_chg_gauge_stuck(struct oplus_chg_comm *chip)
 	if (time_after_eq(jiffies, cnt_time) || chip->soc == 100) {
 		cnt_time = CNT_TIMELIMIT * HZ;
 		cnt_time += jiffies;
-		chg_err("current_sum = %d theory_current_sum = %d gauge_stuck_threshold = %d\n",
-			current_sum, theory_current_sum, spec->gauge_stuck_threshold);
 		if ((abs(current_sum) > (spec->gauge_stuck_threshold * theory_current_sum) / MULTIPLE) &&
 		    !abs(chip->soc - first_soc) && chip->soc != 100) {
 			chip->gauge_stuck = true;
@@ -3134,7 +3128,6 @@ static void oplus_comm_check_shell_temp(struct oplus_chg_comm *chip, bool update
 		shell_temp = chip->batt_temp;
 	} else {
 		rc = thermal_zone_get_temp(chip->shell_themal, &shell_temp);
-		chg_debug("Can get shell_back %p %d\n", chip->shell_themal, shell_temp / 100);
 
 		if (rc) {
 			chg_err("thermal_zone_get_temp get error");

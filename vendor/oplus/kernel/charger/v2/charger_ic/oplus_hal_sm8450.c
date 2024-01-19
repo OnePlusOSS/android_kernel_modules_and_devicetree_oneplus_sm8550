@@ -45,6 +45,8 @@
 #define OPLUS_HVDCP_DETECT_TO_DETACH_TIME 3600
 #define OEM_MISC_CTL_DATA_PAIR(cmd, enable) ((enable ? 0x3 : 0x1) << cmd)
 #define OPLUS_PD_ONLY_CHECK_INTERVAL round_jiffies_relative(msecs_to_jiffies(500))
+#define OPLUS_RERUN_AICL_THRESHOLD_MS	100
+#define ICL_IBUS_ABS_THRESHOLD_MA	600
 
 struct battery_chg_dev *g_bcdev = NULL;
 static int oplus_get_vchg_trig_status(void);
@@ -59,6 +61,8 @@ static int oplus_chg_8350_get_charger_type(struct oplus_chg_ic_dev *ic_dev, int 
 #endif /*OPLUS_FEATURE_CHG_BASIC*/
 static int oplus_chg_8350_get_icl(struct oplus_chg_ic_dev *ic_dev, int *icl_ma);
 static int oplus_chg_set_input_current_with_no_aicl(struct battery_chg_dev *bcdev, int current_ma);
+static int oplus_chg_8350_get_input_curr(struct oplus_chg_ic_dev *ic_dev, int *curr_ma);
+static int oplus_chg_8350_aicl_rerun(struct oplus_chg_ic_dev *ic_dev);
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
 /*for p922x compile*/
@@ -4962,6 +4966,7 @@ aicl_boost_back:
 	chg_info("usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_boost_back\n", chg_vol, i, usb_icl[i], aicl_point);
 	goto aicl_return;
 aicl_return:
+	schedule_delayed_work(&bcdev->ibus_collapse_rerun_aicl_work, OPLUS_RERUN_AICL_THRESHOLD_MS);
 	return rc;
 }
 
@@ -4971,6 +4976,30 @@ static void oplus_vbus_collapse_rerun_icl_work(struct work_struct *work)
 		struct battery_chg_dev, vbus_collapse_rerun_icl_work.work);
 
 	oplus_chg_set_input_current(bcdev, bcdev->g_icl_ma);
+}
+
+static void oplus_ibus_collapse_rerun_aicl_work(struct work_struct *work)
+{
+	int icl_ma;
+	int ibus_ma;
+	struct oplus_chg_ic_dev *ic_dev;
+
+	struct battery_chg_dev *bcdev = container_of(work,
+		struct battery_chg_dev, ibus_collapse_rerun_aicl_work.work);
+
+	if (!bcdev || !bcdev->buck_ic) {
+		chg_err("bcdev is NULL");
+		return;
+	}
+
+	ic_dev = bcdev->buck_ic;
+	oplus_chg_8350_get_icl(ic_dev, &icl_ma);
+	oplus_chg_8350_get_input_curr(ic_dev, &ibus_ma);
+
+	if (abs(icl_ma - ibus_ma) > ICL_IBUS_ABS_THRESHOLD_MA) {
+		chg_info("icl_ma:%d, ibus_ma:%d, ibus error, rerun aicl", icl_ma, ibus_ma);
+		oplus_chg_8350_aicl_rerun(ic_dev);
+	}
 }
 
 static int oplus_chg_8350_set_icl(struct oplus_chg_ic_dev *ic_dev,
@@ -5223,12 +5252,23 @@ static int oplus_chg_8350_aicl_rerun(struct oplus_chg_ic_dev *ic_dev)
 {
 	int rc = 0;
 
+#ifndef CONFIG_OPLUS_SM8550_CHARGER
+	struct battery_chg_dev *bcdev;
+	struct psy_state *pst = NULL;
+
 	if (ic_dev == NULL) {
 		chg_err("oplus_chg_ic_dev is NULL");
 		return -ENODEV;
 	}
 
-	/* TODO */
+	bcdev = oplus_chg_ic_get_drvdata(ic_dev);
+	pst = &bcdev->psy_list[PSY_TYPE_USB];
+
+	rc = write_property_id(bcdev, pst, USB_SET_RERUN_AICl, 0);
+	if (rc)
+		chg_err("rerun aicl fail, rc=%d\n", rc);
+
+#endif
 
 	return rc;
 }
@@ -5701,7 +5741,6 @@ static int oplus_chg_8350_get_typec_mode(struct oplus_chg_ic_dev *ic_dev,
 	else
 		*mode = TYPEC_PORT_ROLE_SRC;
 
-	chg_info("typec real_mode=%d, mode=%d.\n", pst->prop[USB_TYPEC_MODE], *mode);
 	return rc;
 }
 
@@ -6958,6 +6997,7 @@ static int battery_chg_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&bcdev->recheck_input_current_work, oplus_recheck_input_current_work);
 	INIT_DELAYED_WORK(&bcdev->qc_type_check_work, oplus_qc_type_check_work);
 	INIT_DELAYED_WORK(&bcdev->vbus_collapse_rerun_icl_work, oplus_vbus_collapse_rerun_icl_work);
+	INIT_DELAYED_WORK(&bcdev->ibus_collapse_rerun_aicl_work, oplus_ibus_collapse_rerun_aicl_work);
 #endif
 #ifdef OPLUS_FEATURE_CHG_BASIC
 	INIT_DELAYED_WORK(&bcdev->vchg_trig_work, oplus_vchg_trig_work);

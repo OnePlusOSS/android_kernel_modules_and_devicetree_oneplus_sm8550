@@ -22,6 +22,7 @@
 #include <linux/rpmsg.h>
 #include <linux/pm_wakeup.h>
 #include <linux/power_supply.h>
+#include <oplus_battery_log.h>
 #include "oplus_voocphy.h"
 #include "../oplus_charger.h"
 #include "../oplus_vooc.h"
@@ -29,6 +30,7 @@
 #include "../oplus_chg_track.h"
 
 #define BTBOVER_5V1A_CHARGE_STD					0x01
+#define VBATT_OVP_CHARGE_STD					0x02
 
 typedef enum _FASTCHG_STATUS
 {
@@ -154,7 +156,7 @@ static void oplus_adsp_voocphy_handle_track_status(
 		break;
 	case ADSP_VPHY_FAST_NOTIFY_HW_VBATT_HIGH:
 		oplus_chg_track_set_fastchg_break_code(
-			TRACK_ADSP_VOOCPHY_HW_VBATT_HIGH);
+			TRACK_ADSP_VOOCPHY_FULL);
 		break;
 	case ADSP_VPHY_FAST_NOTIFY_HW_TBATT_HIGH:
 		oplus_chg_track_set_fastchg_break_code(
@@ -284,13 +286,19 @@ void oplus_adsp_voocphy_handle_status(struct power_supply *psy, int intval)
 				chip->btb_temp_over = true;
 			else
 				chip->btb_temp_over = false;
+		} else if (real_fastchg_status == ADSP_VPHY_FAST_NOTIFY_HW_VBATT_HIGH) {
+			if (((intval >> 8) & 0xFF) == VBATT_OVP_CHARGE_STD)
+				chip->vbatt_ovp_status = true;
+			else
+				chip->vbatt_ovp_status = false;
 		} else {
+			chip->vbatt_ovp_status = false;
 			chip->btb_temp_over = false;
 		}
 
 		oplus_chg_unsuspend_charger();
-		printk(KERN_ERR "!!![adsp_voocphy] fastchg to normal: [%d] btb_temp_over [%d]\n",
-			chip->fastchg_to_normal, chip->btb_temp_over);
+		printk(KERN_ERR "!!![adsp_voocphy] fastchg to normal: [%d] btb_temp_over [%d] vbatt_ovp [%d]\n",
+			chip->fastchg_to_normal, chip->btb_temp_over, chip->vbatt_ovp_status);
 		power_supply_changed(psy);
 	} else if ((intval & 0xFF) == ADSP_VPHY_FAST_NOTIFY_BATT_TEMP_OVER) {
 		chip->fastchg_start = false;
@@ -393,6 +401,38 @@ void oplus_adsp_voocphy_handle_status(struct power_supply *psy, int intval)
 	}
 }
 
+static int voocphy_dump_log_data(char *buffer, int size, void *dev_data)
+{
+	struct oplus_voocphy_manager *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size, ",%d,%d,%d,%d",
+		chip->fast_chg_type,chip->adsp_voocphy_rx_data, chip->fastchg_to_warm, chip->fastchg_dummy_start);
+
+	return 0;
+}
+
+static int voocphy_get_log_head(char *buffer, int size, void *dev_data)
+{
+	struct oplus_voocphy_manager *chip = dev_data;
+
+	if (!buffer || !chip)
+		return -ENOMEM;
+
+	snprintf(buffer, size,
+		", [voocphy]:adapter_version, adsp_voocphy_status, fastchg_to_warm, fastchg_dummy_start");
+
+	return 0;
+}
+
+static struct battery_log_ops battlog_voocphy_ops = {
+	.dev_name = "voocphy",
+	.dump_log_head = voocphy_get_log_head,
+	.dump_log_content = voocphy_dump_log_data,
+};
+
 static int adsp_voocphy_probe(struct platform_device *pdev)
 {
 	struct oplus_voocphy_manager *chip = NULL;
@@ -413,6 +453,8 @@ static int adsp_voocphy_probe(struct platform_device *pdev)
 	oplus_adsp_voocphy_clear_status();
 	INIT_DELAYED_WORK(&chip->voocphy_check_charger_out_work,
 						oplus_voocphy_check_charger_out_work_func);
+	battlog_voocphy_ops.dev_data = (void *)chip;
+	battery_log_ops_register(&battlog_voocphy_ops);
 
 	pr_err("%s: end\n", __func__);
 
