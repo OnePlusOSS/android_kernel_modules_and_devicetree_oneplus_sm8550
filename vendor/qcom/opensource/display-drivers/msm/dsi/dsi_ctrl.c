@@ -497,7 +497,9 @@ static void dsi_ctrl_post_cmd_transfer(struct dsi_ctrl *dsi_ctrl)
 static void dsi_ctrl_post_cmd_transfer_work(struct work_struct *work)
 {
 	struct dsi_ctrl *dsi_ctrl = NULL;
-
+#ifdef OPLUS_FEATURE_DISPLAY
+	usleep_range(5 * 100, (5 * 100) + 100);
+#endif /* OPLUS_FEATURE_DISPLAY */
 	dsi_ctrl = container_of(work, struct dsi_ctrl, post_cmd_tx_work);
 
 	dsi_ctrl_post_cmd_transfer(dsi_ctrl);

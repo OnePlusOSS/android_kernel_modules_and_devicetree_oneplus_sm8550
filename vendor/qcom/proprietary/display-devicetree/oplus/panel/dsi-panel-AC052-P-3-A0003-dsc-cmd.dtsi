@@ -126,6 +126,16 @@
 					39 00 00 00 00 00 09 BA 33 33 33 33 33 33 33 33
 					];
 				qcom,mdss-dsi-on-command=[
+					/*elvss elvdd  DELAY*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 CD 61
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 00
+					15 00 00 40 00 00 02 D8 F0
+					15 00 00 40 00 00 02 6F 0C
+					15 00 00 00 00 00 02 D8 F0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 00 00 00 05 B9 04 00 00 82
 					/*TE ON*/
 					39 00 00 40 00 00 06 F0 55 AA 52 00 00 /*Page 0*/
 					05 00 00 00 00 00 01 35
@@ -196,6 +206,13 @@
 					15 00 00 40 00 00 02 6F 44
 					39 00 00 00 00 00 18 B5 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 21 21 16 16 07 07 07 07 07
 
+					/* hbm hdr fix vint2 -4.5v */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 01
+					15 00 00 40 00 00 02 C0 45
+					15 00 00 40 00 00 02 6F 18
+					15 00 00 00 00 00 02 6F 45
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*120HZ SEQ Setting (different from OP Manual, custom by display hw)*/
@@ -264,6 +281,12 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 14
 					15 00 00 00 00 00 02 B2 0B
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -372,6 +395,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 
 				qcom,lm-split = <1220 1220>;
@@ -435,6 +460,16 @@
 					15 00 00 00 00 00 02 B0 00
 					];
 				qcom,mdss-dsi-on-command=[
+					/*elvss elvdd  DELAY*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 CD 61
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 00
+					15 00 00 40 00 00 02 D8 F0
+					15 00 00 40 00 00 02 6F 0C
+					15 00 00 00 00 00 02 D8 F0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 00 00 00 05 B9 04 00 00 82
 					/*TE ON*/
 					39 00 00 40 00 00 06 F0 55 AA 52 00 00 /*Page 0*/
 					05 00 00 00 00 00 01 35
@@ -503,6 +538,13 @@
 					15 00 00 40 00 00 02 6F 44
 					39 00 00 00 00 00 18 B5 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 21 21 16 16 07 07 07 07 07
 
+					/* hbm hdr fix vint2 -4.5v */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 01
+					15 00 00 40 00 00 02 C0 45
+					15 00 00 40 00 00 02 6F 18
+					15 00 00 00 00 00 02 6F 45
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*display on*/
@@ -543,6 +585,12 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 12
 					15 00 00 00 00 00 02 B2 0F
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -652,6 +700,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 
 				qcom,lm-split = <1220 1220>;
@@ -745,6 +795,16 @@
 					39 00 00 00 00 00 09 BA 33 33 33 33 33 33 33 33
 					];
 				qcom,mdss-dsi-on-command=[
+					/*elvss elvdd  DELAY*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 CD 61
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 00
+					15 00 00 40 00 00 02 D8 F0
+					15 00 00 40 00 00 02 6F 0C
+					15 00 00 00 00 00 02 D8 F0
+					39 00 00 40 00 00 06 F0 55 AA 52 08 05
+					39 00 00 00 00 00 05 B9 04 00 00 82
 					/*TE ON*/
 					39 00 00 40 00 00 06 F0 55 AA 52 00 00 /*Page 0*/
 					05 00 00 00 00 00 01 35
@@ -815,6 +875,13 @@
 					15 00 00 40 00 00 02 6F 44
 					39 00 00 00 00 00 18 B5 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A 21 21 16 16 07 07 07 07 07
 
+					/* hbm hdr fix vint2 -4.5v */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 01
+					15 00 00 40 00 00 02 6F 01
+					15 00 00 40 00 00 02 C0 45
+					15 00 00 40 00 00 02 6F 18
+					15 00 00 00 00 00 02 6F 45
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*60HZ SEQ Setting (different from OP Manual, custom by display hw)*/
@@ -883,6 +950,12 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 14
 					15 00 00 00 00 00 02 B2 0B
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -991,6 +1064,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,lm-split = <1220 1220>;
 				qcom,compression-mode = "dsc";

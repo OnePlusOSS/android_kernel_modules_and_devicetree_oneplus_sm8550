@@ -25,6 +25,8 @@
 #include "sys-memstat.h"
 #include "logger.h"
 
+#define SIZE_TO_PAGES(size) ((size) >> PAGE_SHIFT)
+
 static bool is_ashmem_file(struct file *file)
 {
 	return false;
@@ -39,7 +41,7 @@ static int match_file(const void *p, struct file *file, unsigned fd)
 	if (is_dma_buf_file(file)) {
 		dmabuf = file->private_data;
 		if (dmabuf)
-			ms->dmabuf += dmabuf->size;
+			ms->dmabuf += SIZE_TO_PAGES(dmabuf->size);
 		return 0;
 	}
 
@@ -47,7 +49,7 @@ static int match_file(const void *p, struct file *file, unsigned fd)
 	if (is_ashmem_file(file)) {
 		ashmem_data = file->private_data;
 		if (ashmem_data)
-			ms->ashmem += ashmem_data->size;
+			ms->ashmem += SIZE_TO_PAGES(ashmem_data->size);
 		return 0;
 	}
 #endif /* CONFIG_ASHMEM */
@@ -98,13 +100,8 @@ static int __proc_memstat(struct task_struct *p, struct proc_ms *ms, u32 flags)
 	if (!tsk)
 		return -EEXIST;
 
-	if (flags & PROC_MS_ITERATE_FD) {
+	if (flags & PROC_MS_ITERATE_FD)
 		iterate_fd(p->files, 0, match_file, ms);
-
-		/* dma_buf size use byte */
-		ms->dmabuf = ms->dmabuf >> PAGE_SHIFT;
-		ms->ashmem = ms->ashmem >> PAGE_SHIFT;
-	}
 
 	mm = tsk->mm;
 

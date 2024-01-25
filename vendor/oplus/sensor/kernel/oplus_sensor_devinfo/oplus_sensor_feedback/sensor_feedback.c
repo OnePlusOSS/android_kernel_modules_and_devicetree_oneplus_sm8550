@@ -117,6 +117,8 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{HALL_I2C_ERR_ID, "device_hall_i2c_err", SENSOR_DEVICE_TYPE},
 
 	{FOLD_DEVICE_FOLDE_COUNT_ID, "device_fold_count", SENSOR_DEVICE_TYPE},
+	{FOLD_DEVICE_RELI_FOLD_ID, "device_reli_fold", SENSOR_DEVICE_TYPE},
+	{FOLD_DEVICE_RELI_OPEN_ID, "device_reli_open", SENSOR_DEVICE_TYPE},
 
 	{FREE_FALL_TRIGGER_ID, "device_free_fall", SENSOR_DEVICE_TYPE},
 

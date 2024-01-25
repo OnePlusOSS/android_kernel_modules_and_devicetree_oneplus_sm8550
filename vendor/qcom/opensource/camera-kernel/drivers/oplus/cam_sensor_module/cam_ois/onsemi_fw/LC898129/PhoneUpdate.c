@@ -595,7 +595,7 @@ UINT_8	FlashMultiRead( UINT_8 SelMat, UINT_32 UlAddress, UINT_32 *PulData , UINT
 	IOWrite32A( FLASHROM_CMD, 0x00000001 );
 	for( i=0 ; i < UcLength ; i++ ){
 		IORead32A( FLASHROM_FLA_RDAT, &PulData[i] ) ;
-		CAM_ERR(CAM_OIS, "FlashMultiRead: Read Data[%02x] = %08x\n", i , PulData[i] );
+		CAM_ERR(CAM_OIS, "FlashMultiRead: Read Data[%02x] = %08lx\n", i , PulData[i] );
 	}
 
 	return( 0 ) ;
@@ -731,12 +731,12 @@ UINT_8 FlashProgram129( UINT_8 ModuleVendor, UINT_8 ActVer,struct cam_ois_ctrl_t
 		CAM_ERR(CAM_OIS, "ptr->SizeFromCode <= 0 s:%d",of_property_count_u8_elems(of_node, "fw_data"));
 		return 0;
 	}
-	CAM_INFO(CAM_OIS,"allocating fw_data_size: %d", ptr->SizeFromCode);
+	CAM_INFO(CAM_OIS,"allocating fw_data_size: %ld", ptr->SizeFromCode);
 
 	vaddr = vmalloc(sizeof(uint8_t) * ptr->SizeFromCode);
 	 if (!vaddr) {
 		CAM_ERR(CAM_OIS,
-			"Failed in allocating fw_data_size: %u", ptr->SizeFromCode);
+			"Failed in allocating fw_data_size: %ld", ptr->SizeFromCode);
 		return 0;
 	 }
 
@@ -767,7 +767,7 @@ UINT_8 FlashProgram129( UINT_8 ModuleVendor, UINT_8 ActVer,struct cam_ois_ctrl_t
 					((UINT_32)ptr->FromCode[159]) << 16 |
 					((UINT_32)ptr->FromCode[160]) << 8  |
 					(UINT_32)ptr->FromCode[161];
-				CAM_INFO(CAM_OIS, "ois_version:0x%x  fw_version:0x%x oem_version:0x%x" ,ois_version, fw_version, oem_version);
+				CAM_INFO(CAM_OIS, "ois_version:0x%lx  fw_version:0x%llx oem_version:0x%lx" ,ois_version, fw_version, oem_version);
 				if(ois_version >= fw_version && (oem_version == 0x000107ff || oem_version == 0x00010700)){
 					CAM_INFO(CAM_OIS, "ois_version >= fw_version no need to update");
 					vfree(vaddr);
@@ -1005,15 +1005,15 @@ UINT_32	MeasGyAcOffset(  void  )
 		SlMeasureAZ = SlMeasureAveValueB[1] + (INT_32)GSENS;
 	}else{
 		//UlRsltSts |= EXE_AZADJ ;
-		CAM_ERR(CAM_OIS, "SlMeasureAveValueB[1]:0x%x POSTURETH:0x%x UlRsltSts:0x%x EXE_AZADJ",SlMeasureAveValueB[1], POSTURETH, UlRsltSts) ;
+		CAM_ERR(CAM_OIS, "SlMeasureAveValueB[1]:0x%lx POSTURETH:0x%x UlRsltSts:0x%lx EXE_AZADJ",SlMeasureAveValueB[1], POSTURETH, UlRsltSts) ;
 	}
 
-	CAM_ERR(CAM_OIS, "AZOFF = %08xh UlRsltSts:0x%x",(unsigned int)SlMeasureAZ, UlRsltSts) ;
+	CAM_ERR(CAM_OIS, "AZOFF = %08xh UlRsltSts:0x%lx",(unsigned int)SlMeasureAZ, UlRsltSts) ;
 
 	if( abs(SlMeasureAveValueA[0]) > GYROFFSET_H )					UlRsltSts |= EXE_GXADJ ;
 	if( abs(SlMeasureAveValueB[0]) > GYROFFSET_H ) 					UlRsltSts |= EXE_GYADJ ;
 	if( abs(SlMeasureAveValueA[1]) > GYROFFSET_H ) 					UlRsltSts |= EXE_GZADJ ;
-	CAM_ERR(CAM_OIS, "UlRsltSts:0x%x",UlRsltSts) ;
+	CAM_ERR(CAM_OIS, "UlRsltSts:0x%lx",UlRsltSts) ;
 
 	if( abs(SlMeasureAveValueA[2]) > ZG_MRGN )						UlRsltSts |= EXE_AXADJ ;
 	if( abs(SlMeasureAveValueB[2]) > ZG_MRGN )						UlRsltSts |= EXE_AYADJ ;
@@ -1075,7 +1075,7 @@ UINT_8	WrGyAcOffsetData( UINT_8 UcMode )
 		RamRead32A(  ACCLRAM_X_AC_OFFSET , &UlReadAx ) ;
 		RamRead32A(  ACCLRAM_Y_AC_OFFSET , &UlReadAy ) ;
 		RamRead32A(  ACCLRAM_Z_AC_OFFSET , &UlReadAz ) ;
-		CAM_ERR(CAM_OIS,  "WrGyAcOffsetData: UlReadGx:0x%x UlReadGy:0x%x" ,UlReadGx, UlReadGy);
+		CAM_ERR(CAM_OIS,  "WrGyAcOffsetData: UlReadGx:0x%lx UlReadGy:0x%lx" ,UlReadGx, UlReadGy);
 
 		UlMAT0[0] &= ~( 0x00000100 );
 		UlMAT0[5]	= (UINT_32)((UlReadAx & 0xFFFF0000) | ((UlReadGx >> 16 ) & 0x0000FFFF));

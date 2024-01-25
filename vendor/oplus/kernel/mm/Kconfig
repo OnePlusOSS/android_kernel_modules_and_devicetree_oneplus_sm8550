@@ -66,6 +66,12 @@ config DUMP_TASKS_MEM
 	help
 	  dump all userspace process meminfo
 
+config IOMMU_DMA_ALLOC_ADJUST_FLAGS
+	bool "__iommu_dma_alloc_pages adjust flags by order"
+	default n
+	help
+	  __iommu_dma_alloc_pages adjust flags by order
+
 config DYNAMIC_TUNING_SWAPPINESS
 	bool "tuning swappiess depends on file_pages size"
 	default y

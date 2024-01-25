@@ -19,7 +19,7 @@
 };
 
 &pm8550b_haptics {
-	qcom,vmax-mv = <1380>;
+	qcom,vmax-mv = <1260>;
 	qcom,cl-vmax-mv = <1380>;
 	qcom,lra-period-us = <5714>;
 	qcom,fifo-vmax-mv = <8100>;
@@ -363,7 +363,6 @@
 		compatible = "oplus,bq27541-battery";
 		reg = <0x55>;
 		qcom,modify-soc-smooth;
-		oplus,enable_sleep_mode;
 		oplus,capacity-pct = <69>;
 	};
 
@@ -421,7 +420,6 @@
 		compatible = "oplus,bq27541-battery";
 		reg = <0x55>;
 		qcom,modify-soc-smooth;
-		oplus,enable_sleep_mode;
 		qcom,gauge_num = <1>;
 		oplus,capacity-pct = <31>;
 	};

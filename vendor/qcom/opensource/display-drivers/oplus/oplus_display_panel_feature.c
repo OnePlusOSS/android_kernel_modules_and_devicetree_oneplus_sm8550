@@ -298,7 +298,6 @@ void oplus_panel_update_backlight(struct dsi_panel *panel,
 
 	SDE_ATRACE_INT("current_bl_lvl", bl_lvl);
 
-	oplus_panel_backlight_demura_dbv_switch(panel, bl_lvl);
 	oplus_panel_restore_auto_mode(panel);
 	LCD_DEBUG_BACKLIGHT("[%s] panel backlight changed: %d -> %d\n",
 			panel->oplus_priv.vendor_name, oplus_last_backlight, bl_lvl);

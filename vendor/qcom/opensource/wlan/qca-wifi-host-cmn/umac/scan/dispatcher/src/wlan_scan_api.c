@@ -745,3 +745,11 @@ void wlan_scan_update_low_latency_profile_chnlist(
 	req->scan_req.chan_list.num_chan = num_scan_channels;
 }
 #endif
+
+QDF_STATUS
+wlan_scan_get_entry_by_mac_addr(struct wlan_objmgr_pdev *pdev,
+				struct qdf_mac_addr *bssid,
+				struct element_info *frame)
+{
+	return scm_scan_get_entry_by_mac_addr(pdev, bssid, frame);
+}

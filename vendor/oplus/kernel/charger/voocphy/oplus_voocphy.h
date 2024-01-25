@@ -815,6 +815,7 @@ struct oplus_voocphy_manager {
 	int low_curr_full_t3;
 	u32 fastchg_timeout_time_init;
 	unsigned int vooc_little_cold_full_voltage;
+	unsigned int vooc_little_cool_full_voltage;
 	unsigned int vooc_cool_full_voltage;
 	unsigned int vooc_warm_full_voltage;
 	unsigned int vooc_1time_full_voltage;

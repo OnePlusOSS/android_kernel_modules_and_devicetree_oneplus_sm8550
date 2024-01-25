@@ -37,6 +37,16 @@ enum swapd_pressure_level {
 	LEVEL_COUNT
 };
 
+#if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+struct panel_notify_context {
+	bool is_fold_dev;
+	void *notifier_cookie;
+	void *notifier_cookie_second;
+	struct drm_panel *active_panel;
+	struct drm_panel *active_panel_second;
+};
+#endif
+
 struct swapd_param {
 	unsigned int min_score;
 	unsigned int max_score;
@@ -113,7 +123,7 @@ static atomic_t display_off = ATOMIC_LONG_INIT(0);
 #if IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY) || IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
 static struct notifier_block fb_notif;
 #elif IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
-static void *g_panel_cookie;
+static struct panel_notify_context notif_cxt;
 #endif
 static unsigned long swapd_shrink_window = SWAPD_SHRINK_WINDOW;
 static unsigned long swapd_shrink_limit_per_window = SWAPD_SHRINK_SIZE_PER_WINDOW;
@@ -1967,41 +1977,86 @@ ssize_t hybridswap_swapd_pause_show(struct device *dev,
 }
 
 #if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
-static struct drm_panel *get_active_panel(void)
+/*
+ * xueying-sensor-22003.dtsi: ssc_interactive { is-folding-device; };
+ * whiteswan-22001-cape-oplus-sensor.dtsi: ssc_interactive { is-folding-device; };
+ */
+static int get_dev_type(void)
+{
+	struct device_node *node = NULL;
+
+	node = of_find_node_by_name(NULL, "ssc_interactive");
+	if (!node) {
+		log_err("ssc_interactive dts info missing\n");
+		return -ENOENT;
+	} else {
+		if (of_property_read_bool(node, "is-folding-device"))
+			notif_cxt.is_fold_dev = true;
+		else
+			notif_cxt.is_fold_dev = false;
+	}
+
+	log_info("get_dev_type: is-folding-device - %s\n", notif_cxt.is_fold_dev ? "yes" : "no");
+
+	return 0;
+}
+
+static void get_active_panel(void)
 {
 	int i;
 	int count;
-	struct device_node *panel_node = NULL;
-	struct drm_panel *panel = NULL;
+	int count_sec;
 	struct device_node *np = NULL;
+	struct device_node *node = NULL;
+	struct drm_panel *panel = NULL;
+	struct device_node *node_sec = NULL;
+	struct drm_panel *panel_sec = NULL;
 
 	np = of_find_node_by_name(NULL, "oplus,dsi-display-dev");
 	if (!np) {
 		log_err("oplus,dsi-display-dev node missing\n");
-		return NULL;
+		return;
 	}
 
-	log_warn("oplus,dsi-display-dev node found\n");
+	log_info("oplus,dsi-display-dev node found\n");
+
 	count = of_count_phandle_with_args(np, "oplus,dsi-panel-primary", NULL);
 	if (count <= 0) {
 		log_err("oplus,dsi-panel-primary missing\n");
-		goto not_found;
+		goto err_out;
 	}
 
 	for (i = 0; i < count; i++) {
-		panel_node = of_parse_phandle(np, "oplus,dsi-panel-primary", i);
-		panel = of_drm_find_panel(panel_node);
-		of_node_put(panel_node);
+		node = of_parse_phandle(np, "oplus,dsi-panel-primary", i);
+		panel = of_drm_find_panel(node);
+		of_node_put(node);
 		if (!IS_ERR(panel)) {
-			log_warn("active panel found\n");
-			goto found;
+			notif_cxt.active_panel = panel;
+			log_info("active panel found\n");
 		}
 	}
-not_found:
-	panel = NULL;
-found:
+
+	/* for folding phone */
+	if (notif_cxt.is_fold_dev) {
+		count_sec = of_count_phandle_with_args(np, "oplus,dsi-panel-secondary", NULL);
+		if (count_sec <= 0) {
+			log_err("oplus,dsi-panel-secondary missing\n");
+			goto err_out;
+		}
+
+		for (i = 0; i < count_sec; i++) {
+			node_sec = of_parse_phandle(np, "oplus,dsi-panel-secondary", i);
+			panel_sec = of_drm_find_panel(node_sec);
+			of_node_put(node_sec);
+			if (!IS_ERR(panel_sec)) {
+				notif_cxt.active_panel_second = panel_sec;
+				log_info("active secondary panel found\n");
+			}
+		}
+	}
+
+err_out:
 	of_node_put(np);
-	return panel;
 }
 
 static void bright_fb_notifier_callback(enum panel_event_notifier_tag tag,
@@ -2063,19 +2118,41 @@ static int mtk_bright_fb_notifier_callback(struct notifier_block *self,
 static void register_panel_event_notifier(void)
 {
 #if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
-	struct drm_panel *active_panel;
-	void *cookie = NULL;
+	int ret;
+	void *cookie = ERR_PTR(-EINVAL);
 
-	active_panel = get_active_panel();
-	if (active_panel)
+	ret = get_dev_type();
+	if (ret) {
+		log_err("get_dev_type failed, ret = %d\n", ret);
+	}
+
+	get_active_panel();
+
+	if (notif_cxt.active_panel)
 		cookie = panel_event_notifier_register(PANEL_EVENT_NOTIFICATION_PRIMARY,
-			PANEL_EVENT_NOTIFIER_CLIENT_MM, active_panel, bright_fb_notifier_callback, NULL);
+			PANEL_EVENT_NOTIFIER_CLIENT_PRIMARY_MM, notif_cxt.active_panel,
+			bright_fb_notifier_callback, NULL);
 
-	if (active_panel && !IS_ERR(cookie)) {
-		log_warn("%s success\n", __func__);
-		g_panel_cookie = cookie;
+	if (!IS_ERR(cookie)) {
+		log_info("%s primary succeed\n", __func__);
+		notif_cxt.notifier_cookie = cookie;
 	} else {
-		log_err("%s failed. need fix\n", __func__);
+		log_err("%s primary failed\n", __func__);
+		return;
+	}
+
+	/* for folding phone */
+	cookie = ERR_PTR(-EINVAL);
+	if (notif_cxt.active_panel_second)
+		cookie = panel_event_notifier_register(PANEL_EVENT_NOTIFICATION_SECONDARY,
+			PANEL_EVENT_NOTIFIER_CLIENT_SECONDARY_MM, notif_cxt.active_panel_second,
+			bright_fb_notifier_callback, NULL);
+
+	if (!IS_ERR(cookie)) {
+		log_info("%s secondary succeed\n", __func__);
+		notif_cxt.notifier_cookie_second = cookie;
+	} else {
+		log_err("%s secondary failed\n", __func__);
 	}
 #elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
 	fb_notif.notifier_call = bright_fb_notifier_callback;
@@ -2091,9 +2168,13 @@ static void register_panel_event_notifier(void)
 static void unregister_panel_event_notifier(void)
 {
 #if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
-	if (g_panel_cookie) {
-		panel_event_notifier_unregister(g_panel_cookie);
-		g_panel_cookie = NULL;
+	if (notif_cxt.notifier_cookie_second) {
+		panel_event_notifier_unregister(notif_cxt.notifier_cookie_second);
+		notif_cxt.notifier_cookie_second = NULL;
+	}
+	if (notif_cxt.notifier_cookie) {
+		panel_event_notifier_unregister(notif_cxt.notifier_cookie);
+		notif_cxt.notifier_cookie = NULL;
 	}
 #elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
 	msm_drm_unregister_client(&fb_notif);

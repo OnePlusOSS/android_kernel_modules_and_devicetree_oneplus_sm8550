@@ -157,8 +157,8 @@ static inline bool strict_ux_task(struct task_struct *task)
 
 bool set_ux_task_to_prefer_cpu(struct task_struct *task, int *orig_target_cpu)
 {
-	struct rq *rq = NULL;
-	struct oplus_rq *orq = NULL;
+	struct rq *rq = NULL, *orig_rq = NULL;
+	struct oplus_rq *orq = NULL, *orig_orq = NULL;
 	struct ux_sched_cputopo ux_cputopo = ux_sched_cputopo;
 	int cls_nr = ux_cputopo.cls_nr - 1;
 	int start_cls = -1;
@@ -180,7 +180,12 @@ bool set_ux_task_to_prefer_cpu(struct task_struct *task, int *orig_target_cpu)
 	if (*orig_target_cpu < 0 || *orig_target_cpu >= OPLUS_NR_CPUS)
 		invalid_target = true;
 
-	if (!invalid_target && !sched_assist_scene(SA_LAUNCH) && is_ux_task_prefer_cpu_for_scene(task, *orig_target_cpu))
+	if (!invalid_target) {
+		orig_rq = cpu_rq(*orig_target_cpu);
+		orig_orq = (struct oplus_rq *) orig_rq->android_oem_data1;
+	}
+	if (!invalid_target && !test_task_ux(orig_rq->curr) && !orq_has_ux_tasks(orig_orq) && !orig_rq->rt.rt_nr_running &&
+		!sched_assist_scene(SA_LAUNCH) && is_ux_task_prefer_cpu_for_scene(task, *orig_target_cpu))
 		return false;
 
 	start_cls = cls_nr = get_task_cls_for_scene(task);
@@ -201,7 +206,7 @@ retry:
 			 * If the thread running on the CPU being traversed is neither UX nor RT,
 			 * then it is the best one, otherwise it is an alternative CPU.
 			 */
-			if (ux_list_is_empty(orq) && !rt_rq_is_runnable(&rq->rt)) {
+			if (oplus_list_empty(&orq->ux_list) && !rt_rq_is_runnable(&rq->rt)) {
 				strict_cpu = cpu;
 				walk_next_cls = false;
 			} else {
@@ -273,7 +278,6 @@ void oplus_replace_next_task_fair(struct rq *rq, struct task_struct **p, struct 
 	struct list_head *pos = NULL;
 	struct list_head *n = NULL;
 	unsigned long irqflag;
-	int sa_type;
 
 	if (unlikely(!global_sched_assist_enabled))
 		return;
@@ -284,57 +288,53 @@ void oplus_replace_next_task_fair(struct rq *rq, struct task_struct **p, struct 
 		return;
 	}
 
-	for (sa_type = 0; sa_type < sa_type_all; sa_type++) {
-		list_for_each_safe(pos, n, &orq->ux_list[sa_type]) {
-			struct task_struct *temp;
-			struct oplus_task_struct *ots = list_entry(pos, struct oplus_task_struct, ux_entry);
-			if (IS_ERR_OR_NULL(ots))
-				continue;
+	list_for_each_safe(pos, n, &orq->ux_list) {
+		struct task_struct *temp;
+		struct oplus_task_struct *ots = list_entry(pos, struct oplus_task_struct, ux_entry);
+		if (IS_ERR_OR_NULL(ots))
+			continue;
 
-			temp = ots_to_ts(ots);
-			if (IS_ERR_OR_NULL(temp))
-				continue;
+		temp = ots_to_ts(ots);
+		if (IS_ERR_OR_NULL(temp))
+			continue;
 
-			if (unlikely(task_cpu(temp) != rq->cpu)) {
-				list_del_init(&ots->ux_entry);
-				put_task_struct(temp);
-				BUG_ON(1);
-				continue;
-			}
-
-			if (unlikely(!test_task_ux(temp))) {
-				list_del_init(&ots->ux_entry);
-				put_task_struct(temp);
-
-				WARN_ON(1);
-				continue;
-			}
-
-			*p = temp;
-			*se = &temp->se;
-			*repick = true;
-
-			/*
-			 * NOTE:
-			 * Because the following code is not merged in kernel-5.15,
-			 * set_next_entity() will no longer be called to remove the
-			 * task from the red-black tree when pick_next_task_fair(),
-			 * so we remove the picked task here.
-			 *
-			 * https://android-review.googlesource.com/c/kernel/common/+/1667002
-			 */
-			if (simple) {
-				for_each_sched_entity((*se)) {
-					struct cfs_rq *cfs_rq = cfs_rq_of(*se);
-					set_next_entity(cfs_rq, *se);
-				}
-			}
-
-			goto pick_success;
+		if (unlikely(task_cpu(temp) != rq->cpu)) {
+			list_del_init(&ots->ux_entry);
+			put_task_struct(temp);
+			BUG_ON(1);
+			continue;
 		}
-	}
 
-pick_success:
+		if (unlikely(!test_task_ux(temp))) {
+			list_del_init(&ots->ux_entry);
+			put_task_struct(temp);
+
+			WARN_ON(1);
+			continue;
+		}
+
+		*p = temp;
+		*se = &temp->se;
+		*repick = true;
+
+		/*
+		 * NOTE:
+		 * Because the following code is not merged in kernel-5.15,
+		 * set_next_entity() will no longer be called to remove the
+		 * task from the red-black tree when pick_next_task_fair(),
+		 * so we remove the picked task here.
+		 *
+		 * https://android-review.googlesource.com/c/kernel/common/+/1667002
+		 */
+		if (simple) {
+			for_each_sched_entity((*se)) {
+				struct cfs_rq *cfs_rq = cfs_rq_of(*se);
+				set_next_entity(cfs_rq, *se);
+			}
+		}
+
+		break;
+	}
 	spin_unlock_irqrestore(&orq->ux_list_lock, irqflag);
 }
 EXPORT_SYMBOL(oplus_replace_next_task_fair);

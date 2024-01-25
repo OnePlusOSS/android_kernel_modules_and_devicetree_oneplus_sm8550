@@ -452,19 +452,22 @@ void dump_ois_sem1217s_hall_data(struct cam_ois_ctrl_t *o_ctrl)
 	OISCountinueRead(o_ctrl, SEM1217S_HALL_DATA_START, (void *)temp_buff, 44);
 
 	fifo_count = temp_buff[0] & 0xF;
-	CAM_ERR(CAM_OIS,"fifo_count: %d", fifo_count);
+	CAM_ERR(CAM_OIS,"fifo_count: %llu", fifo_count);
 
 	// 0        1..3            4.5.6.7       40.41.42.43
 	// fifo   reservred        HALL XY0        HALL XY9
 	// big-little ending/new-old data order convert
 	if (fifo_count > 0)
 	{
-		for(i=((fifo_count * 4/4)-1), j=0; i>=0; i--,j++)
+		i=((fifo_count * 4/4)-1);
+		j = 0;
+		for(; i>=0; i--)
 		{
 			read_buff[i*4+1] = temp_buff[4+j*4+0]; // HALL X
 			read_buff[i*4+0] = temp_buff[4+j*4+1]; // HALL X
 			read_buff[i*4+3] = temp_buff[4+j*4+2]; // HALL Y
 			read_buff[i*4+2] = temp_buff[4+j*4+3]; // HALL Y
+			j++;
 		}
 
 		for(i=0 ; i<fifo_count; i++)

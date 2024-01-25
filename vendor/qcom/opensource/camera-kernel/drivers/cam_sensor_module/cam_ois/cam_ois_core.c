@@ -43,7 +43,7 @@ int ois_power_down_thread(void *arg)
 	else{
 		power_info  = &soc_private->power_info;
 		if (!power_info){
-			CAM_ERR(CAM_OIS, "failed: power_info %pK", o_ctrl, power_info);
+			CAM_ERR(CAM_OIS, "failed: o_ctrl %pK, power_info %pK", o_ctrl, power_info);
 			return -EINVAL;
 		}
 	}

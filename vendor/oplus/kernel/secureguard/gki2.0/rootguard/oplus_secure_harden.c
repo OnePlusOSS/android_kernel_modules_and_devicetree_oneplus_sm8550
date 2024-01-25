@@ -451,26 +451,37 @@ static int __init kretprobe_init(void) {
 	ret = register_kretprobe(&socket_kretprobe);
 	if (ret < 0) {
 		printk("[ROOTCHECK-HS-ERROR]%s:register do_setsocket_opt FAILED.!\n", __func__);
-		return ret;
+		goto socket_kretprobe_failed;
 	}
 	ret = register_kretprobe(&socket_ip6_kretprobe);
 	if (ret < 0) {
 		printk("[ROOTCHECK-HS-ERROR]%s:register do_ip6_setsocket_opt FAILED.!\n", __func__);
-		return ret;
+		goto socket_ip6_kretprobe_failed;
 	}
 	ret = register_kretprobe(&cpuinfo_kretprobe);
 	if (ret < 0) {
 		printk("[ROOTCHECK-HS-ERROR]%s:register func_name_cpu_info FAILED.!\n", __func__);
-		return ret;
+		goto cpuinfo_kretprobe_failed;
 	}
 
 	ret = register_kretprobe(&setxattr_kretprobe);
 	if (ret < 0) {
 		printk("[ROOTCHECK-HS-ERROR]%s:register func_name_setxattr FAILED.!\n", __func__);
-		return ret;
+		goto setxattr_kretprobe_failed;
 	}
 	#endif /* CONFIG_OPLUS_FEATURE_SECURE_SOCKETGUARD */
 	printk("[ROOTCHECK-INFO]%s:secure_harden has been register.\n", __func__);
+	return ret;
+
+setxattr_kretprobe_failed:
+	unregister_kretprobe(&cpuinfo_kretprobe);
+cpuinfo_kretprobe_failed:
+	unregister_kretprobe(&socket_ip6_kretprobe);
+socket_ip6_kretprobe_failed:
+	unregister_kretprobe(&socket_kretprobe);
+socket_kretprobe_failed:
+	unregister_kretprobe(&sepolicy_reload_kretprobe);
+
 	return ret;
 }
 static void __exit kretprobe_exit(void) {

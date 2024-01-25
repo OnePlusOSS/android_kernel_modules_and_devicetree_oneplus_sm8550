@@ -73,34 +73,6 @@ static void insert_ux_task_into_list(struct oplus_task_struct *ots, struct oplus
 #define TOPAPP 4
 #define BGAPP  3
 
-bool ux_list_is_empty(struct oplus_rq *orq)
-{
-	int i;
-
-	for (i = 0; i < sa_type_all; i++) {
-		if (!oplus_list_empty(&orq->ux_list[i]))
-			return false;
-	}
-
-	return true;
-}
-
-struct oplus_task_struct* top_level_ux_ots(struct oplus_rq *orq)
-{
-	struct oplus_task_struct* ots = NULL;
-	int i;
-
-	for (i = 0; i < sa_type_all; i++) {
-		if (!oplus_list_empty(&orq->ux_list[i])) {
-			ots = list_first_entry_or_null(&orq->ux_list[i],
-					struct oplus_task_struct, ux_entry);
-			if (ots != NULL)
-				return ots;
-		}
-	}
-	return ots;
-}
-
 bool is_top(struct task_struct *p)
 {
 	struct cgroup_subsys_state *css;
@@ -219,12 +191,12 @@ void oplus_set_ux_state(struct task_struct *t, int ux_state) {
  *    list_del_init(ux_entry)
  *    RELEASE (ux_list->lock)
 
- * 3. oplus_list_empty(ux_list[]) is atomic, unnecessary to lock
+ * 3. oplus_list_empty(ux_list) is atomic, unnecessary to lock
 
- * 4. oplus_list_empty(ux_list[]) and then list_first_entry(ux_list[])
+ * 4. oplus_list_empty(ux_list) and then list_first_entry(ux_list)
  *    ACQUIRE (ux_list->lock)
- *    oplus_list_empty(ux_list[])
- *    list_first_entry(ux_list[])
+ *    oplus_list_empty(ux_list)
+ *    list_first_entry(ux_list)
  *    RELEASE(ux_list->lock)
 
 */
@@ -340,7 +312,6 @@ void sched_assist_init_oplus_rq(void)
 {
 	int cpu;
 	struct oplus_rq *orq;
-	int i;
 
 	for_each_possible_cpu(cpu) {
 		struct rq *rq = cpu_rq(cpu);
@@ -350,9 +321,7 @@ void sched_assist_init_oplus_rq(void)
 			continue;
 		}
 		orq = (struct oplus_rq *) rq->android_oem_data1;
-		for (i = 0; i < sa_type_all; i++) {
-			INIT_LIST_HEAD(&(orq->ux_list[i]));
-		}
+		INIT_LIST_HEAD(&orq->ux_list);
 		spin_lock_init(&orq->ux_list_lock);
 #ifdef CONFIG_LOCKING_PROTECT
 		INIT_LIST_HEAD(&orq->locking_thread_list);
@@ -536,24 +505,22 @@ bool prio_higher(int a, int b)
 	/* SA_TYPE_LISTPICK */
 	return false;
 }
-
-int get_ux_type(int ux_state)
-{
-	if (ux_state & SA_TYPE_ANIMATOR)
-		return sa_type_animator;
-	else if (ux_state & SA_TYPE_LIGHT)
-		return sa_type_light;
-	else if (ux_state & SA_TYPE_LIGHT)
-		return sa_type_light;
-
-	return sa_type_listpick;
-}
-
 static void insert_ux_task_into_list(struct oplus_task_struct *ots, struct oplus_rq *orq)
 {
-	int ux_type = get_ux_type(ots->ux_state);
+	struct list_head *pos;
 
-	list_add_tail(&ots->ux_entry, &orq->ux_list[ux_type]);
+	list_for_each(pos, &orq->ux_list) {
+		struct oplus_task_struct *tmp_ots = container_of(pos, struct oplus_task_struct,
+			ux_entry);
+
+		if (IS_ERR_OR_NULL(tmp_ots))
+			continue;
+
+		if (prio_higher(ots->ux_state, tmp_ots->ux_state))
+			break;
+	}
+
+	list_add(&ots->ux_entry, pos->prev);
 
 	if (unlikely(global_debug_enabled & DEBUG_FTRACE)) {
 		struct task_struct *tsk = ots_to_ts(ots);
@@ -923,6 +890,15 @@ void sched_assist_target_comm(struct task_struct *task, const char *buf)
 		ux_state = oplus_get_ux_state(task);
 		oplus_set_ux_state(task, (ux_state | SA_TYPE_LIGHT));
 	}
+
+	/*set audio task ux in wechat*/
+	if (task->group_leader &&
+		unlikely(!strcmp(task->group_leader->comm, "com.tencent.mm"))) {
+		if (!strncmp(comm, "TPDecoder", 9)) {
+			ux_state = oplus_get_ux_state(task);
+			oplus_set_ux_state(task, (ux_state | SA_TYPE_LIGHT));
+		}
+	}
 }
 
 void adjust_rt_lowest_mask(struct task_struct *p, struct cpumask *local_cpu_mask, int ret, bool force_adjust)
@@ -961,12 +937,12 @@ void adjust_rt_lowest_mask(struct task_struct *p, struct cpumask *local_cpu_mask
 
 		spin_lock_irqsave(&orq->ux_list_lock, irqflag);
 		if (!test_task_ux(task)) {
-			if (ux_list_is_empty(orq)) {
+			if (oplus_list_empty(&orq->ux_list)) {
 				spin_unlock_irqrestore(&orq->ux_list_lock, irqflag);
 				drop_cpu = cpumask_next(drop_cpu, local_cpu_mask);
 				continue;
 			} else {
-				ots = top_level_ux_ots(orq);
+				ots = list_first_entry_or_null(&orq->ux_list, struct oplus_task_struct, ux_entry);
 				if (!IS_ERR_OR_NULL(ots)) {
 					task  = rcu_dereference(ots->task);
 					/*
@@ -1088,7 +1064,7 @@ bool sa_skip_rt_sync(struct rq *rq, struct task_struct *p, bool *sync)
 	unsigned long irqflag;
 
 	spin_lock_irqsave(&orq->ux_list_lock, irqflag);
-	ots = top_level_ux_ots(orq);
+	ots = list_first_entry_or_null(&orq->ux_list, struct oplus_task_struct, ux_entry);
 	if (IS_ERR_OR_NULL(ots)|| (ots->im_flag == IM_FLAG_CAMERA_HAL)) {
 		spin_unlock_irqrestore(&orq->ux_list_lock, irqflag);
 		return false;
@@ -1122,7 +1098,7 @@ bool sa_rt_skip_ux_cpu(int cpu)
 		return true;
 
 	/* skip runnable ux */
-	if (ux_list_is_empty(orq))
+	if (!oplus_list_empty(&orq->ux_list))
 		return true;
 
 	return false;

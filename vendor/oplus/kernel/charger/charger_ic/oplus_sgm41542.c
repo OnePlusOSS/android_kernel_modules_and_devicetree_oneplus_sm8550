@@ -1119,7 +1119,6 @@ int sgm41542_suspend_charger(void)
 {
 	int rc = 0;
 	struct chip_sgm41542 *chip = charger_ic;
-	struct oplus_chg_chip *g_oplus_chip = oplus_chg_get_chg_struct();
 
 	if (!chip)
 		return 0;
@@ -1130,10 +1129,8 @@ int sgm41542_suspend_charger(void)
 	atomic_set(&chip->is_suspended, 1);
 	chip->before_suspend_icl = sgm41542_get_usb_icl();
 	rc = sgm41542_disable_charging();
-	if ((g_oplus_chip != NULL) && (g_oplus_chip->mmi_chg == 0)) {
-		chg_err("set icl 100 when mmi_chg = %d\n", g_oplus_chip->mmi_chg);
-		rc = sgm41542_input_current_limit_without_aicl(100);
-		}
+	rc = sgm41542_input_current_limit_without_aicl(100);
+
 
 	chg_err("before_suspend_icl=%d\n", chip->before_suspend_icl);
 	return rc;

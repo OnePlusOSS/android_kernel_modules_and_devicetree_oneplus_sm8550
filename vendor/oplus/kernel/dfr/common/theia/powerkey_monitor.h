@@ -109,13 +109,13 @@ void theia_pwk_stage_start(char *reason);
 void theia_pwk_stage_end(char *reason);
 void send_black_screen_dcs_msg(void);
 ssize_t get_last_pwkey_stage(char *buf);
+ssize_t get_penultimate_pwkey_stage(char *buf);
 ssize_t get_pwkey_stages(char *buf);
 void record_stage(const char *buf);
 int get_systemserver_pid(void);
 void doPanic(void);
 void theia_send_event_init(void);
 void theia_send_event_exit(void);
-bool is_dual_screen(void);
 #if IS_ENABLED(CONFIG_DRM_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
 int br_register_panel_event_notify(void);
 #endif

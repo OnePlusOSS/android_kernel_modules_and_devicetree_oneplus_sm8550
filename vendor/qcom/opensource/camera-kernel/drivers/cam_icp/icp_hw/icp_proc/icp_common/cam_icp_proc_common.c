@@ -173,7 +173,7 @@ int cam_icp_proc_mini_dump(struct cam_icp_hw_dump_args *args,
 	}
 
 	if (!fw_kva_addr || !dump_args->cpu_addr) {
-		CAM_ERR(CAM_ICP, "invalid params %pK, 0x%zx",
+		CAM_ERR(CAM_ICP, "invalid params %luK, 0x%zx",
 			fw_kva_addr, dump_args->cpu_addr);
 		return -EINVAL;
 	}

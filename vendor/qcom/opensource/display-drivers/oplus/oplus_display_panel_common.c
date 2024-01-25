@@ -2413,3 +2413,96 @@ int oplus_display_panel_set_demua()
 
 	return rc;
 }
+
+int oplus_display_panel_set_hbm_max(void *data)
+{
+	int rc = 0;
+	static u32 last_bl = 0;
+	u32 *buf = data;
+	u32 hbm_max_state = *buf & 0xF;
+	int panel_id = (*buf >> 12);
+	struct dsi_panel *panel = NULL;
+	struct dsi_display *display = get_main_display();
+
+	if (panel_id == 1)
+		display = get_sec_display();
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	if (display->panel->power_mode != SDE_MODE_DPMS_ON) {
+		LCD_WARN("display panel is not on\n");
+		rc = -EFAULT;
+		return rc;
+	}
+
+	LCD_INFO("Set hbm max state=%d\n", hbm_max_state);
+
+	mutex_lock(&display->display_lock);
+
+	last_bl = oplus_last_backlight;
+	if (hbm_max_state) {
+		if (panel->cur_mode->priv_info->cmd_sets[DSI_CMD_HBM_MAX].count) {
+			mutex_lock(&panel->panel_lock);
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_HBM_MAX);
+			mutex_unlock(&panel->panel_lock);
+		}
+		else {
+			LCD_WARN("DSI_CMD_HBM_MAX is undefined, set max backlight: %d\n",
+					panel->bl_config.bl_max_level);
+			rc = dsi_display_set_backlight(display->drm_conn,
+					display, panel->bl_config.bl_max_level);
+		}
+	}
+	else {
+		if (panel->cur_mode->priv_info->cmd_sets[DSI_CMD_EXIT_HBM_MAX].count) {
+			mutex_lock(&panel->panel_lock);
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_EXIT_HBM_MAX);
+			mutex_unlock(&panel->panel_lock);
+		} else {
+			rc = dsi_display_set_backlight(display->drm_conn,
+					display, last_bl);
+		}
+	}
+	panel->oplus_priv.hbm_max_state = hbm_max_state;
+
+	mutex_unlock(&display->display_lock);
+
+	return rc;
+}
+
+int oplus_display_panel_get_hbm_max(void *data)
+{
+	int rc = 0;
+	u32 *hbm_max_state = data;
+	int panel_id = (*hbm_max_state >> 12);
+	struct dsi_panel *panel = NULL;
+	struct dsi_display *display = get_main_display();
+
+	if (panel_id == 1)
+		display = get_sec_display();
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	mutex_lock(&display->display_lock);
+	mutex_lock(&panel->panel_lock);
+
+	*hbm_max_state = panel->oplus_priv.hbm_max_state;
+
+	mutex_unlock(&panel->panel_lock);
+	mutex_unlock(&display->display_lock);
+	LCD_INFO("Get hbm max state: %d\n", *hbm_max_state);
+
+	return rc;
+}

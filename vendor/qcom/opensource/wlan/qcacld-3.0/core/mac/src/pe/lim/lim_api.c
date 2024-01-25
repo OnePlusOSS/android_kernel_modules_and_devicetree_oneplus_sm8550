@@ -2073,18 +2073,18 @@ error:
 
 static QDF_STATUS
 lim_roam_gen_beacon_descr(struct mac_context *mac,
+			  uint8_t *bcn_prb_ptr,
+			  uint16_t bcn_prb_len, bool is_mlo_link,
 			  struct roam_offload_synch_ind *roam_ind,
 			  tpSirProbeRespBeacon parsed_frm,
 			  uint8_t **ie, uint32_t *ie_len,
 			  struct qdf_mac_addr *bssid)
 {
 	QDF_STATUS status;
-	uint8_t *bcn_prb_ptr;
 	tpSirMacMgmtHdr mac_hdr;
 	uint8_t ie_offset;
+	bool is_beacon;
 
-	bcn_prb_ptr = (uint8_t *)roam_ind +
-		roam_ind->beaconProbeRespOffset;
 	mac_hdr = (tpSirMacMgmtHdr)bcn_prb_ptr;
 	ie_offset = SIR_MAC_HDR_LEN_3A + SIR_MAC_B_PR_SSID_OFFSET;
 
@@ -2095,6 +2095,8 @@ lim_roam_gen_beacon_descr(struct mac_context *mac,
 		qdf_mem_copy(mac_hdr->bssId, bssid->bytes,
 			     sizeof(tSirMacAddr));
 	}
+
+	is_beacon = is_mlo_link ? roam_ind->is_link_beacon : roam_ind->isBeacon;
 
 	if ((!is_multi_link_roam(roam_ind)) &&
 	    (qdf_mem_cmp(bssid->bytes,
@@ -2116,32 +2118,32 @@ lim_roam_gen_beacon_descr(struct mac_context *mac,
 			return QDF_STATUS_E_FAILURE;
 		}
 	} else {
-		if (roam_ind->isBeacon) {
+		if (is_beacon) {
 			if (sir_parse_beacon_ie(mac, parsed_frm,
 				&bcn_prb_ptr[SIR_MAC_HDR_LEN_3A +
 				SIR_MAC_B_PR_SSID_OFFSET],
-				roam_ind->beaconProbeRespLength -
-				SIR_MAC_HDR_LEN_3A) != QDF_STATUS_SUCCESS ||
-				!parsed_frm->ssidPresent) {
+				bcn_prb_len - SIR_MAC_HDR_LEN_3A) !=
+						QDF_STATUS_SUCCESS ||
+			    !parsed_frm->ssidPresent) {
 				pe_err("Parse error Beacon, length: %d",
-				       roam_ind->beaconProbeRespLength);
+				       bcn_prb_len);
 				return QDF_STATUS_E_FAILURE;
 			}
 		} else {
 			if (sir_convert_probe_frame2_struct(mac,
 				&bcn_prb_ptr[SIR_MAC_HDR_LEN_3A],
-				roam_ind->beaconProbeRespLength -
+				bcn_prb_len -
 				SIR_MAC_HDR_LEN_3A, parsed_frm) !=
 				QDF_STATUS_SUCCESS ||
 				!parsed_frm->ssidPresent) {
 				pe_err("Parse error ProbeResponse, length: %d",
-				       roam_ind->beaconProbeRespLength);
+				       bcn_prb_len);
 				return QDF_STATUS_E_FAILURE;
 			}
 		}
 		/* 24 byte MAC header and 12 byte to ssid IE */
-		if (roam_ind->beaconProbeRespLength > ie_offset) {
-			*ie_len = roam_ind->beaconProbeRespLength - ie_offset;
+		if (bcn_prb_len > ie_offset) {
+			*ie_len = bcn_prb_len - ie_offset;
 			*ie = qdf_mem_malloc(*ie_len);
 			if (!*ie)
 				return QDF_STATUS_E_NOMEM;
@@ -2153,7 +2155,7 @@ lim_roam_gen_beacon_descr(struct mac_context *mac,
 	 * For probe response, unpack core parses beacon interval, capabilities,
 	 * timestamp. For beacon IEs, these fields are not parsed.
 	 */
-	if (roam_ind->isBeacon)
+	if (is_beacon)
 		sir_parse_bcn_fixed_fields(mac, parsed_frm,
 			&bcn_prb_ptr[SIR_MAC_HDR_LEN_3A]);
 
@@ -2164,29 +2166,70 @@ static QDF_STATUS
 lim_roam_fill_bss_descr(struct mac_context *mac,
 			struct roam_offload_synch_ind *roam_synch_ind_ptr,
 			struct bss_description *bss_desc_ptr,
-			uint8_t vdev_id)
+			struct pe_session *session)
 {
 	uint32_t ie_len = 0;
-	tpSirProbeRespBeacon parsed_frm_ptr;
+	tpSirProbeRespBeacon parsed_frm_ptr = NULL;
 	tpSirMacMgmtHdr mac_hdr;
-	uint8_t *bcn_proberesp_ptr;
-	QDF_STATUS status;
+	uint8_t *bcn_proberesp_ptr = NULL;
+	uint16_t bcn_proberesp_len = 0;
+	QDF_STATUS status = QDF_STATUS_SUCCESS;
 	uint8_t *ie = NULL;
 	struct qdf_mac_addr bssid;
+	bool is_mlo_link = false;
+	uint8_t vdev_id = session->vdev_id;
+	struct element_info frame;
 
-	bcn_proberesp_ptr = (uint8_t *)roam_synch_ind_ptr +
-		roam_synch_ind_ptr->beaconProbeRespOffset;
+	frame.ptr = NULL;
+	frame.len = 0;
+	if (is_multi_link_roam(roam_synch_ind_ptr) &&
+	    wlan_vdev_mlme_get_is_mlo_link(mac->psoc, vdev_id)) {
+		if (roam_synch_ind_ptr->link_beacon_probe_resp_length) {
+			bcn_proberesp_ptr = (uint8_t *)roam_synch_ind_ptr +
+			roam_synch_ind_ptr->link_beacon_probe_resp_offset;
+			bcn_proberesp_len =
+			roam_synch_ind_ptr->link_beacon_probe_resp_length;
+		} else {
+			/*
+			 * This indicates that firmware hasn't sent link beacon,
+			 * which means assoc probe rsp is an ML probe rsp.
+			 * Extract the link probe rsp also from that.
+			 */
+			status = lim_gen_link_probe_rsp_roam(mac,
+						session, roam_synch_ind_ptr);
+			if (QDF_IS_STATUS_ERROR(status))
+				return status;
+			mlo_get_sta_link_mac_addr(vdev_id, roam_synch_ind_ptr,
+						  &bssid);
+			status = wlan_scan_get_entry_by_mac_addr(mac->pdev,
+								 &bssid, &frame);
+			if (QDF_IS_STATUS_ERROR(status) && !frame.len) {
+				pe_err("Failed to get scan entry for " QDF_MAC_ADDR_FMT,
+				       QDF_MAC_ADDR_REF(bssid.bytes));
+				return status;
+			}
+			bcn_proberesp_ptr = frame.ptr;
+			bcn_proberesp_len = frame.len;
+		}
+		is_mlo_link = true;
+	} else {
+		bcn_proberesp_ptr = (uint8_t *)roam_synch_ind_ptr +
+			roam_synch_ind_ptr->beaconProbeRespOffset;
+		bcn_proberesp_len = roam_synch_ind_ptr->beaconProbeRespLength;
+	}
+
 	mac_hdr = (tpSirMacMgmtHdr)bcn_proberesp_ptr;
 	parsed_frm_ptr = qdf_mem_malloc(sizeof(tSirProbeRespBeacon));
-	if (!parsed_frm_ptr)
-		return QDF_STATUS_E_NOMEM;
+	if (!parsed_frm_ptr) {
+		status = QDF_STATUS_E_NOMEM;
+		goto done;
+	}
 
-	if (roam_synch_ind_ptr->beaconProbeRespLength <=
-			SIR_MAC_HDR_LEN_3A) {
-		pe_err("very few bytes in synchInd beacon / probe resp frame! length: %d",
-		       roam_synch_ind_ptr->beaconProbeRespLength);
-		qdf_mem_free(parsed_frm_ptr);
-		return QDF_STATUS_E_FAILURE;
+	if (bcn_proberesp_len <= SIR_MAC_HDR_LEN_3A) {
+		pe_err("very few bytes in synchInd %s beacon / probe resp frame! length: %d",
+		       is_mlo_link ? "link" : "", bcn_proberesp_len);
+		status = QDF_STATUS_E_FAILURE;
+		goto done;
 	}
 
 	if (is_multi_link_roam(roam_synch_ind_ptr))
@@ -2196,23 +2239,24 @@ lim_roam_fill_bss_descr(struct mac_context *mac,
 
 	pe_debug("LFR3:Beacon/Prb Rsp: %d bssid " QDF_MAC_ADDR_FMT
 		 " beacon " QDF_MAC_ADDR_FMT,
-		 roam_synch_ind_ptr->isBeacon,
+		 is_mlo_link ? roam_synch_ind_ptr->is_link_beacon :
+			roam_synch_ind_ptr->isBeacon,
 		 QDF_MAC_ADDR_REF(bssid.bytes),
 		 QDF_MAC_ADDR_REF(mac_hdr->bssId));
 
 	QDF_TRACE_HEX_DUMP(QDF_MODULE_ID_PE, QDF_TRACE_LEVEL_DEBUG,
 			   bcn_proberesp_ptr,
-			   roam_synch_ind_ptr->beaconProbeRespLength);
+			   bcn_proberesp_len);
 
-	status = lim_roam_gen_beacon_descr(mac,
-					   roam_synch_ind_ptr,
-					   parsed_frm_ptr,
+	status = lim_roam_gen_beacon_descr(mac, bcn_proberesp_ptr,
+					   bcn_proberesp_len, is_mlo_link,
+					   roam_synch_ind_ptr, parsed_frm_ptr,
 					   &ie, &ie_len,
 					   &bssid);
 	if (QDF_IS_STATUS_ERROR(status)) {
 		pe_err("Failed to parse beacon");
-		qdf_mem_free(parsed_frm_ptr);
-		return QDF_STATUS_E_FAILURE;
+		status = QDF_STATUS_E_FAILURE;
+		goto done;
 	}
 
 	/*
@@ -2231,7 +2275,9 @@ lim_roam_fill_bss_descr(struct mac_context *mac,
 					   ieFields[0]) -
 				sizeof(bss_desc_ptr->length) + ie_len);
 
-	bss_desc_ptr->fProbeRsp = !roam_synch_ind_ptr->isBeacon;
+	bss_desc_ptr->fProbeRsp = !(is_mlo_link ?
+					roam_synch_ind_ptr->is_link_beacon :
+					roam_synch_ind_ptr->isBeacon);
 	bss_desc_ptr->rssi = roam_synch_ind_ptr->rssi;
 	/* Copy Timestamp */
 	bss_desc_ptr->scansystimensec = qdf_get_monotonic_boottime_ns();
@@ -2290,16 +2336,19 @@ lim_roam_fill_bss_descr(struct mac_context *mac,
 		 bss_desc_ptr->chan_freq,
 		 bss_desc_ptr->rssi, ie_len);
 
-	qdf_mem_free(parsed_frm_ptr);
 	if (ie_len) {
 		qdf_mem_copy(&bss_desc_ptr->ieFields,
 			     ie, ie_len);
 		qdf_mem_free(ie);
 	} else {
 		pe_err("Beacon/Probe rsp doesn't have any IEs");
-		return QDF_STATUS_E_FAILURE;
+		status = QDF_STATUS_E_FAILURE;
+		goto done;
 	}
-	return QDF_STATUS_SUCCESS;
+done:
+	qdf_mem_free(frame.ptr);
+	qdf_mem_free(parsed_frm_ptr);
+	return status;
 }
 
 #if defined(WLAN_FEATURE_FILS_SK)
@@ -2726,7 +2775,7 @@ pe_roam_synch_callback(struct mac_context *mac_ctx,
 	}
 
 	status = lim_roam_fill_bss_descr(mac_ctx, roam_sync_ind_ptr,
-					 bss_desc, vdev_id);
+					 bss_desc, session_ptr);
 	if (!QDF_IS_STATUS_SUCCESS(status)) {
 		pe_err("LFR3:Failed to fill Bss Descr");
 		qdf_mem_free(bss_desc);
@@ -3279,7 +3328,8 @@ lim_cm_fill_link_session(struct mac_context *mac_ctx,
 
 	if (!assoc_vdev) {
 		pe_err("Assoc vdev is NULL");
-		return QDF_STATUS_E_FAILURE;
+		status = QDF_STATUS_E_FAILURE;
+		goto end;
 	}
 
 	status = wlan_vdev_mlme_get_ssid(assoc_vdev,
@@ -3289,15 +3339,18 @@ lim_cm_fill_link_session(struct mac_context *mac_ctx,
 	if (QDF_IS_STATUS_ERROR(status)) {
 		pe_err("Failed to get ssid vdev id %d",
 		       vdev_id);
-		return QDF_STATUS_E_FAILURE;
+		status = QDF_STATUS_E_FAILURE;
+		goto end;
 	}
 
 	sir_copy_mac_addr(pe_session->bssId, sync_ind->bssid.bytes);
 
-	pe_session->lim_join_req = qdf_mem_malloc(sizeof(*pe_session->lim_join_req) +
-						  bss_len);
-	if (!pe_session->lim_join_req)
-		return QDF_STATUS_E_NOMEM;
+	pe_session->lim_join_req =
+		qdf_mem_malloc(sizeof(*pe_session->lim_join_req) + bss_len);
+	if (!pe_session->lim_join_req) {
+		status = QDF_STATUS_E_NOMEM;
+		goto end;
+	}
 
 	pe_join_req = pe_session->lim_join_req;
 	bss_desc = &pe_session->lim_join_req->bssDescription;
@@ -3309,7 +3362,8 @@ lim_cm_fill_link_session(struct mac_context *mac_ctx,
 		goto end;
 	}
 
-	status = lim_roam_fill_bss_descr(mac_ctx, sync_ind, bss_desc, vdev_id);
+	status = lim_roam_fill_bss_descr(mac_ctx, sync_ind, bss_desc,
+					 pe_session);
 	if (!QDF_IS_STATUS_SUCCESS(status)) {
 		pe_err("LFR3:Failed to fill Bss Descr");
 		qdf_mem_free(bss_desc);
@@ -3333,6 +3387,8 @@ end:
 		qdf_mem_free(pe_session->lim_join_req);
 		pe_session->lim_join_req = NULL;
 	}
+	wlan_objmgr_vdev_release_ref(vdev, WLAN_LEGACY_MAC_ID);
+
 	return status;
 }
 
@@ -3422,7 +3478,7 @@ void lim_roam_mlo_create_peer(struct mac_context *mac,
 		return;
 
 	if (!wlan_vdev_mlme_is_mlo_vdev(vdev))
-		return;
+		goto end;
 
 	link_id = mlo_roam_get_link_id(vdev_id, sync_ind);
 	/* currently only 2 link MLO supported */
@@ -3760,6 +3816,94 @@ end:
 	if (link_probe_rsp.ptr)
 		qdf_mem_free(link_probe_rsp.ptr);
 	link_probe_rsp.len = 0;
+	return status;
+}
+
+QDF_STATUS
+lim_gen_link_probe_rsp_roam(struct mac_context *mac_ctx,
+			    struct pe_session *session,
+			    struct roam_offload_synch_ind *roam_sync_ind)
+{
+	struct element_info link_probe_rsp;
+	struct qdf_mac_addr sta_link_addr;
+	QDF_STATUS status = QDF_STATUS_SUCCESS;
+	tSirProbeRespBeacon *probe_rsp;
+	uint8_t *frame;
+	uint32_t frame_len;
+	struct wlan_frame_hdr *hdr;
+
+	if (!session || !roam_sync_ind)
+		return QDF_STATUS_E_NULL_VALUE;
+
+	if (!roam_sync_ind->num_setup_links)
+		return status;
+
+	if (roam_sync_ind->link_beacon_probe_resp_length) {
+		pe_debug("Firmware sent link beacon also. No need to generate a new one from assoc bcn/prb rsp");
+		return QDF_STATUS_SUCCESS;
+	}
+	frame_len = roam_sync_ind->beaconProbeRespLength;
+	frame = (uint8_t *)roam_sync_ind +
+			roam_sync_ind->beaconProbeRespOffset;
+
+	frame = (uint8_t *)(frame + sizeof(*hdr));
+	frame_len -= sizeof(*hdr);
+	QDF_TRACE_HEX_DUMP(QDF_MODULE_ID_PE, QDF_TRACE_LEVEL_DEBUG,
+			   frame, frame_len);
+
+	probe_rsp = qdf_mem_malloc(sizeof(tSirProbeRespBeacon));
+	if (!probe_rsp)
+		return QDF_STATUS_E_NOMEM;
+
+	probe_rsp->ssId.length = 0;
+	probe_rsp->wpa.length = 0;
+	/* Enforce Mandatory IEs */
+	if ((sir_convert_probe_frame2_struct(mac_ctx,
+		frame, frame_len, probe_rsp) == QDF_STATUS_E_FAILURE) ||
+	    !probe_rsp->ssidPresent) {
+		pe_err("Parse error ProbeResponse, length=%d", frame_len);
+		qdf_mem_free(probe_rsp);
+		return QDF_STATUS_E_INVAL;
+	}
+
+	if (probe_rsp->mlo_ie.mlo_ie_present) {
+		link_probe_rsp.ptr = qdf_mem_malloc(frame_len);
+		if (!link_probe_rsp.ptr)
+			return QDF_STATUS_E_NOMEM;
+
+		/*
+		 * It's ok to keep assoc vdev mac address as DA as link vdev
+		 * is just cleanedup and it may not be an ML vdev till the
+		 * flags are set again
+		 */
+		qdf_mem_copy(&sta_link_addr, session->self_mac_addr,
+			     QDF_MAC_ADDR_SIZE);
+
+		link_probe_rsp.len = frame_len;
+		status = util_gen_link_probe_rsp(frame, frame_len,
+				sta_link_addr, link_probe_rsp.ptr,
+				frame_len, (qdf_size_t *)&link_probe_rsp.len);
+		if (QDF_IS_STATUS_ERROR(status)) {
+			pe_err("MLO: Link probe response generation failed %d",
+			       status);
+			status = QDF_STATUS_E_FAILURE;
+			goto end;
+		}
+
+		lim_add_bcn_probe(session->vdev, link_probe_rsp.ptr,
+				  link_probe_rsp.len,
+				  mlo_roam_get_link_freq(session->vdev_id,
+							 roam_sync_ind),
+				  roam_sync_ind->rssi);
+	} else {
+		qdf_mem_free(probe_rsp);
+		return status;
+	}
+end:
+	if (link_probe_rsp.ptr)
+		qdf_mem_free(link_probe_rsp.ptr);
+	link_probe_rsp.len = 0;
+	qdf_mem_free(probe_rsp);
 	return status;
 }
 #endif

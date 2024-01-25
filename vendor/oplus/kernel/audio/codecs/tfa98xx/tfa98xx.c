@@ -3303,7 +3303,9 @@ static int tfa98xx_load_firmware(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	int ret = 0;
-
+#ifdef OPLUS_ARCH_EXTENDS
+	char* profile_name = NULL;
+#endif
 	/* we don't need load it again once firmware was loaded. */
 	if (g_tfa98xx_firmware_status > 0) {
 		pr_info("the firmware was loaded, we don't need load it again!!!\n");
@@ -3333,6 +3335,10 @@ static int tfa98xx_load_firmware(struct snd_kcontrol *kcontrol,
 				pr_info("tfa load nprof %d\n", nprof);
 				for (index = 0; index < nprof; index++) {
 					/* create an new empty profile */
+					#ifdef OPLUS_ARCH_EXTENDS
+					//fix coverity 82328
+					profile_name = tfa_cont_profile_name(tfa98xx, index);
+					#endif
 					bprofile = devm_kzalloc(
 						tfa98xx->component->dev,
 						sizeof(*bprofile),
@@ -3347,10 +3353,17 @@ static int tfa98xx_load_firmware(struct snd_kcontrol *kcontrol,
 					/* copy profile name into
 					 * basename until the.
 					 */
+					#ifdef OPLUS_ARCH_EXTENDS
+					//fix coverity 82328
+					if (NULL != profile_name) {
+						get_profile_basename(bprofile->basename, profile_name);
+					}
+					#else
 					get_profile_basename(bprofile->basename,
 						tfa_cont_profile_name(
 							tfa98xx,
 							index));
+					#endif
 					bprofile->len =
 						strlen(bprofile->basename);
 					/*
@@ -3362,6 +3375,14 @@ static int tfa98xx_load_firmware(struct snd_kcontrol *kcontrol,
 					 * calibration profile, do not add it
 					 * to the list
 					 */
+					#ifdef OPLUS_ARCH_EXTENDS
+					//fix coverity 82328
+					if ((NULL != profile_name)&&(is_profile_in_list(
+							bprofile->basename,
+							bprofile->len) == 0)
+						&& is_calibration_profile(
+								profile_name) == 0) {
+					#else
 					if ((is_profile_in_list(
 							bprofile->basename,
 							bprofile->len) == 0)
@@ -3369,6 +3390,7 @@ static int tfa98xx_load_firmware(struct snd_kcontrol *kcontrol,
 							tfa_cont_profile_name(
 								tfa98xx, index)
 						) == 0) {
+					#endif
 						/* the profile is not present,
 						 * add it to the list
 						 */

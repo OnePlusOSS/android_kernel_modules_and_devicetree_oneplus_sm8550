@@ -564,6 +564,19 @@ enum oplus_voocphy_ovp_ctrl {
 	INVALID_CP_ID,
 };
 
+enum oplus_fastchg_copycat_type {
+	FAST_COPYCAT_TYPE_UNKNOW,
+	FAST_COPYCAT_ASK_BAT_MODEL,
+	FAST_COPYCAT_SVOOC_ASK_VBUS_STATUS,
+	FAST_COPYCAT_OVER_EXPECT_CURRENT,
+	FAST_COPYCAT_OVER_VBAT_CURRENT,
+	FAST_COPYCAT_VOOC20_REPEAT_FASTCHG_ORNOT,
+	FAST_COPYCAT_VOOC20_REPEAT_IS_VBUS_OK,
+	FAST_COPYCAT_SVOOC_IS_VBUS_OK_EXCEED_MAXCNT,
+	FAST_COPYCAT_SVOOC_MISS_ASK_CUR_LEVEL,
+	FAST_COPYCAT_TYPE_MAX,
+};
+
 struct oplus_voocphy_manager {
 	struct i2c_client *client;
 	struct device *dev;
@@ -753,7 +766,6 @@ struct oplus_voocphy_manager {
 	bool fastchg_monitor_stop;
 	bool fastchg_commu_ing;
 	bool vooc_move_head;
-	bool copycat_vooc_adapter;
 	bool user_exit_fastchg;
 	unsigned char fastchg_stage;
 	bool fastchg_need_reset;
@@ -892,6 +904,7 @@ struct oplus_voocphy_manager {
 	bool retry_flag;
 	enum oplus_adapter_abnormal_type adapter_abnormal_type;
 	bool workaround_for_100w;
+	enum oplus_fastchg_copycat_type copycat_type;
 #if IS_ENABLED(CONFIG_OPLUS_DYNAMIC_CONFIG_CHARGER)
 	struct oplus_cfg debug_cfg;
 #endif

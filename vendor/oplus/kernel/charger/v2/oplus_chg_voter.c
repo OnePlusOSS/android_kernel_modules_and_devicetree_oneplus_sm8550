@@ -571,12 +571,18 @@ int rerun_election(struct votable *votable, bool step)
 		return -EINVAL;
 
 	lock_votable(votable);
-	effective_result = get_effective_result_locked(votable);
-	if (votable->callback)
-		rc = votable->callback(votable,
-			votable->data,
-			effective_result,
-			get_client_str(votable, votable->effective_client_id), step);
+	if (votable->force_active) {
+		if (votable->callback)
+			rc = votable->callback(votable, votable->data,
+				votable->force_val, DEBUG_FORCE_CLIENT, false);
+	} else {
+		effective_result = get_effective_result_locked(votable);
+		if (votable->callback)
+			rc = votable->callback(votable,
+				votable->data,
+				effective_result,
+				get_client_str(votable, votable->effective_client_id), step);
+	}
 	unlock_votable(votable);
 	return rc;
 }
@@ -589,12 +595,18 @@ int rerun_election_unlock(struct votable *votable, bool step)
 	if (!votable)
 		return -EINVAL;
 
-	effective_result = get_effective_result_locked(votable);
-	if (votable->callback)
-		rc = votable->callback(votable,
-			votable->data,
-			effective_result,
-			get_client_str(votable, votable->effective_client_id), step);
+	if (votable->force_active) {
+		if (votable->callback)
+			rc = votable->callback(votable, votable->data,
+				votable->force_val, DEBUG_FORCE_CLIENT, false);
+	} else {
+		effective_result = get_effective_result_locked(votable);
+		if (votable->callback)
+			rc = votable->callback(votable,
+				votable->data,
+				effective_result,
+				get_client_str(votable, votable->effective_client_id), step);
+	}
 	return rc;
 }
 

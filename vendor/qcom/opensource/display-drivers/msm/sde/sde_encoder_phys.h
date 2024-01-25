@@ -625,12 +625,17 @@ int sde_encoder_helper_wait_event_timeout(
 		int32_t hw_id,
 		struct sde_encoder_wait_info *info);
 
-/*
- * sde_encoder_get_fps - get the allowed panel jitter in nanoseconds
- * @encoder: Pointer to drm encoder object
- */
-void sde_encoder_helper_get_jitter_bounds_ns(struct drm_encoder *encoder,
-			u64 *l_bound, u64 *u_bound);
+ /*
+  * sde_encoder_get_fps - get the allowed panel jitter in nanoseconds
+  * @frame_rate: custom input frame rate
+  * @jitter_num: jitter numerator value
+  * @jitter_denom: jitter denomerator value,
+  * @l_bound: lower frame period boundary
+  * @u_bound: upper frame period boundary
+  */
+void sde_encoder_helper_get_jitter_bounds_ns(uint32_t frame_rate,
+			u32 jitter_num, u32 jitter_denom,
+			ktime_t *l_bound, ktime_t *u_bound);
 
 /**
  * sde_encoder_helper_switch_vsync - switch vsync source to WD or default

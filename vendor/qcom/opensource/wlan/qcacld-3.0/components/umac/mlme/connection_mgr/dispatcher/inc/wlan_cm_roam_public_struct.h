@@ -440,6 +440,9 @@ struct roam_synch_frame_ind {
 	uint32_t bcn_probe_rsp_len;
 	uint8_t *bcn_probe_rsp;
 	uint8_t is_beacon;
+	uint32_t link_bcn_probe_rsp_len;
+	uint8_t *link_bcn_probe_rsp;
+	uint8_t is_link_beacon;
 	uint32_t reassoc_req_len;
 	uint8_t *reassoc_req;
 	uint32_t reassoc_rsp_len;
@@ -2588,6 +2591,9 @@ struct roam_offload_synch_ind {
 	uint8_t is_assoc;
 	enum wlan_phymode phy_mode; /*phy mode sent by fw */
 	wmi_channel chan;
+	uint16_t link_beacon_probe_resp_offset;
+	uint16_t link_beacon_probe_resp_length;
+	uint8_t is_link_beacon;
 #ifdef WLAN_FEATURE_11BE_MLO
 	uint8_t num_setup_links;
 	struct ml_setup_link_param ml_link[WLAN_UMAC_MLO_MAX_VDEVS];

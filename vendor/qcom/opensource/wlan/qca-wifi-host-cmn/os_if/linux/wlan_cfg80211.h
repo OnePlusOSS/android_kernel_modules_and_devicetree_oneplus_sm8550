@@ -517,7 +517,7 @@ void wlan_cfg80211_ch_switch_notify(struct net_device *dev,
 				    struct cfg80211_chan_def *chandef,
 				    unsigned int link_id)
 {
-	cfg80211_ch_switch_notify(dev, chandef, link_id);
+	cfg80211_ch_switch_notify(dev, chandef, link_id, 0);
 }
 #else
 static inline

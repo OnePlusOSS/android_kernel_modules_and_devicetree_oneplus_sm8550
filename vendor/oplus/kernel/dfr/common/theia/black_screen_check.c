@@ -36,6 +36,7 @@ struct pwrkey_monitor_data g_black_data = {
 /* if last stage in this array, skip */
 static char black_last_skip_block_stages[][64] = {
 	{ "LIGHT_setScreenState_" }, /* quick press powerkey, power decide wakeup when black check, skip */
+	{ "POWERKEY_interceptKeyBeforeQueueing" }, /* Pressing and holding power while folding the secondary screen is on will cause false alarms, skip */
 };
 
 /* if contain stage in this array, skip */
@@ -45,6 +46,7 @@ static char black_skip_stages[][64] = {
 
 static int bl_start_check_systemid = -1;
 
+/*
 bool is_dual_screen(void)
 {
 	struct device_node *node = NULL;
@@ -59,6 +61,7 @@ bool is_dual_screen(void)
 	is_dual_screen_dev = of_property_read_bool(node, "is-dual-screen-pwk-monitor-switch");
 	return is_dual_screen_dev;
 }
+*/
 
 int black_screen_timer_restart(void)
 {
@@ -75,12 +78,14 @@ int black_screen_timer_restart(void)
 		return -1;
 	}
 
+	/*
 	if (is_dual_screen()) {
 		BLACK_DEBUG_PRINTK("dual screen not adapted, %s just return\n", __func__);
 		return 0;
 	} else {
 		BLACK_DEBUG_PRINTK("Not dual screen, %s running\n", __func__);
 	}
+	*/
 
 	if (g_black_data.blank == THEIA_PANEL_BLANK_VALUE) {
 		bl_start_check_systemid = get_systemserver_pid();
@@ -122,12 +127,14 @@ void send_black_screen_dcs_msg(void)
 	mLastPwkTime = ts;
 	BLACK_DEBUG_PRINTK("send_black_screen_dcs_msg mLastPwkTime is %lld ms\n", mLastPwkTime);
 	get_blackscreen_check_dcs_logmap(logmap);
-	theia_send_event(THEIA_EVENT_BLACK_SCREEN_HANG, THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
-		current->pid, logmap);
+	theia_send_event(THEIA_EVENT_BLACK_SCREEN_HANG, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
+		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+		get_systemserver_pid(), logmap);
 }
 
 static void delete_timer(char *reason, bool cancel)
 {
+	del_timer(&g_bright_data.timer);
 	del_timer(&g_black_data.timer);
 
 	if (cancel && g_black_data.error_count != 0) {

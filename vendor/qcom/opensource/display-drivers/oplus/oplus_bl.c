@@ -313,6 +313,7 @@ void oplus_pwm_disable_duty_set_work_handler(struct work_struct *work)
 		mutex_unlock(&panel->panel_lock);
 		return;
 	}
+	usleep_range(120, 120);
 	rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_DISABLE_PWM_BACKLIGHT_COMPENSATION);
 	mutex_unlock(&panel->panel_lock);
 
@@ -410,7 +411,7 @@ int oplus_panel_pwm_switch_wait_te_tx_cmd(struct dsi_panel *panel, u32 pwm_switc
 		if (refresh_rate == 60) {
 			oplus_need_to_sync_te(panel);
 		}
-
+		usleep_range(120, 120);
 		rc = dsi_panel_tx_cmd_set(panel, pwm_switch_cmd);
 
 		if (panel->oplus_priv.pwm_create_thread) {
@@ -420,17 +421,36 @@ int oplus_panel_pwm_switch_wait_te_tx_cmd(struct dsi_panel *panel, u32 pwm_switc
 	return rc;
 }
 
-void oplus_panel_backlight_demura_dbv_switch(struct dsi_panel *panel, u32 bl_lvl)
+void oplus_panel_bl_demura_dbv_switch_sync_te(void)
 {
 	int rc = 0;
-	u32 bl_demura_last_mode = panel->oplus_priv.bl_demura_mode;
+	u32 bl_lvl = 0;
+	struct dsi_display *display = NULL;
+	struct dsi_panel *panel = NULL;
+	u32 bl_demura_last_mode = 0;
 	u32 bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE0;
+
+	display = get_main_display();
+	if (!display) {
+		LCD_INFO("display is null!\n");
+		return;
+	}
+
+	panel = display->panel;
+	if (!panel) {
+		LCD_INFO("panel is null!\n");
+		return;
+	}
+
+	bl_lvl = panel->bl_config.bl_level;
+	bl_demura_last_mode = panel->oplus_priv.bl_demura_mode;
 
 	if (!panel->oplus_priv.oplus_bl_demura_dbv_support)
 		return;
 
 	if (bl_lvl == 0 || bl_lvl == 1)
 		return;
+
 
 	if (bl_lvl < 688) {
 		panel->oplus_priv.bl_demura_mode = 0;
@@ -443,12 +463,20 @@ void oplus_panel_backlight_demura_dbv_switch(struct dsi_panel *panel, u32 bl_lvl
 		bl_demura_mode = DSI_CMD_DEMURA_DBV_MODE2;
 	}
 
-	if (panel->oplus_priv.bl_demura_mode != bl_demura_last_mode && panel->power_mode == SDE_MODE_DPMS_ON)
-		rc = dsi_panel_tx_cmd_set(panel, bl_demura_mode);
+	mutex_lock(&display->display_lock);
+	mutex_lock(&panel->panel_lock);
+	if (panel->oplus_priv.bl_demura_mode != bl_demura_last_mode
+			&& panel->power_mode != SDE_MODE_DPMS_OFF) {
+		rc |= dsi_display_override_dma_cmd_trig(display, DSI_TRIGGER_SW_SEOF);
+		rc |= dsi_panel_tx_cmd_set(panel, bl_demura_mode);
+		rc |= dsi_display_override_dma_cmd_trig(display, DSI_TRIGGER_NONE);
+	}
+	mutex_unlock(&panel->panel_lock);
+	mutex_unlock(&display->display_lock);
+
 	if (rc) {
 		DSI_ERR("[%s] failed to send bl_demura_mode, rc=%d\n", panel->name, rc);
 		return;
 	}
 }
-
 

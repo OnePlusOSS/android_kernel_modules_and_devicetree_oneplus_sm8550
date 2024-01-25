@@ -215,20 +215,6 @@ static int cls_dpi_init(struct tcf_proto *tp)
 	return 0;
 }
 
-
-static void cls_dpi_destroy(struct tcf_proto *tp, bool rtnl_held, struct netlink_ext_ack *extack)
-{
-	struct cls_dpi_head *head = rtnl_dereference(tp->root);
-	struct cls_dpi_data *prog, *tmp;
-
-	list_for_each_entry_safe(prog, tmp, &head->plist, link) {
-		__cls_dpi_delete(tp, prog, extack);
-	}
-
-	idr_destroy(&head->handle_idr);
-	kfree_rcu(head, rcu);
-}
-
 static void *cls_dpi_get(struct tcf_proto *tp, u32 handle)
 {
 	struct cls_dpi_head *head = rtnl_dereference(tp->root);
@@ -356,7 +342,7 @@ errout:
 
 	return ret;
 }
-#else
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
 static int cls_dpi_set_params(struct net *net, struct tcf_proto *tp, struct cls_dpi_data *pdata, unsigned long base,
 								struct nlattr **tb, struct nlattr *est, bool ovr, struct netlink_ext_ack *extack)
 {
@@ -394,6 +380,7 @@ static int cls_dpi_set_params(struct net *net, struct tcf_proto *tp, struct cls_
 
 	return 0;
 }
+
 
 
 static int cls_dpi_change(struct net *net, struct sk_buff *in_skb, struct tcf_proto *tp, unsigned long base,
@@ -470,8 +457,134 @@ errout:
 
 	return ret;
 }
+#else
+static int cls_dpi_set_params(struct net *net, struct tcf_proto *tp, struct cls_dpi_data *pdata, unsigned long base,
+								struct nlattr **tb, struct nlattr *est, bool ovr, struct netlink_ext_ack *extack)
+{
+	int ret = 0;
+
+	ret = tcf_exts_validate(net, tp, tb, est, &pdata->exts, ovr, extack);
+	if (ret < 0) {
+		return ret;
+	}
+
+	if (tb[TCA_DPI_TYPE]) {
+		pdata->type = nla_get_u32(tb[TCA_DPI_TYPE]);
+	}
+
+	if (tb[TCA_DPI_ID]) {
+		pdata->dpi_id = nla_get_u64(tb[TCA_DPI_ID]);
+	}
+
+	if (tb[TCA_DPI_MARK]) {
+		pdata->mark = nla_get_u32(tb[TCA_DPI_MARK]);
+	}
+
+	if (!check_dpi_id_valid(pdata->type, pdata->dpi_id)) {
+		return -EINVAL;
+	}
+
+	if (pdata->mark && !check_mark_valid(pdata->mark)) {
+		return EINVAL;
+	}
+
+	if (tb[TCA_DPI_CLASSID]) {
+		pdata->res.classid = nla_get_u32(tb[TCA_DPI_CLASSID]);
+		tcf_bind_filter(tp, &pdata->res, base);
+	}
+
+	return 0;
+}
+
+static int cls_dpi_change(struct net *net, struct sk_buff *in_skb, struct tcf_proto *tp, unsigned long base,
+						u32 handle, struct nlattr **tca, void **arg, bool ovr, struct netlink_ext_ack *extack)
+{
+	int ret = 0;
+	struct nlattr *tb[TCA_DPI_MAX + 1];
+	struct cls_dpi_head *head = rtnl_dereference(tp->root);
+	struct cls_dpi_data *old = *arg;
+	struct cls_dpi_data *new_data = NULL;
+
+	if (!tca[TCA_OPTIONS]) {
+		return -EINVAL;
+	}
+
+	ret = nla_parse_nested(tb, TCA_DPI_MAX, tca[TCA_OPTIONS], dpi_policy, NULL);
+	if (ret < 0) {
+		return ret;
+	}
+
+	new_data = kzalloc(sizeof(*new_data), GFP_KERNEL);
+	if (!new_data) {
+		return ENOBUFS;
+	}
+
+	ret = tcf_exts_init(&new_data->exts, TCA_DPI_ACT, TCA_DPI_POLICE);
+	if (ret < 0) {
+		goto errout;
+	}
+
+	if (old) {
+		if (handle && old->handle != handle) {
+			ret = -EINVAL;
+			goto errout;
+		}
+	}
+	if (handle == 0) {
+		handle = 1;
+		ret = idr_alloc_u32(&head->handle_idr, new_data, &handle, INT_MAX, GFP_KERNEL);
+	} else if (!old) {
+		ret = idr_alloc_u32(&head->handle_idr, new_data, &handle, handle, GFP_KERNEL);
+	}
+	if (ret) {
+		goto errout;
+	}
+	new_data->handle = handle;
+
+	ret = cls_dpi_set_params(net, tp, new_data, base, tb, tca[TCA_RATE], ovr, extack);
+	if (ret < 0) {
+		goto errout_idr;
+	}
+
+	if (old) {
+		logt("replace filter!");
+		idr_replace(&head->handle_idr, new_data, handle);
+		list_replace_rcu(&old->link, &new_data->link);
+		tcf_unbind_filter(tp, &old->res);
+		tcf_exts_get_net(&old->exts);
+		tcf_queue_work(&old->rwork, cls_dpi_delete_work);
+	} else {
+		logt("add filter!");
+		list_add_rcu(&new_data->link, &head->plist);
+	}
+	*arg = new_data;
+	return 0;
+
+errout_idr:
+	if (!old) {
+		idr_remove(&head->handle_idr, new_data->handle);
+	}
+errout:
+	tcf_exts_destroy(&new_data->exts);
+	kfree(new_data);
+
+	return ret;
+}
 #endif
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+static void cls_dpi_destroy(struct tcf_proto *tp, bool rtnl_held, struct netlink_ext_ack *extack)
+{
+	struct cls_dpi_head *head = rtnl_dereference(tp->root);
+	struct cls_dpi_data *prog, *tmp;
+
+	list_for_each_entry_safe(prog, tmp, &head->plist, link) {
+		__cls_dpi_delete(tp, prog, extack);
+	}
+
+	idr_destroy(&head->handle_idr);
+	kfree_rcu(head, rcu);
+}
 
 static int cls_dpi_delete(struct tcf_proto *tp, void *arg, bool *last, bool rtnl_held, struct netlink_ext_ack *extack)
 {
@@ -539,6 +652,87 @@ nla_put_failure:
 	nla_nest_cancel(skb, nest);
 	return -1;
 }
+#else
+static void cls_dpi_destroy(struct tcf_proto *tp, struct netlink_ext_ack *extack)
+{
+	struct cls_dpi_head *head = rtnl_dereference(tp->root);
+	struct cls_dpi_data *prog, *tmp;
+
+	list_for_each_entry_safe(prog, tmp, &head->plist, link) {
+		__cls_dpi_delete(tp, prog, extack);
+	}
+
+	idr_destroy(&head->handle_idr);
+	kfree_rcu(head, rcu);
+}
+
+static int cls_dpi_delete(struct tcf_proto *tp, void *arg, bool *last, struct netlink_ext_ack *extack)
+{
+	struct cls_dpi_head *head = rtnl_dereference(tp->root);
+	__cls_dpi_delete(tp, arg, extack);
+	*last = list_empty(&head->plist);
+	return 0;
+}
+
+static void cls_dpi_walk(struct tcf_proto *tp, struct tcf_walker *arg)
+{
+	struct cls_dpi_head *head = rtnl_dereference(tp->root);
+	struct cls_dpi_data *prog;
+
+	list_for_each_entry(prog, &head->plist, link) {
+		if (arg->count < arg->skip) {
+			goto skip;
+		}
+		if (arg->fn(tp, prog, arg) < 0) {
+			arg->stop = 1;
+			break;
+		}
+skip:
+		arg->count++;
+	}
+}
+
+static int cls_dpi_dump(struct net *net, struct tcf_proto *tp, void *fh, struct sk_buff *skb, struct tcmsg *tm)
+{
+	struct cls_dpi_data *prog = fh;
+	struct nlattr *nest;
+
+	if (prog == NULL) {
+		return skb->len;
+	}
+
+	tm->tcm_handle = prog->handle;
+	nest = nla_nest_start(skb, TCA_OPTIONS);
+	if (nest == NULL) {
+		goto nla_put_failure;
+	}
+	if (prog->res.classid && nla_put_u32(skb, TCA_DPI_CLASSID, prog->res.classid)) {
+		goto nla_put_failure;
+	}
+	if (nla_put_u32(skb, TCA_DPI_TYPE, prog->type)) {
+		goto nla_put_failure;
+	}
+	if (nla_put_u64_64bit(skb, TCA_DPI_ID, prog->dpi_id, TCA_DPI_PAD)) {
+		goto nla_put_failure;
+	}
+	if (nla_put_u32(skb, TCA_DPI_MARK, prog->mark)) {
+		goto nla_put_failure;
+	}
+	if (tcf_exts_dump(skb, &prog->exts) < 0) {
+		goto nla_put_failure;
+	}
+	nla_nest_end(skb, nest);
+
+	if (tcf_exts_dump_stats(skb, &prog->exts) < 0) {
+		goto nla_put_failure;
+	}
+	return skb->len;
+
+nla_put_failure:
+	nla_nest_cancel(skb, nest);
+	return -1;
+}
+#endif
 
 static void cls_dpi_bind_class(void *fh, u32 classid, unsigned long cl, void *q, unsigned long base)
 {

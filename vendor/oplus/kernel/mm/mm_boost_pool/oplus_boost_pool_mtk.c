@@ -49,6 +49,7 @@ static struct proc_dir_entry *procdir;
 static bool boost_pool_enable = true;
 
 atomic64_t boost_pool_pages = ATOMIC64_INIT(0);
+EXPORT_SYMBOL_GPL(boost_pool_pages);
 
 #if PAGE_SHIFT < 20
 #define P2M(pages)	((pages) >> (20 - PAGE_SHIFT))
@@ -102,6 +103,7 @@ static const struct proc_ops __name ## _proc_ops = {			\
 }
 
 int boost_pool_mgr_init(void);
+static int boost_pool_nr_pages(struct boost_pool *boost_pool);
 
 static inline
 struct page *boost_page_pool_alloc_pages(struct boost_page_pool *pool)
@@ -154,7 +156,8 @@ struct page *boost_pool_fetch(struct boost_pool *boost_pool, int order_index)
 	struct page *page;
 	struct boost_page_pool *pool = boost_pool->pools[order_index];
 
-	if (boost_pool->custom_pid && current->tgid != boost_pool->custom_pid)
+	if (boost_pool->custom_pid && current->tgid != boost_pool->custom_pid &&
+	    boost_pool_nr_pages(boost_pool) < boost_pool->isolate)
 		return NULL;
 
 	page = boost_page_pool_remove(pool, POOL_HIGHPAGE);
@@ -162,7 +165,7 @@ struct page *boost_pool_fetch(struct boost_pool *boost_pool, int order_index)
 		page = boost_page_pool_remove(pool, POOL_LOWPAGE);
 
 	if (page && likely(!boost_pool->prefill))
-		boost_pool->alloc = max(boost_pool->low,
+		boost_pool->alloc = max(boost_pool->min,
 					boost_pool->alloc - (1 << pool->order));
 
 	return page;
@@ -296,7 +299,7 @@ static inline void boost_pool_reset_wmark(struct boost_pool *boost_pool)
 	int nr = boost_pool->min;
 
 	boost_pool->alloc = nr;
-	boost_pool->low = nr;
+	boost_pool->isolate = nr;
 }
 
 int boost_pool_free(struct boost_pool *boost_pool, struct page *page,
@@ -308,7 +311,7 @@ int boost_pool_free(struct boost_pool *boost_pool, struct page *page,
 		return -1;
 	}
 
-	if (boost_pool_nr_pages(boost_pool) < boost_pool->low) {
+	if (boost_pool_nr_pages(boost_pool) < boost_pool->min) {
 		boost_page_pool_free(boost_pool->pools[order_index], page);
 		return 0;
 	}
@@ -361,7 +364,7 @@ static int boost_pool_prefill_kthread(void *p)
 		boost_pool->prefill = false;
 		boost_pool->stop = true;
 		boost_pool->alloc = max(boost_pool_nr_pages(boost_pool),
-					boost_pool->low);
+					boost_pool->min);
 
 		mutex_unlock(&boost_pool->prefill_lock);
 
@@ -375,8 +378,8 @@ static void boost_pool_wakeup_prefill(struct boost_pool *boost_pool)
 	wake_up_interruptible(&boost_pool->waitq);
 }
 
-static ssize_t low_write(struct file *file, const char __user *buf,
-			 size_t count, loff_t *ppos)
+static ssize_t isolate_write(struct file *file, const char __user *buf,
+			     size_t count, loff_t *ppos)
 {
 	char buffer[13];
 	int err, nr_pages, mib;
@@ -398,23 +401,23 @@ static ssize_t low_write(struct file *file, const char __user *buf,
 	if (nr_pages < 0 || nr_pages > MAX_BOOST_POOL_HIGH)
 		return -EINVAL;
 
-	pr_info("%s:%d set %s low %dMib\n",
+	pr_info("%s:%d set %s isolate %dMib\n",
 		current->comm, current->tgid, boost_pool->prefill_task->comm,
 		P2M(nr_pages));
 
-	boost_pool->low = nr_pages;
+	boost_pool->isolate = nr_pages;
 	boost_pool->alloc = nr_pages;
 	return count;
 }
 
-static int low_show(struct seq_file *s, void *unused)
+static int isolate_show(struct seq_file *s, void *unused)
 {
 	struct boost_pool *boost_pool = s->private;
 
-	seq_printf(s, "%d\n", P2M(boost_pool->low));
+	seq_printf(s, "%d\n", P2M(boost_pool->isolate));
 	return 0;
 }
-DEFINE_BOOST_POOL_PROC_RW_ATTRIBUTE(low);
+DEFINE_BOOST_POOL_PROC_RW_ATTRIBUTE(isolate);
 
 static ssize_t min_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *ppos)
@@ -444,7 +447,7 @@ static ssize_t min_write(struct file *file, const char __user *buf,
 		P2M(nr_pages));
 
 	boost_pool->min = nr_pages;
-	boost_pool->low = nr_pages;
+	boost_pool->isolate = nr_pages;
 	boost_pool->alloc = nr_pages;
 	boost_pool_wakeup_prefill(boost_pool);
 	return count;
@@ -527,6 +530,7 @@ static ssize_t custom_pid_write(struct file *file, const char __user *buf,
 
 	if (!pid) {
 		boost_pool->custom_pid = pid;
+		pr_info("reset custom pid\n");
 		return count;
 	}
 
@@ -600,7 +604,7 @@ static ssize_t alloc_write(struct file *file, const char __user *buf,
 		P2M(si_mem_available()));
 
 		boost_pool->prefill = false;
-		boost_pool->alloc = nr_pages;
+		boost_pool->alloc = max(nr_pages, boost_pool->min);
 		mutex_unlock(&boost_pool->prefill_lock);
 		boost_pool_wakeup_prefill(boost_pool);
 	} else {
@@ -661,7 +665,7 @@ static int boost_pool_shrink(struct boost_pool *boost_pool,
 		return boost_page_pool_do_shrink(pool, gfp_mask, 0);
 
 	nr_max_free = boost_pool_nr_pages(boost_pool) -
-		max(boost_pool->alloc, boost_pool->low);
+		max(boost_pool->alloc, boost_pool->min);
 	nr_to_free = min(nr_max_free, nr_to_scan);
 	if (nr_to_free <= 0)
 		return 0;
@@ -738,7 +742,7 @@ struct boost_pool *boost_pool_create(const char *name)
 	int ret, nr_pages;
 	struct boost_pool *boost_pool;
 	struct proc_dir_entry *proc_root;
-	struct proc_dir_entry *proc_low, *proc_min, *proc_alloc,
+	struct proc_dir_entry *proc_isolate, *proc_min, *proc_alloc,
 			      *proc_cpu, *proc_custom_pid;
 
 	ret = boost_pool_mgr_init();
@@ -767,10 +771,10 @@ struct boost_pool *boost_pool_create(const char *name)
 		goto destroy_proc_root;
 	}
 
-	proc_low = proc_create_data("low", 0666, proc_root, &low_proc_ops,
-				    boost_pool);
-	if (!proc_low) {
-		pr_err("create proc_fs low failed\n");
+	proc_isolate = proc_create_data("isolate", 0666, proc_root,
+					&isolate_proc_ops, boost_pool);
+	if (!proc_isolate) {
+		pr_err("create proc_fs isolate failed\n");
 		goto destroy_proc_min;
 	}
 
@@ -778,7 +782,7 @@ struct boost_pool *boost_pool_create(const char *name)
 				      &alloc_proc_ops, boost_pool);
 	if (!proc_alloc) {
 		pr_err("create proc_fs alloc failed\n");
-		goto destroy_proc_low;
+		goto destroy_proc_isolate;
 	}
 
 	proc_cpu = proc_create_data("cpu", 0666, proc_root, &cpu_proc_ops,
@@ -797,7 +801,7 @@ struct boost_pool *boost_pool_create(const char *name)
 
 	nr_pages = SZ_32M >> PAGE_SHIFT;
 	boost_pool->min = nr_pages;
-	boost_pool->low = nr_pages;
+	boost_pool->isolate = nr_pages;
 	boost_pool->alloc = nr_pages;
 
 	mutex_init(&boost_pool->prefill_lock);
@@ -819,8 +823,8 @@ destroy_proc_cpu:
 	proc_remove(proc_cpu);
 destroy_proc_alloc:
 	proc_remove(proc_alloc);
-destroy_proc_low:
-	proc_remove(proc_low);
+destroy_proc_isolate:
+	proc_remove(proc_isolate);
 destroy_proc_min:
 	proc_remove(proc_min);
 destroy_proc_root:
@@ -854,8 +858,8 @@ static int dump_show(struct seq_file *s, void *unused)
 			   boost_pool->prefill);
 		seq_printf(s, "    min          %dMib\n",
 			   P2M(boost_pool->min));
-		seq_printf(s, "    low          %dMib\n",
-			   P2M(boost_pool->low));
+		seq_printf(s, "    isolate      %dMib\n",
+			   P2M(boost_pool->isolate));
 		seq_printf(s, "    alloc         %dMib\n",
 			   P2M(boost_pool->alloc));
 		for (i = 0; i < NUM_ORDERS; i++) {

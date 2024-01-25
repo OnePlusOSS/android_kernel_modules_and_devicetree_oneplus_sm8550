@@ -332,9 +332,27 @@ static long ofb_sys_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 			fbg_update_ed_task_duration(BOOST_ED_TASK_TIME_OUT_DURATION);
 		}
 
+		if ((stune_data.boost_sf_freq_nongpu >= 0) && (stune_data.boost_sf_freq_nongpu <= 100)) {
+			fbg_set_stune_boost(stune_data.boost_sf_freq_nongpu, BOOST_SF_FREQ_NONGPU);
+		}
+
+		if ((stune_data.boost_sf_migr_nongpu >= 0) && (stune_data.boost_sf_migr_nongpu <= 100)) {
+			fbg_set_stune_boost(stune_data.boost_sf_migr_nongpu, BOOST_SF_MIGR_NONGPU);
+		}
+
+		if ((stune_data.boost_sf_freq_gpu >= 0) && (stune_data.boost_sf_freq_gpu <= 100)) {
+			fbg_set_stune_boost(stune_data.boost_sf_freq_gpu, BOOST_SF_FREQ_GPU);
+		}
+
+		if ((stune_data.boost_sf_migr_gpu >= 0) && (stune_data.boost_sf_migr_gpu <= 100)) {
+			fbg_set_stune_boost(stune_data.boost_sf_migr_gpu, BOOST_SF_MIGR_GPU);
+		}
+
 		break;
 	case CMD_ID_BOOST_STUNE_GPU: {
 		bool boost_allow = true;
+		int boost_freq;
+		int boost_migr;
 
 		if (copy_from_user(&stune_data, uarg, sizeof(stune_data))) {
 			ofb_debug("invalid address");
@@ -347,12 +365,20 @@ static long ofb_sys_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 		if (check_last_compose_time(stune_data.level) && !stune_data.level)
 			boost_allow = false;
 
-		if (boost_allow && stune_data.boost_migr != INVALID_VAL)
-			fbg_set_stune_boost(stune_data.boost_migr, BOOST_SF_MIGR);
-
-		if (boost_allow && stune_data.boost_freq != INVALID_VAL)
-			fbg_set_stune_boost(stune_data.boost_freq, BOOST_SF_FREQ);
+		if (boost_allow) {
+			boost_freq = fbg_get_stune_boost(BOOST_SF_FREQ_GPU);
+			boost_migr = fbg_get_stune_boost(BOOST_SF_MIGR_GPU);
 		}
+
+		if (!stune_data.level) {
+			boost_freq = fbg_get_stune_boost(BOOST_SF_FREQ_NONGPU);
+			boost_migr = fbg_get_stune_boost(BOOST_SF_MIGR_NONGPU);
+		}
+
+		fbg_set_stune_boost(boost_freq, BOOST_SF_FREQ);
+		fbg_set_stune_boost(boost_migr, BOOST_SF_MIGR);
+		}
+
 		break;
 	default:
 		ret = -EINVAL;

@@ -169,6 +169,19 @@ ssize_t get_last_pwkey_stage(char *buf)
 	return strlen(buf);
 }
 
+ssize_t get_penultimate_pwkey_stage(char *buf)
+{
+	if (stage_start != flow_index) {
+		int last_index = (flow_index < 2) ? (FLOW_SIZE - 2) : (flow_index - 2);
+		snprintf(buf, 64, (last_index * STAGE_BRIEF_SIZE + flow_buf));
+		POWER_MONITOR_DEBUG_PRINTK("get_penultimate_pwkey_stage buf:%s\n", buf);
+	} else {
+		sprintf(buf, "");
+	}
+
+	return strlen(buf);
+}
+
 ssize_t get_pwkey_stages(char *buf)
 {
 	char *buf_curr = NULL;

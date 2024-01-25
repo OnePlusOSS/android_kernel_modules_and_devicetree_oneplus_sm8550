@@ -294,7 +294,7 @@ bool wlan_scan_is_snr_monitor_enabled(struct wlan_objmgr_psoc *psoc);
  * scheduler thread
  * @psoc: psoc context
  * @buf: frame buf
- * @params: rx event params
+ * @rx_param: rx event params
  * @frm_type: frame type
  *
  * handle bcn without posting to scheduler thread, this should be called
@@ -460,4 +460,22 @@ wlan_scan_unregister_requester(struct wlan_objmgr_psoc *psoc,
  */
 bool wlan_scan_cfg_skip_6g_and_indoor_freq(
 			struct wlan_objmgr_psoc *psoc);
+
+/**
+ * wlan_scan_get_entry_by_mac_addr() - Get bcn/probe rsp from scan db
+ * @pdev: pdev info
+ * @bssid: BSSID of the bcn/probe response to be fetched from scan db
+ * @frame: Frame from scan db with given bssid.
+ *
+ * This is a wrapper to fetch the bcn/probe rsp frame with given mac address
+ * through scm_scan_get_entry_by_mac_addr(). scm_scan_get_entry_by_mac_add()
+ * allocates memory for the frame and it's caller responsibility to free
+ * the memory once it's done with the usage i.e. frame->ptr.
+ *
+ * Return: QDF_STATUS_SUCCESS if scan entry is present in db
+ */
+QDF_STATUS
+wlan_scan_get_entry_by_mac_addr(struct wlan_objmgr_pdev *pdev,
+				struct qdf_mac_addr *bssid,
+				struct element_info *frame);
 #endif

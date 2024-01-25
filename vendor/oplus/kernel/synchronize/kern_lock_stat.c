@@ -1388,11 +1388,21 @@ static void android_vh_futex_wait_start_handler(void *unused, unsigned int flags
 
 #ifdef INCLUDE_UNUSE
 	kern_type = app_type + LOCK_TYPES - 3;
+	if (kern_type >= LOCK_TYPES) {
+		pr_err("kern_lock_stat : futex pass error type param,"
+			"app_type = %d\n", app_type);
+		return;
+	}
 	if (app_type & (LOCK_ART | LOCK_JUC)) {
 		lk_contended(kern_type);
 	}
 #else
 	kern_type = app_type + LOCK_TYPES - 2;
+	if (kern_type >= LOCK_TYPES) {
+		pr_err("kern_lock_stat : futex pass error type param,"
+			"app_type = %d\n", app_type);
+		return;
+	}
 	if (app_type & LOCK_ART) {
 		lk_contended(kern_type);
 	}
@@ -1411,11 +1421,21 @@ static void android_vh_futex_wait_end_handler(void *unused, unsigned int flags,
 		return;
 	}
 	kern_type = app_type + LOCK_TYPES - 3;
+	if (kern_type >= LOCK_TYPES) {
+		pr_err("kern_lock_stat : futex pass error type param,"
+			"app_type = %d\n", app_type);
+		return;
+	}
 #else
 	if (!(app_type & LOCK_ART)) {
 		return;
 	}
 	kern_type = app_type + LOCK_TYPES - 2;
+	if (kern_type >= LOCK_TYPES) {
+		pr_err("kern_lock_stat : futex pass error type param,"
+			"app_type = %d\n", app_type);
+		return;
+	}
 #endif
 
 	lk_acquired(kern_type);

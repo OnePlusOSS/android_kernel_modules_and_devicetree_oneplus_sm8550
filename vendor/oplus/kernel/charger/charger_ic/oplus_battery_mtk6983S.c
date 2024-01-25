@@ -2429,15 +2429,14 @@ static ssize_t sc_stime_store(
 	if (buf != NULL && size != 0) {
 		chr_err("[smartcharging stime] buf is %s\n", buf);
 		ret = kstrtoul(buf, 10, &val);
-		if (val < 0) {
+		if (ret < 0) {
 			chr_err(
 				"[smartcharging stime] val is %d ??\n",
 				(int)val);
 			val = 0;
 		}
 
-		if (val >= 0)
-			info->sc.start_time = val;
+		info->sc.start_time = val;
 
 		chr_err(
 			"[smartcharging stime]enable smartcharging=%d\n",
@@ -2491,15 +2490,14 @@ static ssize_t sc_etime_store(
 	if (buf != NULL && size != 0) {
 		chr_err("[smartcharging etime] buf is %s\n", buf);
 		ret = kstrtoul(buf, 10, &val);
-		if (val < 0) {
+		if (ret < 0) {
 			chr_err(
 				"[smartcharging etime] val is %d ??\n",
 				(int)val);
 			val = 0;
 		}
 
-		if (val >= 0)
-			info->sc.end_time = val;
+		info->sc.end_time = val;
 
 		chr_err(
 			"[smartcharging stime]enable smartcharging=%d\n",

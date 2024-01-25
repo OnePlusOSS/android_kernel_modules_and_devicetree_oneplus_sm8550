@@ -3467,6 +3467,36 @@ int oplus_voocphy_get_mesg_from_adapter(struct oplus_voocphy_manager *chip)
 	vooc_move_head = (chip->voocphy_rx_buff & VOOC_MOVE_HEAD_MASK)
 	                 >> VOOC_MOVE_HEAD_SHIFT;
 
+/*
+vooc_head and vooc_move_head Combination situation
+ID	BIT7	BIT6	BIT5	BIT4	vooc_head	vooc_move_head
+0	0	0	0	0	000		000
+1	0	0	0	1	000		001
+2	0	0	1	0	001		010
+3	0	0	1	1	001		011	vooc30
+4	0	1	0	0	010		100	svooc
+5	0	1	0	1	010		101	vooc20
+6	0	1	1	0	011	vooc30	110
+7	0	1	1	1	011	vooc30	111
+8	1	0	0	0	100	svooc	000
+9	1	0	0	1	100	svooc	001
+10	1	0	1	0	101	vooc20	010
+11	1	0	1	1	101	vocc20	011	vooc30
+12	1	1	0	0	110		100	svooc
+13	1	1	0	1	110		101	vooc20
+14	1	1	1	0	111		110
+15	1	1	1	1	111		111
+abnormal condition
+vooc 20 vooc_move_head, if the highest bit of the data is 1 and borrowed for frame header analysis,
+it will cause data analysis errors;For example: 101 1001 0 B tell_usb_badconnect
+ID	BIT7	BIT6	BIT5	BIT4	vooc_head	vooc_move_head
+11	1	0	1	1	101	vocc20	011	vooc30	Choose vooc_head vooc20 first
+*/
+	if (vooc_head == VOOC2_HEAD && vooc_move_head == VOOC3_HEAD) {
+		vooc_move_head = 0;
+		voocphy_info("Choose vooc_head vooc20 first \n");
+	}
+
 	if (vooc_head == SVOOC_HEAD || vooc_move_head == SVOOC_HEAD) {
 		if (vooc_head == SVOOC_HEAD) {
 			voocphy_info("SVOOC_HEAD");
@@ -5512,6 +5542,8 @@ int oplus_voocphy_vol_event_handle(unsigned long data)
 		     && chip->gauge_vbatt > chip->vooc_little_cold_full_voltage)
 		    || (chip->batt_temp_plugin == VOOCPHY_BATT_TEMP_COOL				/*5-12 chg to 4430mV*/
 		        && chip->gauge_vbatt > chip->vooc_cool_full_voltage)
+		    || (chip->batt_temp_plugin == VOOCPHY_BATT_TEMP_LITTLE_COOL                    /*12-16 chg to 4430mV*/
+		        && chip->gauge_vbatt > chip->vooc_little_cool_full_voltage)
 		    || (chip->batt_temp_plugin == VOOCPHY_BATT_TEMP_WARM				/*43-52 chg to 4130mV*/
 		    	&& chip->vooc_warm_full_voltage != -EINVAL
 		        && chip->gauge_vbatt > chip->vooc_warm_full_voltage)
@@ -7688,6 +7720,13 @@ int oplus_voocphy_parse_batt_curves(struct oplus_voocphy_manager *chip)
 	if (rc < 0) {
 		voocphy_info("parse vooc_ntime_full_voltage failed, rc=%d\n", rc);
 		chip->vooc_ntime_full_voltage = BAT_FULL_NTIME_THD;
+	}
+
+	rc = of_property_read_u32(node, "qcom,vooc_little_cool_full_voltage",
+	                                &chip->vooc_little_cool_full_voltage);
+	if (rc < 0) {
+		voocphy_info("parse vooc_little_cool_full_voltage failed, rc=%d\n", rc);
+		chip->vooc_little_cool_full_voltage = chip->vooc_1time_full_voltage;
 	}
 
 	rc = of_property_read_u32(node, "qcom,low_curr_full_t1",

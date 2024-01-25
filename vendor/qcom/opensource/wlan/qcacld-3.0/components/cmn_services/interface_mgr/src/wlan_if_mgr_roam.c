@@ -782,6 +782,102 @@ static void if_mgr_update_candidate(struct wlan_objmgr_psoc *psoc,
 }
 #endif
 
+#ifdef WLAN_FEATURE_11BE
+/**
+ * if_mgr_validate_ap_channel_eht() - Function to validate AP beacon's EHT
+ * information.
+ * @psoc: PSOC handler
+ * @pdev: PDEV handler
+ * @scan_entry: Pointer to AP's scan entry
+ *
+ * Return: QDF STATUS
+ */
+static QDF_STATUS
+if_mgr_validate_ap_channel_eht(struct wlan_objmgr_psoc *psoc,
+			       struct wlan_objmgr_pdev *pdev,
+			       struct scan_cache_entry *scan_entry)
+{
+	struct wlan_ie_ehtops *eht_ops;
+
+	/* Skip validate if there is puncture disable channel */
+	eht_ops = (struct wlan_ie_ehtops *)util_scan_entry_ehtop(scan_entry);
+	if (eht_ops && QDF_GET_BITS(eht_ops->ehtop_param,
+	    EHTOP_PARAM_DISABLED_SC_BITMAP_PRESENT_IDX,
+	    EHTOP_PARAM_DISABLED_SC_BITMAP_PRESENT_BITS)) {
+		ifmgr_debug("eht operation has puncture info, skip!");
+		/* Return success if puncture channel valid */
+		return QDF_STATUS_E_ABORTED;
+	}
+
+	/* If no puncture disable channel, return err continue to check */
+	return QDF_STATUS_E_INVAL;
+}
+#else
+static inline QDF_STATUS
+if_mgr_validate_ap_channel_eht(struct wlan_objmgr_psoc *psoc,
+			       struct wlan_objmgr_pdev *pdev,
+			       struct scan_cache_entry *scan_entry)
+{
+	return QDF_STATUS_E_NOSUPPORT;
+}
+#endif
+
+/**
+ * if_mgr_validate_ap_channel_when_cc_same() - Validate AP channel if regdmn
+ * (country code) is same.
+ * @psoc: PSOC handler
+ * @pdev: PDEV handler
+ * @scan_entry: Pointer to AP's scan entry
+ *
+ * Return: QDF STATUS
+ */
+static QDF_STATUS
+if_mgr_validate_ap_channel_when_cc_same(struct wlan_objmgr_psoc *psoc,
+					struct wlan_objmgr_pdev *pdev,
+					struct scan_cache_entry *scan_entry)
+{
+	QDF_STATUS status;
+	struct wlan_country_ie *cc_ie;
+	uint8_t programmed_country[REG_ALPHA2_LEN + 1] = {};
+	enum phy_ch_width ap_bw;
+	struct ch_params ch_params = {};
+	qdf_freq_t sec_ch_2g_freq = 0;
+	qdf_freq_t ap_freq;
+
+	cc_ie = util_scan_entry_country(scan_entry);
+	if (!cc_ie)
+		return QDF_STATUS_SUCCESS;
+
+	/* Skip validate if country not match because regdmn different */
+	wlan_reg_read_current_country(psoc, programmed_country);
+	if (qdf_mem_cmp(cc_ie->cc, programmed_country, REG_ALPHA2_LEN))
+		return QDF_STATUS_SUCCESS;
+
+	status = if_mgr_validate_ap_channel_eht(psoc, pdev, scan_entry);
+	if (status == QDF_STATUS_E_ABORTED || status == QDF_STATUS_SUCCESS)
+		return QDF_STATUS_SUCCESS;
+
+	ap_freq = scan_entry->channel.chan_freq;
+	ap_bw = wlan_mlme_get_ch_width_from_phymode(scan_entry->phy_mode);
+	if (WLAN_REG_IS_24GHZ_CH_FREQ(ap_freq))
+		sec_ch_2g_freq = scan_entry->channel.cfreq0;
+
+	ch_params.ch_width = ap_bw;
+
+	wlan_reg_set_channel_params_for_pwrmode(pdev,
+						ap_freq,
+						sec_ch_2g_freq,
+						&ch_params,
+						REG_CURRENT_PWR_MODE);
+	if (ch_params.ch_width != ap_bw) {
+		ifmgr_debug("AP channel %d bw %d is invalid for %c%c",
+			    ap_freq, ap_bw, cc_ie->cc[0], cc_ie->cc[1]);
+		return QDF_STATUS_E_INVAL;
+	}
+
+	return QDF_STATUS_SUCCESS;
+}
+
 QDF_STATUS if_mgr_validate_candidate(struct wlan_objmgr_vdev *vdev,
 				     struct if_mgr_event_data *event_data)
 {
@@ -819,6 +915,11 @@ QDF_STATUS if_mgr_validate_candidate(struct wlan_objmgr_vdev *vdev,
 			    wlan_reg_is_freq_indoor(pdev, chan_freq));
 		return QDF_STATUS_E_INVAL;
 	}
+
+	if (if_mgr_validate_ap_channel_when_cc_same(psoc,
+						    pdev,
+						    candidate_info->scan_entry))
+		return QDF_STATUS_E_INVAL;
 
 	/*
 	 * Ignore the BSS if any other vdev is already connected to it.

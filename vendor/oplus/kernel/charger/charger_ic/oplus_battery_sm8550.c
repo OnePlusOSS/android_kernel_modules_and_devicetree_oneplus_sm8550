@@ -9422,10 +9422,12 @@ static void oplus_plugin_irq_work(struct work_struct *work)
 	oplus_quirks_notify_plugin(bcdev->usb_in_status);
 	oplus_adsp_voocphy_set_fastchg_start(false);
 
-	oplus_chg_track_check_wired_charging_break(usb_plugin_status);
 	if (chip->support_abnormal_adapter) {
 		oplus_chg_check_break(usb_plugin_status);
 	}
+
+	oplus_chg_track_check_wired_charging_break(usb_plugin_status);
+
 	bcdev->real_chg_type = POWER_SUPPLY_TYPE_UNKNOWN;
 /*#ifdef OPLUS_FEATURE_CHG_BASIC*/
 	if (bcdev && bcdev->ctrl_lcm_frequency.work.func) {

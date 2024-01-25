@@ -59,7 +59,7 @@
 #define SCHED_ASSIST_UX_PRIORITY_SHIFT	24
 
 #define UX_PRIORITY_TOP_APP		0x0A000000
-#define UX_PRIORITY_AUDIO		0x0A000000
+#define UX_PRIORITY_AUDIO		0x0B000000
 
 /* define for sched assist scene type, keep same as the define in java file */
 #define SA_SCENE_OPT_CLEAR			(0)
@@ -82,14 +82,6 @@ extern unsigned int top_app_type;
 
 /* define for boost threshold unit */
 #define BOOST_THRESHOLD_UNIT (51)
-
-enum ux_type {
-	sa_type_animator = 0,
-	sa_type_light,
-	sa_type_heavy,
-	sa_type_listpick,
-	sa_type_all,
-};
 
 enum UX_STATE_TYPE {
 	UX_STATE_INVALID = 0,
@@ -228,7 +220,7 @@ struct oplus_task_struct {
 
 struct oplus_rq {
 	/* CONFIG_OPLUS_FEATURE_SCHED_ASSIST */
-	struct list_head ux_list[sa_type_all];
+	struct list_head ux_list;
 	spinlock_t ux_list_lock;
 #ifdef CONFIG_LOCKING_PROTECT
 	struct list_head locking_thread_list;
@@ -239,9 +231,6 @@ struct oplus_rq {
 extern int global_debug_enabled;
 extern int global_sched_assist_enabled;
 extern int global_sched_assist_scene;
-
-bool ux_list_is_empty(struct oplus_rq *orq);
-struct oplus_task_struct* top_level_ux_ots(struct oplus_rq *orq);
 
 struct rq;
 
@@ -261,7 +250,7 @@ static inline bool orq_has_ux_tasks(struct oplus_rq *orq)
 	if (!orq)
 		return false;
 
-	ret = !ux_list_is_empty(orq);
+	ret = !oplus_list_empty(&orq->ux_list);
 	return ret;
 }
 

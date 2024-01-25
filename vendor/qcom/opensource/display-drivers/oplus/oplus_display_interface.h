@@ -173,9 +173,6 @@ int oplus_panel_vddr_on(struct dsi_display *display, const char *vreg_name);
 int oplus_panel_vddr_off(struct dsi_display *display, const char *vreg_name);
 
 void oplus_sde_cp_crtc_apply_properties(struct drm_crtc *crtc, struct drm_encoder *encoder);
-void oplus_panel_event_notification_trigger(enum panel_event_notifier_tag panel_type,
-	struct panel_event_notification *notification);
-void oplus_wait_for_notify_done(struct dsi_display *display);
 
 #endif /* __OPLUS_DISPLAY_INTERFACE_H__ */
 

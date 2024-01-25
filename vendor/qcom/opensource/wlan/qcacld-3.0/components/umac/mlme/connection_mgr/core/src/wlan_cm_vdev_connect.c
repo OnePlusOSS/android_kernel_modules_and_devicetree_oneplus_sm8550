@@ -1671,6 +1671,7 @@ void wlan_cm_free_connect_rsp(struct cm_vdev_join_rsp *rsp)
 
 	qdf_mem_free(connect_ie->assoc_req.ptr);
 	qdf_mem_free(connect_ie->bcn_probe_rsp.ptr);
+	qdf_mem_free(connect_ie->link_bcn_probe_rsp.ptr);
 	qdf_mem_free(connect_ie->assoc_rsp.ptr);
 	cm_free_fils_ie(connect_ie);
 	cm_free_tspec_ie(rsp);

@@ -359,7 +359,7 @@ static dpi_result_node *dpi_find_add_result_node(
 			parent->child_count++;
 		}
 		s_dpi_result_count[type]++;
-		logi("add app type[%s] dpi[%llx]", s_type_str[type], dpi_id);
+		logi("add app type[%s] dpi[%llx], uid[%u]", s_type_str[type], dpi_id, uid);
 	}
 
 	return node;
@@ -414,8 +414,8 @@ static uid_t get_skb_uid(struct sk_buff *skb)
 	struct sock *sk = sk_to_full_sk(skb->sk);
 	kuid_t kuid;
 
-	if (!sk || !sk_fullsock(sk)) {
-		return overflowuid;
+	if (!sk || !sk_fullsock(sk) || NULL == sk->sk_socket) {
+		return -1;
 	}
 	kuid = sock_net_uid(sock_net(sk), sk);
 	return from_kuid_munged(sock_net(sk)->user_ns, kuid);
@@ -513,6 +513,10 @@ static int get_match_tuple_by_skb(struct sk_buff *skb, int dir, int in_dev, dpi_
 	return 0;
 }
 
+static bool dpi_uid_valid(kuid_t kuid) {
+	return uid_valid(kuid) && __kuid_val(kuid) >= 1000;
+}
+
 u64 get_skb_dpi_id(struct sk_buff *skb, int dir, int in_dev)
 {
 #ifdef CONFIG_ANDROID_VENDOR_OEM_DATA
@@ -527,7 +531,7 @@ u64 get_skb_dpi_id(struct sk_buff *skb, int dir, int in_dev)
 
 	uid = get_skb_uid(skb);
 	kuid.val = uid;
-	if (uid_valid(kuid)) {
+	if (dpi_uid_valid(kuid)) {
 		if (get_match_fun_by_uid(uid)) {
 #ifdef CONFIG_ANDROID_VENDOR_OEM_DATA
 			sk = sk_to_full_sk(skb->sk);
@@ -598,7 +602,7 @@ static int dpi_handle_match(struct sk_buff *skb, int dir, int v6)
 
 	uid = get_skb_uid(skb);
 	kuid.val = uid;
-	if (!uid_valid(kuid)) {
+	if (!dpi_uid_valid(kuid)) {
 		return -1;
 	}
 	if (skb->dev == NULL) {

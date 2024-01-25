@@ -187,6 +187,25 @@
 					05 00 00 00 00 00 01 29
 				];
 
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 51 0F FF
+					39 00 00 40 00 00 04 b0 00 03 66
+					39 00 00 40 00 00 02 66 01
+					39 00 00 40 00 00 04 b0 00 52 66
+					39 00 00 40 00 00 07 66 0a 85 0a 12 0b F4
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 03 66
+					39 00 00 40 00 00 02 66 00
+					39 00 00 40 00 00 03 51 0F FE
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
 					39 00 00 00 00 00 06 F0 55 AA 52 08 01
@@ -352,6 +371,8 @@
 				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";
@@ -453,6 +474,7 @@
 					39 00 00 00 00 00 03 F0 A5 A5
 					/*Frame rate=90Hz*/
 					39 00 00 40 00 00 03 F0 5A 5A
+					15 00 00 40 00 00 02 BD E1
 					15 00 00 40 00 00 02 B9 11
 					15 00 00 40 00 00 02 F2 01
 					15 00 00 40 00 00 02 60 10
@@ -470,6 +492,24 @@
 					05 00 00 00 00 00 01 29
 				];
 
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 51 0F FF
+					39 00 00 40 00 00 04 b0 00 03 66
+					39 00 00 40 00 00 02 66 01
+					39 00 00 40 00 00 04 b0 00 52 66
+					39 00 00 40 00 00 07 66 0a 85 0a 12 0b F4
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 03 66
+					39 00 00 40 00 00 02 66 00
+					39 00 00 40 00 00 03 51 0F FE
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
 					39 00 00 00 00 00 06 F0 55 AA 52 08 01
@@ -620,6 +660,8 @@
 				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,lm-split = <1220 1220>;
 				qcom,compression-mode = "dsc";
@@ -763,6 +805,25 @@
 					39 00 00 00 00 00 03 F0 A5 A5
 					/*display on*/
 					05 00 00 00 00 00 01 29
+				];
+
+				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 03 51 0F FF
+					39 00 00 40 00 00 04 b0 00 03 66
+					39 00 00 40 00 00 02 66 01
+					39 00 00 40 00 00 04 b0 00 52 66
+					39 00 00 40 00 00 07 66 0a 85 0a 12 0b F4
+					15 00 00 40 00 00 02 F7 0F
+					39 00 00 00 00 00 03 F0 A5 A5
+				];
+
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 40 00 00 03 F0 5A 5A
+					39 00 00 40 00 00 04 B0 00 03 66
+					39 00 00 40 00 00 02 66 00
+					39 00 00 40 00 00 03 51 0F FE
+					39 00 00 00 00 00 03 F0 A5 A5
 				];
 
 				qcom,mdss-dsi-panel-info-switch-page-command = [
@@ -930,6 +991,8 @@
 				qcom,mdss-dsi-temperature-compensation-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,mdss-dsi-qsync-min-fps-0-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-qsync-min-fps-1-command-state = "dsi_hs_mode";

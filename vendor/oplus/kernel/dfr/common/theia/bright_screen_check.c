@@ -59,14 +59,17 @@ int bright_screen_timer_restart(void)
 		return -1;
 	}
 
+	/*
 	if (is_dual_screen()) {
 		BRIGHT_DEBUG_PRINTK("dual screen not adapted, %s just return\n", __func__);
 		return 0;
 	}
+	*/
 
 	if (g_bright_data.blank == THEIA_PANEL_UNBLANK_VALUE) {
 		br_start_check_systemid = get_systemserver_pid();
 		mod_timer(&g_bright_data.timer, jiffies + msecs_to_jiffies(g_bright_data.timeout_ms));
+		del_timer(&g_black_data.timer);
 		BRIGHT_DEBUG_PRINTK("%s: BR check start, timeout = %u\n", __func__, g_bright_data.timeout_ms);
 		theia_pwk_stage_start("POWERKEY_START_BR");
 		return 0;
@@ -102,8 +105,9 @@ static void send_bright_screen_dcs_msg(void)
 	mLastPwkTime = ts;
 	BRIGHT_DEBUG_PRINTK("send_bright_screen_dcs_msg mLastPwkTime is %lld ms\n", mLastPwkTime);
 	get_brightscreen_check_dcs_logmap(logmap);
-	theia_send_event(THEIA_EVENT_BRIGHT_SCREEN_HANG, THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
-		current->pid, logmap);
+	theia_send_event(THEIA_EVENT_BRIGHT_SCREEN_HANG, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
+		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+		get_systemserver_pid(), logmap);
 }
 
 static void dump_freeze_log(void)
@@ -146,6 +150,22 @@ static bool is_bright_contain_skip_stage()
 	return false;
 }
 
+/* just skip in case LIGHT_setScreenState_1_OFF  LIGHT_setScreenState_3_OFF */
+static bool is_bright_contain_special_stage()
+{
+	char last_stages[512] = {0};
+	char penu_stages[512] = {0};
+	get_last_pwkey_stage(last_stages);
+	get_penultimate_pwkey_stage(penu_stages);
+
+	if ((strstr(last_stages, "setScreenState") != NULL) && (strstr(penu_stages, "setScreenState") != NULL)) {
+		BRIGHT_DEBUG_PRINTK("is_bright_contain_special_stage return true, last_stages:%s, penu_stages:%s", last_stages, penu_stages);
+		return true;
+	}
+
+	return false;
+}
+
 static bool is_need_skip()
 {
 	if (is_bright_last_stage_skip())
@@ -154,12 +174,16 @@ static bool is_need_skip()
 	if (is_bright_contain_skip_stage())
 		return true;
 
+	if (is_bright_contain_special_stage())
+		return true;
+
 	return false;
 }
 
 static void delete_timer(char *reason, bool cancel)
 {
 	del_timer(&g_bright_data.timer);
+	del_timer(&g_black_data.timer);
 
 	if (cancel && g_bright_data.error_count != 0) {
 		g_bright_data.error_count = 0;

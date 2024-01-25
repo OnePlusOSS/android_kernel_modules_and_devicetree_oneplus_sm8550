@@ -675,7 +675,7 @@ static int sensor_feedback_probe(struct platform_device *pdev)
 	wake_up_process(sensor_fb_cxt->report_task);
 
 	INIT_DELAYED_WORK(&sensor_fb_cxt->enable_sensor_work, enable_monitor_sensor_work);
-	schedule_delayed_work(&sensor_fb_cxt->enable_sensor_work, msecs_to_jiffies(2000));
+	schedule_delayed_work(&sensor_fb_cxt->enable_sensor_work, msecs_to_jiffies(5000));
 
 	pr_info("sensor_feedback_init success\n");
 	return 0;

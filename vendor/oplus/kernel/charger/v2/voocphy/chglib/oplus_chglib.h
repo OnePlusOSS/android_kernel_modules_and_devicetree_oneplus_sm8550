@@ -11,11 +11,11 @@
 #define FAST_NOTIFY_UNKNOW                      0x4a
 #define FAST_NOTIFY_DUMMY_START                 0x50
 #define FAST_NOTIFY_SWITCH_TEMP_RANGE           0x4b
-#define FAST_NOTIFY_ADAPTER_COPYCAT             0x4c
 #define FAST_NOTIFY_ADAPTER_STATUS_ABNORMAL     0x63
 #define FAST_NOTIFY_PRESENT             0x52
 #define FAST_NOTIFY_LOW_TEMP_FULL	0x53
 #define FAST_NOTIFY_ABSENT              0x54
+#define FAST_NOTIFY_ADAPTER_COPYCAT	0x55
 #define FAST_NOTIFY_ERR_COMMU           0x72
 #define FAST_NOTIFY_ONGOING             0x58
 #define FAST_NOTIFY_BAD_CONNECTED       0x59

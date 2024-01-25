@@ -582,7 +582,7 @@ int ois_read_thread(void *arg)
 							IsOISReady(o_ctrl);
 						}
 						if(rc < 0) {
-							CAM_ERR(CAM_OIS, " ois name:%s rc: %s", o_ctrl->ois_name, rc);
+							CAM_ERR(CAM_OIS, " ois name:%s rc: %d", o_ctrl->ois_name, rc);
 						}
 					}
 				}
@@ -1280,7 +1280,7 @@ int WriteOisGyroGianToRam(struct cam_ois_ctrl_t *o_ctrl,DUAL_OIS_CALI_RESULTS* c
 		case 1 :
 			RamRead32A(0x87D8, & LsGyroX );
 			RamRead32A(0x8810, & LsGyroY );
-			CAM_INFO(CAM_OIS, "before write ls_gyro_gain_x = 0x%x ls_gyro_gain_y = 0x%x ,%f ,%f",
+			CAM_INFO(CAM_OIS, "before write ls_gyro_gain_x = 0x%x ls_gyro_gain_y = 0x%x ,%u ,%u",
 				LsGyroX,
 				LsGyroY,
 				LsGyroX,
@@ -1291,7 +1291,7 @@ int WriteOisGyroGianToRam(struct cam_ois_ctrl_t *o_ctrl,DUAL_OIS_CALI_RESULTS* c
 
 			RamRead32A(0x87D8, & LsGyroX );
 			RamRead32A(0x8810, & LsGyroY );
-			CAM_INFO(CAM_OIS, "after write ls_gyro_gain_x = 0x%x ls_gyro_gain_y = 0x%x ,%f ,%f",
+			CAM_INFO(CAM_OIS, "after write ls_gyro_gain_x = 0x%x ls_gyro_gain_y = 0x%x ,%u ,%u",
 				LsGyroX,
 				LsGyroY,
 				LsGyroX,
@@ -1378,7 +1378,7 @@ int QueryDualOisSmaWireStatus(struct cam_ois_ctrl_t *o_ctrl, uint32_t *sma_wire_
 	}
 
 	RamRead32A(0xF121, sma_wire_broken );
-	CAM_INFO(CAM_OIS, "QueryDualOisSmaWireStatus sma_wire_broken: %d", sma_wire_broken);
+	CAM_INFO(CAM_OIS, "QueryDualOisSmaWireStatus sma_wire_broken: %lu", (uint32_t)(*((uint32_t *)sma_wire_broken)));
 	return rc;
 }
 
@@ -2706,7 +2706,7 @@ int OIS_READ_HALL_DATA_TO_UMD_TELE124 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_
                         fifo_count = temp_buff[127];
                         read_buff[127]=temp_buff[127];
                         if(fifo_count > SAMPLE_COUNT_IN_NCS_DATA_TELE124) {
-                                CAM_ERR(CAM_OIS,"ois have drop data fifo_count=%d",fifo_count);
+                                CAM_ERR(CAM_OIS,"ois have drop data fifo_count=%llu",fifo_count);
                                 fifo_count = SAMPLE_COUNT_IN_NCS_DATA_TELE124;
                         }
 
@@ -2737,7 +2737,7 @@ int OIS_READ_HALL_DATA_TO_UMD_TELE124 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_
                         if((newqtime-(fifo_count-1)*2000000)<preqtime_ms)
                                 CAM_ERR(CAM_OIS,"time error");
                         preqtime_ms=newqtime;
-                        CAM_DBG(CAM_OIS,"READ fifo_count=%d",fifo_count);
+                        CAM_DBG(CAM_OIS,"READ fifo_count=%llu",fifo_count);
 
                         if(fifo_count > 0) {
                                 for(i=0 ; i<SAMPLE_COUNT_IN_NCS_DATA_TELE124; i++){
@@ -2901,7 +2901,7 @@ int OIS_READ_HALL_DATA_TO_UMD_129 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_sett
 		read_buff[191]=temp_buff[191];
 
 		if(fifo_count > 12) {
-				CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%d",fifo_count);
+				CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%llu",fifo_count);
 				fifo_count = 12;
 				read_buff[191] = fifo_count;
 
@@ -2927,8 +2927,8 @@ int OIS_READ_HALL_DATA_TO_UMD_129 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_sett
 		if((newqtime-(fifo_count-1)*2000000)<preqtime_ms)
 				CAM_DBG(CAM_OIS,"time error");
 		preqtime_ms=newqtime;
-		CAM_DBG(CAM_OIS,"READ fifo_count=%d",fifo_count);
-		CAM_DBG(CAM_OIS,"Rqtimer value: ms=0x%x us=0x%x",qtime_ms,qtime_us);
+		CAM_DBG(CAM_OIS,"READ fifo_count=%llu",fifo_count);
+		CAM_DBG(CAM_OIS,"Rqtimer value: ms=0x%llx us=0x%llx",qtime_ms,qtime_us);
 
 		if(fifo_count > 0) {
 			for(i=0 ; i<12; i++){
@@ -2992,7 +2992,7 @@ int OIS_READ_HALL_DATA_TO_UMD_Bu24721 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_
 		read_buff[56] = fifo_count;
 
 		if(fifo_count > 12) {
-				CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%d",fifo_count);
+				CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%llu",fifo_count);
 				fifo_count = 12;
 				read_buff[56] = fifo_count;
 		}
@@ -3024,8 +3024,8 @@ int OIS_READ_HALL_DATA_TO_UMD_Bu24721 (struct cam_ois_ctrl_t *o_ctrl,struct i2c_
 		if((newqtime-(fifo_count-1)*2000000)<preqtime_ms)
 				CAM_DBG(CAM_OIS,"time error");
 		preqtime_ms=newqtime;
-		CAM_DBG(CAM_OIS,"READ fifo_count=%d",fifo_count);
-		CAM_DBG(CAM_OIS,"Rqtimer value: 0x%x delayCount: %d delayTime: %d", qtimer_ns,delayCount,delayTime);
+		CAM_DBG(CAM_OIS,"READ fifo_count=%llu",fifo_count);
+		CAM_DBG(CAM_OIS,"Rqtimer value: 0x%llx delayCount: %d delayTime: %d", qtimer_ns,delayCount,delayTime);
 
 		if(fifo_count > 0) {
 			for(i=0 ; i<fifo_count; i++){
@@ -3092,11 +3092,11 @@ int OIS_READ_HALL_DATA_TO_UMD_SEM1217S (struct cam_ois_ctrl_t *o_ctrl,struct i2c
 		delayTime = delayCount *100 / 3; //nano sec
 		qtimer_ns -= delayTime;
 
-		CAM_DBG(CAM_OIS,"read done fifo_count,start_qtimer,end_qtimer,laps,delayTime=%d,%lld,%lld,%lld,%dns",
+		CAM_DBG(CAM_OIS,"read done fifo_count,start_qtimer,end_qtimer,laps,delayTime=%llu,%lld,%lld,%lld,%dns",
 			fifo_count, qtimer_ns_1, qtimer_ns, (qtimer_ns-qtimer_ns_1),delayTime);
 
 		if(fifo_count > OIS_HALL_DATA_SET_COUNT - 1) {
-			CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%d",fifo_count);
+			CAM_DBG(CAM_OIS,"ois have drop data fifo_count=%llu",fifo_count);
 			fifo_count = OIS_HALL_DATA_SET_COUNT - 1;
 			read_buff[56] = fifo_count;
 		}
@@ -3126,7 +3126,7 @@ int OIS_READ_HALL_DATA_TO_UMD_SEM1217S (struct cam_ois_ctrl_t *o_ctrl,struct i2c
 		read_buff[54] = (qtimer_ns >> 8) & 0xFF;
 		read_buff[55] = qtimer_ns & 0xFF;
 
-		CAM_DBG(CAM_OIS,"READ fifo_count=%d, i: %d, j: %d",fifo_count, i, j);
+		CAM_DBG(CAM_OIS,"READ fifo_count=%llu, i: %d, j: %d",fifo_count, i, j);
 		CAM_DBG(CAM_OIS,"Rqtimer value: 0x%lx", qtimer_ns);
 
 		if(fifo_count > 0) {
@@ -4035,7 +4035,7 @@ int ois_download_fw_thread(void *arg)
 		} else {
 			CAM_INFO(CAM_OIS, "ois type=%d,OIS already power on, no need to power on again",o_ctrl->ois_type);
 		}
-		CAM_INFO(CAM_OIS, "ois[%s] type:%d  power up successful",o_ctrl->ois_type,o_ctrl->ois_name);
+		CAM_INFO(CAM_OIS, "ois[%d] type:%s  power up successful",o_ctrl->ois_type,o_ctrl->ois_name);
 		o_ctrl->ois_power_state = CAM_OIS_POWER_ON;
 		mutex_unlock(&(o_ctrl->ois_power_down_mutex));
 	}
@@ -4886,11 +4886,6 @@ void oplus_cam_ois_sds_enable(struct v4l2_subdev *sd, void *arg)
 	bool dump_hall_data_enable = false;
 	struct cam_ois_ctrl_t *o_ctrl = v4l2_get_subdevdata(sd);
 
-	if (!sd || !cmd) {
-		CAM_ERR(CAM_OIS, "Invalid arguments");
-		return ;
-	}
-
 	rc = copy_from_user(&dump_hall_data_enable, (void __user *)cmd, sizeof(bool));
 	CAM_INFO(CAM_OIS, "SDS ois:dump_hall_data_enable: %d, rc: %d", dump_hall_data_enable, rc);
 
@@ -4964,7 +4959,7 @@ int32_t oplus_cam_ois_lock(struct v4l2_subdev *sd)
 					o_ctrl->ois_print_hall_data_thread = kthread_run(dump_ois_hall_data, o_ctrl, o_ctrl->ois_name);
 					if (IS_ERR(o_ctrl->ois_print_hall_data_thread))
 					{
-						CAM_ERR(CAM_OIS, "SDS create ois_print_hall_data_thread failed: %s", o_ctrl->ois_print_hall_data_thread);
+						CAM_ERR(CAM_OIS, "SDS create ois_print_hall_data_thread failed: %p", o_ctrl->ois_print_hall_data_thread);
 						o_ctrl->ois_print_hall_data_thread = NULL;
 					}
 				}

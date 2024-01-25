@@ -2551,7 +2551,7 @@ int tof8801_app0_poll_irq_thread(void *tof_chip)
 
 		usleep_range(us_sleep, us_sleep + us_sleep/10);
 	}
-	CAM_INFO(CAM_TOF, "End app0_poll_irq_thread thread \n", us_sleep);
+	CAM_INFO(CAM_TOF, "End app0_poll_irq_thread thread \n");
 	return 0;
 }
 

@@ -560,11 +560,17 @@ wma_roam_update_vdev(tp_wma_handle wma,
 
 	vdev_id = roamed_vdev_id;
 	wma->interfaces[vdev_id].nss = roam_synch_ind_ptr->nss;
-	/* update freq and channel width */
-	wma->interfaces[vdev_id].ch_freq =
-		roam_synch_ind_ptr->chan_freq;
+
+	/* update channel width */
 	wma->interfaces[vdev_id].chan_width =
 		roam_synch_ind_ptr->chan_width;
+	/* Fill link freq from roam_synch_ind */
+	if (is_multi_link_roam(roam_synch_ind_ptr))
+		wma->interfaces[vdev_id].ch_freq =
+			mlo_roam_get_chan_freq(vdev_id, roam_synch_ind_ptr);
+	else
+		wma->interfaces[vdev_id].ch_freq =
+			roam_synch_ind_ptr->chan_freq;
 
 	del_sta_params = qdf_mem_malloc(sizeof(*del_sta_params));
 	if (!del_sta_params) {

@@ -1111,7 +1111,8 @@ static void oplus_comm_check_fv_over(struct oplus_chg_comm *chip)
 		return;
 	if (chip->ufcs_charging)
 		return;
-
+	if (chip->batt_full)
+		return;
 	/*
 	if (is_wls_fastchg_started(chip))
 		return 0;
@@ -3134,11 +3135,6 @@ static void oplus_comm_gauge_check_work(struct work_struct *work)
 	oplus_comm_check_temp_region(chip);
 	cancel_delayed_work(&chip->ui_soc_update_work);
 	schedule_delayed_work(&chip->ui_soc_update_work, 0);
-	oplus_comm_check_battery_status(chip);
-	oplus_comm_check_battery_health(chip);
-	oplus_comm_check_battery_charge_type(chip);
-	oplus_comm_battery_notify_check(chip);
-	oplus_comm_battery_notify_flag_check(chip);
 	if (time_after(jiffies, count_time)) {
 		count_time = COUNT_TIMELIMIT * HZ;
 		count_time += jiffies;
@@ -3164,6 +3160,11 @@ static void oplus_comm_gauge_check_work(struct work_struct *work)
 			oplus_comm_check_fgreset(chip);
 		}
 	}
+	oplus_comm_check_battery_status(chip);
+	oplus_comm_check_battery_health(chip);
+	oplus_comm_check_battery_charge_type(chip);
+	oplus_comm_battery_notify_check(chip);
+	oplus_comm_battery_notify_flag_check(chip);
 #ifdef CONFIG_OPLUS_CHARGER_MTK
 	oplus_chg_kpoc_power_off_check(chip);
 #endif

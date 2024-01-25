@@ -10370,7 +10370,7 @@ static int hdd_set_max_tx_bandwidth_config(struct hdd_adapter *adapter,
 	defualt_bw = adapter->session.station.conn_info.ch_width;
 	tx_bw = nla_get_u8(attr);
 
-	if ((tx_bw > defualt_bw) || (tx_bw < 0))
+	if (tx_bw > defualt_bw)
 	{
 		tx_bw = defualt_bw;
 	}

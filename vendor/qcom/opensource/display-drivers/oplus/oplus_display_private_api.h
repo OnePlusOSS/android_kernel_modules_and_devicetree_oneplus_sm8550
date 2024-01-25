@@ -38,6 +38,8 @@
 
 #define DISPLAY_TOOL_CMD_KEYWORD "[display:sh]"
 
+extern u32 oplus_last_backlight;
+
 int oplus_display_set_vendor(struct dsi_display *display);
 
 int oplus_display_panel_update_spr_mode(void);

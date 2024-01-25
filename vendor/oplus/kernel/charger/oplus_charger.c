@@ -2432,17 +2432,17 @@ static const struct proc_ops fastcharge_fail_count_proc_fops = {
 
 static const struct proc_ops proc_charger_input_current_now_ops = {
 	.proc_read = proc_charger_input_current_now_read,
-	.proc_lseek = seq_lseek,
+	.proc_lseek = default_llseek,
 };
 
 static const struct proc_ops proc_charger_passedchg_ops = {
 	.proc_read = proc_charger_passedchg_read,
-	.proc_lseek = seq_lseek,
+	.proc_lseek = default_llseek,
 };
 
 static const struct proc_ops proc_charger_passedchg_reset_count_ops = {
 	.proc_read = proc_charger_passedchg_reset_count_read,
-	.proc_lseek = seq_lseek,
+	.proc_lseek = default_llseek,
 };
 #endif
 static ssize_t proc_start_test_external_write(struct file *filp, const char __user *buf, size_t len, loff_t *data)

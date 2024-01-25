@@ -190,7 +190,7 @@ int actuator_power_down_thread(void *arg)
 	else{
 		power_info  = &soc_private->power_info;
 		if (!power_info){
-			CAM_ERR(CAM_ACTUATOR, "failed: power_info %pK", a_ctrl, power_info);
+			CAM_ERR(CAM_ACTUATOR, "failed: a_ctrl %pK, power_info %pK", a_ctrl, power_info);
 			return -EINVAL;
 		}
 	}

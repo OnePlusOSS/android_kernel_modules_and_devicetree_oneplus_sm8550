@@ -304,7 +304,6 @@ int oplus_panel_pwm_switch_backlight(struct dsi_panel *panel, u32 bl_lvl);
 int oplus_panel_pwm_switch_timing_switch(struct dsi_panel *panel);
 int oplus_panel_pwm_switch_wait_te_tx_cmd(struct dsi_panel *panel, u32 pwm_switch_cmd, u32 pwm_switch_state_last);
 int oplus_hbm_pwm_state(struct dsi_panel *panel, bool hbm_state);
-void oplus_panel_backlight_demura_dbv_switch(struct dsi_panel *panel, u32 bl_lvl);
-
+void oplus_panel_bl_demura_dbv_switch_sync_te(void);
 #endif /* __OPLUS_BL_H__ */
 

@@ -1328,7 +1328,7 @@ static void __cam_isp_ctx_send_sof_timestamp(
 
 	if (request_id == 0 && (ctx_isp->reported_frame_id == ctx_isp->frame_id)) {
 		CAM_WARN_RATE_LIMIT(CAM_ISP,
-			"Missed SOF Recovery for invalid req, Skip notificaiton to userspace Ctx: %u frame_id %u",
+			"Missed SOF Recovery for invalid req, Skip notificaiton to userspace Ctx: %u frame_id %llu",
 			ctx->ctx_id, ctx_isp->frame_id);
 		return;
 	}

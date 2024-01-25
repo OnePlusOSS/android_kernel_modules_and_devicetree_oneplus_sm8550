@@ -86,6 +86,13 @@ static int __init oplus_frame_boost_init(void)
 	stune_boost[BOOST_ED_TASK_TIME_OUT_DURATION] = 200; /* default 2*window */
 	stune_boost[BOOST_ED_TASK_MID_UTIL] = 600; /* default mid util */
 	stune_boost[BOOST_ED_TASK_MAX_UTIL] = 900; /* default max util */
+#ifdef CONFIG_ARCH_MEDIATEK
+	stune_boost[BOOST_SF_FREQ_GPU] = 60;
+	stune_boost[BOOST_SF_MIGR_GPU] = 60;
+#else
+	stune_boost[BOOST_SF_FREQ_GPU] = 30;
+	stune_boost[BOOST_SF_MIGR_GPU] = 30;
+#endif /* CONFIG_ARCH_MEDIATEK */
 
 out:
 	return ret;

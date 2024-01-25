@@ -100,6 +100,10 @@ struct ofb_stune_data {
 	int ed_task_boost_max_duration;
 	int ed_task_boost_max_util;
 	int ed_task_boost_timeout_duration;
+	int boost_sf_freq_nongpu;
+	int boost_sf_migr_nongpu;
+	int boost_sf_freq_gpu;
+	int boost_sf_migr_gpu;
 };
 
 #define OFB_MAGIC 0XDE

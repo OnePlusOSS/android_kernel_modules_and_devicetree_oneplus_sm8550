@@ -765,7 +765,7 @@ static int cam_isp_io_buf_get_entries_util(
 		res_id = io_cfg->resource_type;
 		if (!buf_info->res_list_in_rd) {
 			CAM_DBG(CAM_ISP,
-				"No BUS Read supported hw_type %d io_cfg %d req:%d type:%d fence:%d",
+				"No BUS Read supported hw_type %d io_cfg %d req:%llu type:%d fence:%d",
 				buf_info->base->hw_type,
 				buf_info->prepare->packet->num_io_configs,
 				buf_info->prepare->packet->header.request_id,
@@ -915,7 +915,7 @@ static int cam_isp_add_io_buffers_util(
 		CAM_DBG(CAM_ISP, "get io_addr for plane %d: 0x%llx, mem_hdl=0x%x",
 			plane_id, io_addr[plane_id], io_cfg->mem_handle[plane_id]);
 
-		CAM_DBG(CAM_ISP, "mmu_hdl=0x%x, size=%d, end=0x%x",
+		CAM_DBG(CAM_ISP, "mmu_hdl=0x%x, size=%d, end=0x%llx",
 			mmu_hdl, (int)size, io_addr[plane_id]+size);
 	}
 
@@ -980,7 +980,7 @@ static int cam_isp_add_io_buffers_util(
 	if (bus_port_update.fh_enabled) {
 		buf_info->frame_hdr->frame_header_res_id = res->res_id;
 		CAM_DBG(CAM_ISP,
-			"Frame header enabled for res: 0x%x iova: %pK",
+			"Frame header enabled for res: 0x%x iova: %lluK",
 			buf_info->frame_hdr->frame_header_res_id,
 			bus_port_update.frame_header);
 	}

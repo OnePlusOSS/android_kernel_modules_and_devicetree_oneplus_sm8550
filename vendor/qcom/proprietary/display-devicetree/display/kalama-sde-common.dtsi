@@ -168,8 +168,8 @@
 		qcom,sde-has-dest-scaler;
 		qcom,sde-max-trusted-vm-displays = <1>;
 
-		qcom,sde-max-bw-low-kbps = <13600000>;
-		qcom,sde-max-bw-high-kbps = <18200000>;
+		qcom,sde-max-bw-low-kbps = <17300000>;
+		qcom,sde-max-bw-high-kbps = <25000000>;
 		qcom,sde-min-core-ib-kbps = <2500000>;
 		qcom,sde-min-llcc-ib-kbps = <0>;
 		qcom,sde-min-dram-ib-kbps = <800000>;

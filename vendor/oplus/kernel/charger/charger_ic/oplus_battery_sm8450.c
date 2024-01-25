@@ -306,7 +306,7 @@ static void handle_oem_read_buffer(struct battery_chg_dev *bcdev,
 		sizeof(bcdev->read_buffer_dump));*/
 
 	if (len > sizeof(bcdev->read_buffer_dump)) {
-		pr_err("Incorrect length received: %zu expected: %u\n", len,
+		pr_err("Incorrect length received: %zu expected: %zu\n", len,
 		sizeof(bcdev->read_buffer_dump));
 		return;
 	}
@@ -591,7 +591,7 @@ static void handle_pps_read_buffer(struct battery_chg_dev *bcdev,
 	u32 buf_len;
 
 	if (len > sizeof(bcdev->pps_read_buffer_dump)) {
-		chg_err("Incorrect length received: %zu expected: %u\n", len,
+		chg_err("Incorrect length received: %zu expected: %zu\n", len,
 		sizeof(bcdev->pps_read_buffer_dump));
 		return;
 	}

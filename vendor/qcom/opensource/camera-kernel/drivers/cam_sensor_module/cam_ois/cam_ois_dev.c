@@ -104,19 +104,23 @@ static long cam_ois_subdev_ioctl(struct v4l2_subdev *sd,
 			CAM_ERR(CAM_OIS,
 				"Failed with ois push center: %d", rc);
 		break;
-    case VIDIOC_CAM_OIS_SHAKE_DETECT_ENABLE:
-        oplus_cam_ois_sds_enable(sd, arg);
-        break;
-    case VIDIOC_CAM_OIS_LOCK:
-        mutex_lock(&(o_ctrl->ois_power_down_mutex));
-        rc = oplus_cam_ois_lock(sd);
-        mutex_unlock(&(o_ctrl->ois_power_down_mutex));
-        break;
-    case VIDIOC_CAM_OIS_UNLOCK:
-        mutex_lock(&(o_ctrl->ois_power_down_mutex));
-        rc = oplus_cam_ois_unlock(sd);
-        mutex_unlock(&(o_ctrl->ois_power_down_mutex));
-        break;
+	case VIDIOC_CAM_OIS_SHAKE_DETECT_ENABLE:
+		if (!arg) {
+			CAM_ERR(CAM_OIS, "Invalid arguments");
+			return -EINVAL;
+		}
+		oplus_cam_ois_sds_enable(sd, arg);
+		break;
+	case VIDIOC_CAM_OIS_LOCK:
+		mutex_lock(&(o_ctrl->ois_power_down_mutex));
+		rc = oplus_cam_ois_lock(sd);
+		mutex_unlock(&(o_ctrl->ois_power_down_mutex));
+		break;
+	case VIDIOC_CAM_OIS_UNLOCK:
+		mutex_lock(&(o_ctrl->ois_power_down_mutex));
+		rc = oplus_cam_ois_unlock(sd);
+		mutex_unlock(&(o_ctrl->ois_power_down_mutex));
+		break;
 #endif
 	default:
 		CAM_ERR(CAM_OIS, "Wrong IOCTL cmd: %u", cmd);

@@ -89,6 +89,12 @@ struct chip_sy6974b {
 	struct delayed_work	bc12_retry_work;
 };
 
+enum {
+	CHARGER_NORMAL_CHG_CURVE,
+	CHARGER_FASTCHG_VOOC_AND_QCPD_CURVE,
+	CHARGER_FASTCHG_SVOOC_CURVE,
+};
+
 static struct chip_sy6974b *charger_ic = NULL;
 static int aicl_result = 500;
 
@@ -119,6 +125,34 @@ void oplus_notify_device_mode(bool enable)
 #define I2C_RETRY_DELAY_US	5000
 #define I2C_RETRY_WRITE_MAX_COUNT	3
 #define I2C_RETRY_READ_MAX_COUNT	20
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+#define CDP_TIMEOUT	30
+static bool hw_bc12_init(void)
+{
+	int timeout = CDP_TIMEOUT;
+	static bool first_connect = true;
+	if (first_connect == true) {
+		/* add make sure USB Ready */
+		if (is_usb_rdy() == false) {
+			pr_err("CDP, block\n");
+			while (is_usb_rdy() == false && timeout > 0) {
+				msleep(10);
+				timeout--;
+			}
+			if (timeout == 0) {
+				pr_err("CDP, timeout\n");
+				return false;
+			} else {
+				pr_err("CDP, free, timeout:%d\n", timeout);
+			}
+		} else {
+			pr_err("CDP, PASS\n");
+		}
+		first_connect = false;
+	}
+	return true;
+}
+#endif
 static int __sy6974b_read_reg(struct chip_sy6974b *chip, int reg, int *data)
 {
 	s32 ret = 0;
@@ -408,7 +442,7 @@ int sy6974b_get_charger_vol(void)
 	#ifdef CONFIG_OPLUS_CHARGER_MTK
 	int vol_vaule = 0;
 	get_vbus_voltage(&vol_vaule);
-	chg_err("sy6974b_get_charger_vol: %d\n", vol_vaule);
+	chg_debug("sy6974b_get_charger_vol: %d\n", vol_vaule);
 	return vol_vaule;
 	#else
 	return qpnp_get_prop_charger_voltage_now();
@@ -1632,6 +1666,12 @@ int sy6974b_set_iindet(void)
 		return 0;
 	}
 
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+	if (hw_bc12_init() == false) {
+		return -1;
+	}
+	msleep(10);
+#endif
 	rc = sy6974b_config_interface(chip, REG07_SY6974B_ADDRESS,
 					REG07_SY6974B_IINDET_EN_MASK,
 					REG07_SY6974B_IINDET_EN_FORCE_DET);
@@ -2392,6 +2432,29 @@ static void oplus_mt_power_off(void)
 		printk(KERN_ERR "[OPLUS_CHG][%s]: ac_online is true, return!\n", __func__);
 	}
 }
+
+static void oplus_sy6974b_choose_gauge_curve(int index_curve)
+{
+	static last_curve_index = -1;
+	int target_index_curve = -1;
+
+	if (index_curve == CHARGER_SUBTYPE_QC || index_curve == CHARGER_SUBTYPE_PD
+	|| index_curve == CHARGER_SUBTYPE_FASTCHG_VOOC)
+		target_index_curve = CHARGER_FASTCHG_VOOC_AND_QCPD_CURVE;
+	else if (index_curve == 0)
+		target_index_curve = CHARGER_NORMAL_CHG_CURVE;
+	else
+		target_index_curve = CHARGER_FASTCHG_SVOOC_CURVE;
+
+	chg_err(" index_curve =%d  target_index_curve =%d last_curve_index =%d\n",
+	index_curve, target_index_curve, last_curve_index);
+
+	if (target_index_curve != last_curve_index) {
+		oplus_gauge_set_power_sel(target_index_curve);
+		last_curve_index = target_index_curve;
+	}
+	return;
+}
 #endif
 
 static struct charger_ops sy6974b_chg_ops = {
@@ -2481,6 +2544,9 @@ struct oplus_chg_operations  oplus_chg_sy6974b_ops = {
 	.oplus_usbtemp_monitor_condition = oplus_usbtemp_condition,
 	.vooc_timeout_callback = sy6974b_vooc_timeout_callback,
 	.get_subboard_temp = oplus_force_get_subboard_temp,
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+	.get_platform_gauge_curve = oplus_sy6974b_choose_gauge_curve,
+#endif
 };
 
 static int sy6974b_parse_dt(struct device_node *np, struct chip_sy6974b *chip)
@@ -2643,6 +2709,7 @@ static void sy6974b_get_bc12(struct chip_sy6974b *chip)
 				chip->oplus_charger_type = POWER_SUPPLY_TYPE_USB;
 			}
 			#ifdef CONFIG_OPLUS_CHARGER_MTK
+			Charger_Detect_Release();
 			sy6974b_inform_charger_type(chip);
 			#else
 			oplus_set_usb_props_type(chip->oplus_charger_type);
@@ -2666,6 +2733,7 @@ static void sy6974b_get_bc12(struct chip_sy6974b *chip)
 				chip->oplus_charger_type = POWER_SUPPLY_TYPE_USB_CDP;
 			}
 			#ifdef CONFIG_OPLUS_CHARGER_MTK
+			Charger_Detect_Release();
 			sy6974b_inform_charger_type(chip);
 			#else
 			oplus_set_usb_props_type(chip->oplus_charger_type);
@@ -2681,6 +2749,7 @@ static void sy6974b_get_bc12(struct chip_sy6974b *chip)
 			#ifdef CONFIG_OPLUS_CHARGER_MTK
 			chip->oplus_charger_type = POWER_SUPPLY_TYPE_USB_DCP;
 			chg_err("bc1.2 dcp\n");
+			Charger_Detect_Release();
 			sy6974b_inform_charger_type(chip);
 			#else
 			if (oplus_pd_connected() && oplus_sm8150_get_pd_type() == PD_INACTIVE) {
@@ -2845,6 +2914,11 @@ static irqreturn_t sy6974b_irq_handler(int irq, void *data)
 		oplus_voocphy_set_adc_enable(true);
 		sy6974b_set_wdt_timer(REG05_SY6974B_WATCHDOG_TIMER_40S);
 		oplus_wake_up_usbtemp_thread();
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+		if (get_boot_mode() != META_BOOT) {
+			Charger_Detect_Init();
+		}
+#endif
 		if (chip->oplus_charger_type == POWER_SUPPLY_TYPE_UNKNOWN) {
 			sy6974b_get_bc12(chip);
 		}
@@ -2862,6 +2936,9 @@ static irqreturn_t sy6974b_irq_handler(int irq, void *data)
 		}
 		goto POWER_CHANGE;
 	} else if (prev_pg && !chip->power_good) {
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+		Charger_Detect_Release();
+#endif
 		sy6974b_request_dpdm(chip, false);
 		chip->bc12_done = false;
 		chip->bc12_retried = 0;
@@ -2888,6 +2965,9 @@ static irqreturn_t sy6974b_irq_handler(int irq, void *data)
 		goto POWER_CHANGE;
 	} else if (!prev_pg && !chip->power_good) {
 		chg_err("prev_pg & now_pg is false\n");
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+		Charger_Detect_Release();
+#endif
 		chip->bc12_done = false;
 		chip->bc12_retried = 0;
 		chip->bc12_delay_cnt = 0;
@@ -3154,6 +3234,7 @@ static int sy6974b_charger_probe(struct i2c_client *client,
 	oplus_chg_awake_init(chip);
 	init_waitqueue_head(&chip->wait);
 	oplus_keep_resume_awake_init(chip);
+	Charger_Detect_Init();
 	chip->oplus_charger_type = POWER_SUPPLY_TYPE_UNKNOWN;
 	chip->power_good = false;
 	chip->before_suspend_icl = 0;

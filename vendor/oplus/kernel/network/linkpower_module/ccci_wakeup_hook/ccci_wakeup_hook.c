@@ -4,58 +4,13 @@
  */
 
 #include <linux/kprobes.h>
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/time.h>
-#include <net/genetlink.h>
+#include "../linkpower_netlink/linkpower_netlink.h"
 
-/* Netlink(reuse qrtr hook netlink) */
-enum
-{
-	QRTR_HOOK_NETLINK_CMD_UNSPEC,
-	QRTR_HOOK_NETLINK_CMD_DOWNLINK,
-	QRTR_HOOK_NETLINK_CMD_UPLINK,
-	__QRTR_HOOK_NETLINK_CMD_MAX
-};
-
-enum
-{
-	/* req/cnf ids */
-	NETLINK_REQUEST_QRTR_WAKEUP = 1,
-	NETLINK_RESPONSE_QRTR_WAKEUP,
-
-	NETLINK_REQUEST_CCCI_WAKEUP,
-	NETLINK_RESPONSE_CCCI_WAKEUP,
-
-	__QRTR_HOOK_NETLINK_MSG_MAX = 10,
-};
-
-#define QRTR_HOOK_NETLINK_MSG_MAX (__QRTR_HOOK_NETLINK_MSG_MAX - 1)
-#define QRTR_HOOK_NETLINK_CMD_MAX (__QRTR_HOOK_NETLINK_CMD_MAX - 1)
-#define QRTR_HOOK_FAMILY_NAME "qrtr_hook" /* ccci_wakeup_hook */
-#define QRTR_HOOK_FAMILY_VERSION 1
-#define NLA_DATA(nla) ((char *)((char *)(nla) + NLA_HDRLEN))
-
-static int qrtr_hook_netlink_pid = 0;
-
-static int qrtr_hook_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info);
-static const struct genl_ops qrtr_hook_genl_ops[] = {
-	{
-		.cmd = QRTR_HOOK_NETLINK_CMD_DOWNLINK,
-		.flags = 0,
-		.doit = qrtr_hook_netlink_nlmsg_handle,
-		.dumpit = NULL,
-	},
-};
-
-static struct genl_family qrtr_hook_genl_family = {
-	.id = 0,
-	.hdrsize = 0,
-	.name = QRTR_HOOK_FAMILY_NAME,
-	.version = QRTR_HOOK_FAMILY_VERSION,
-	.maxattr = QRTR_HOOK_NETLINK_MSG_MAX,
-	.ops = qrtr_hook_genl_ops,
-	.n_ops = ARRAY_SIZE(qrtr_hook_genl_ops),
-};
+/* Netlink */
+extern int netlink_send_to_user(int msg_type, char *data, int data_len);
 
 /* Kprobe */
 #define CCCI_CCIF_RX_COLLECT_NAME "ccif_rx_collect"
@@ -198,113 +153,6 @@ static int handler_ccif_resume_noirq(struct kprobe *kp, struct pt_regs *regs)
 }
 
 /**
- * @brief      Sets the netlink pid.
- *
- * @param      nlhdr  The nlhdr
- *
- * @return     0 if successful, negative otherwise.
- */
-static int set_android_pid(struct nlmsghdr *nlhdr)
-{
-	qrtr_hook_netlink_pid = nlhdr->nlmsg_pid;
-
-	return 0;
-}
-
-/**
- * @brief      Prepare netlink packets to be delivered to user space.
- *
- * @param[in]  cmd   The command
- * @param[in]  size  The size
- * @param[in]  pid   The pid
- * @param      skbp  The skbp
- *
- * @return     0 if successful, negative otherwise.
- */
-static int genl_msg_prepare_usr_msg(u8 cmd, size_t size, pid_t pid, struct sk_buff **skbp)
-{
-	struct sk_buff *skb = NULL;
-	/* Create a new netlink msg */
-	skb = genlmsg_new(size, GFP_ATOMIC);
-	if (skb == NULL) {
-		return -ENOMEM;
-	}
-	/* Add a new netlink message to an skb */
-	genlmsg_put(skb, pid, 0, &qrtr_hook_genl_family, 0, cmd);
-	*skbp = skb;
-
-	return 0;
-}
-
-/**
- * @brief      Make netlink packets to be delivered to user space.
- *
- * @param      skb   The socket buffer
- * @param[in]  type  The type
- * @param      data  The data
- * @param[in]  len   The length
- *
- * @return     0 if successful, negative otherwise.
- */
-static int genl_msg_mk_usr_msg(struct sk_buff *skb, int type, void *data, int len)
-{
-	int ret = 0;
-	/* add a netlink attribute to a socket buffer */
-	if ((ret = nla_put(skb, type, len, data)) != 0) {
-		return ret;
-	}
-
-	return 0;
-}
-
-/**
- * @brief      Send netlink packet to user space.
- *
- * @param[in]  msg_type  The message type
- * @param      data      The data
- * @param[in]  data_len  The data length
- *
- * @return     0 if successful, negative otherwise.
- */
-static int netlink_send_to_user(int msg_type, char *data, int data_len)
-{
-	int ret = 0;
-	void *head;
-	struct sk_buff *skbuff;
-	size_t size;
-
-	if (!qrtr_hook_netlink_pid) {
-		printk("[ccci_wakeup_hook] netlink_send_to_user failed, qrtr_hook_netlink_pid=0.\n");
-		return -EINVAL;
-	}
-
-	size = nla_total_size(data_len);
-	ret = genl_msg_prepare_usr_msg(QRTR_HOOK_NETLINK_CMD_UPLINK, size, qrtr_hook_netlink_pid, &skbuff);
-	if (ret < 0) {
-		printk("[ccci_wakeup_hook] netlink_send_to_user failed, prepare_usr_msg ret=%d.\n", ret);
-		return ret;
-	}
-
-	ret = genl_msg_mk_usr_msg(skbuff, msg_type, data, data_len);
-	if (ret < 0) {
-		printk("[ccci_wakeup_hook] netlink_send_to_user failed, mk_usr_msg ret=%d.\n", ret);
-		kfree_skb(skbuff);
-		return ret;
-	}
-
-	head = genlmsg_data(nlmsg_data(nlmsg_hdr(skbuff)));
-	genlmsg_end(skbuff, head);
-
-	ret = genlmsg_unicast(&init_net, skbuff, qrtr_hook_netlink_pid);
-	if (ret < 0) {
-		printk("[ccci_wakeup_hook] netlink_send_to_user failed, genlmsg_unicast ret=%d.\n", ret);
-		return ret;
-	}
-
-	return 0;
-}
-
-/**
  * @brief      The handler of request ccci wakeup count from user space.
  *
  * @return     0 if successful, negative otherwise.
@@ -334,7 +182,7 @@ static int request_ccci_wakeup()
  *
  * @return     0 if successful, negative otherwise.
  */
-static int qrtr_hook_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info)
+int ccci_wakeup_hook_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info)
 {
 	int ret = 0;
 
@@ -348,11 +196,10 @@ static int qrtr_hook_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info 
 
 	switch (nla->nla_type) {
 	case NETLINK_REQUEST_CCCI_WAKEUP:
-		ret = set_android_pid(nlhdr);
 		ret = request_ccci_wakeup();
 		break;
 	default:
-		printk("[ccci_wakeup_hook] qrtr_hook_netlink_nlmsg_handle failed, unknown nla type=%d.\n", nla->nla_type);
+		printk("[ccci_wakeup_hook] ccci_wakeup_hook_netlink_nlmsg_handle failed, unknown nla type=%d.\n", nla->nla_type);
 		ret = -EINVAL;
 		break;
 	}
@@ -361,52 +208,14 @@ static int qrtr_hook_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info 
 }
 
 /**
- * @brief      Initialize qrtr hook netlink program.
- *
- * @return     0 if successful, negative otherwise.
- */
-static int qrtr_hook_netlink_init(void)
-{
-	int ret = 0;
-
-	ret = genl_register_family(&qrtr_hook_genl_family);
-	if (ret) {
-		printk("[ccci_wakeup_hook] genl_register_family failed, ret=%d.\n", ret);
-		return ret;
-	}
-	else {
-		printk("[ccci_wakeup_hook] genl_register_family complete, id=%d.\n", qrtr_hook_genl_family.id);
-	}
-
-	return 0;
-}
-
-/**
- * @brief      Uninstall qrtr hook netlink program.
- *
- * @return     0 if successful, negative otherwise.
- */
-static int qrtr_hook_netlink_exit(void)
-{
-	genl_unregister_family(&qrtr_hook_genl_family);
-
-	return 0;
-}
-
-/**
  * @brief      Initialize ccci wakeup hook.
  *
  * @return     0 if successful, negative otherwise.
  */
-static int __init ccci_wakeup_hook_init(void)
+int ccci_wakeup_hook_init(void)
 {
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 16, 0)))
 	int ret = 0;
-
-	ret = qrtr_hook_netlink_init();
-	if (ret < 0) {
-		printk("[ccci_wakeup_hook] module failed to init netlink.\n");
-		return ret;
-	}
 
 	ret = register_kprobe(&kp_ccif_rx_collect);
 	if (ret < 0) {
@@ -417,9 +226,12 @@ static int __init ccci_wakeup_hook_init(void)
 	if (ret < 0) {
 		printk("[ccci_wakeup_hook] register ccif_resume_noirq kprobe failed with %d", ret);
 	}
-
+	printk("[ccci_wakeup_hook] register ccci kprobe successfully!");
+#else
+	printk("[ccci_wakeup_hook] not support ccci kprobe rx_collect=%u resume_noirq=%u",
+	       kp_ccif_rx_collect.offset, kp_ccif_resume_noirq.offset);
+#endif
 	memset(ccci_wakeup_array, 0x0, sizeof(struct ccci_wakeup_st) * CCCI_WAKEUP_ARRAY_LEN);
-
 	printk("[ccci_wakeup_hook] module init successfully!");
 
 	return 0;
@@ -428,17 +240,10 @@ static int __init ccci_wakeup_hook_init(void)
 /**
  * @brief      Uninstall ccci wakeup hook.
  */
-static void __exit ccci_wakeup_hook_fini(void)
+void ccci_wakeup_hook_fini(void)
 {
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 16, 0)))
 	unregister_kprobe(&kp_ccif_rx_collect);
 	unregister_kprobe(&kp_ccif_resume_noirq);
-	qrtr_hook_netlink_exit();
+#endif
 }
-
-module_init(ccci_wakeup_hook_init);
-module_exit(ccci_wakeup_hook_fini);
-
-MODULE_LICENSE("GPL v2");
-MODULE_AUTHOR("Aska");
-MODULE_VERSION("1:0.1");
-MODULE_DESCRIPTION("OPLUS ccci wakeup hook");

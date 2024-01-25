@@ -3483,8 +3483,12 @@ static int mtk_charger_plug_in(struct mtk_charger *info,
 	wakeup_sc_algo_cmd(&info->sc.data, SC_EVENT_PLUG_IN, 0);
 	charger_dev_set_input_current(info->chg1_dev,
 				info->data.usb_charger_current);
-	charger_dev_plug_in(info->chg1_dev);
-
+#ifdef OPLUS_FEATURE_CHG_BASIC
+	if (g_oplus_chip->authenticate && g_oplus_chip->mmi_chg
+		&& !g_oplus_chip->balancing_bat_stop_chg && oplus_vooc_get_allow_reading() && !oplus_is_rf_ftm_mode()) {
+		charger_dev_plug_in(info->chg1_dev);
+	}
+#endif
 	return 0;
 }
 

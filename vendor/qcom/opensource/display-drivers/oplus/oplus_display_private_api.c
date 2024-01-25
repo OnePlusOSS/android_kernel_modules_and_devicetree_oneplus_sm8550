@@ -1365,6 +1365,92 @@ static ssize_t oplus_set_ffc_mode_debug(struct kobject *obj,
 	return count;
 }
 
+static ssize_t oplus_display_get_hbm_max_debug(struct kobject *obj,
+	struct kobj_attribute *attr, char *buf)
+{
+	int rc = 0;
+	u32 hbm_max_state = 0;
+	struct dsi_display *display = oplus_display_get_current_display();
+	struct dsi_panel *panel = NULL;
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	mutex_lock(&display->display_lock);
+	mutex_lock(&panel->panel_lock);
+
+	hbm_max_state = panel->oplus_priv.hbm_max_state;
+
+	mutex_unlock(&panel->panel_lock);
+	mutex_unlock(&display->display_lock);
+	LCD_INFO("Get hbm max state: %d\n", hbm_max_state);
+
+	return sysfs_emit(buf, "%d\n", hbm_max_state);
+}
+
+static ssize_t oplus_display_set_hbm_max_debug(struct kobject *obj,
+		struct kobj_attribute *attr,
+		const char *buf, size_t count)
+{
+	int rc = 0;
+	u32 hbm_max_state = 0;
+	static u32 last_bl = 0;
+	struct dsi_display *display = oplus_display_get_current_display();
+	struct dsi_panel *panel = NULL;
+
+	if (!display || !display->panel) {
+		LCD_ERR("Invalid display or panel\n");
+		rc = -EINVAL;
+		return rc;
+	}
+
+	panel = display->panel;
+
+	if(display->panel->power_mode != SDE_MODE_DPMS_ON) {
+		LCD_WARN("display panel is not on\n");
+		rc = -EFAULT;
+		return rc;
+	}
+
+	rc = kstrtou32(buf, 10, &hbm_max_state);
+	if (rc) {
+		LCD_WARN("%s cannot be converted to u32", buf);
+		return count;
+	}
+	LCD_INFO("Set hbm max, state=%d\n", hbm_max_state);
+
+	mutex_lock(&display->display_lock);
+
+	if (hbm_max_state) {
+		last_bl = oplus_last_backlight;
+		if (panel->cur_mode->priv_info->cmd_sets[DSI_CMD_HBM_MAX].count) {
+			mutex_lock(&panel->panel_lock);
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_HBM_MAX);
+			mutex_unlock(&panel->panel_lock);
+		}
+		else {
+			LCD_WARN("DSI_CMD_HBM_MAX is undefined, set max backlight: %d\n",
+					panel->bl_config.bl_max_level);
+			rc = dsi_display_set_backlight(display->drm_conn,
+					display, panel->bl_config.bl_max_level);
+		}
+	}
+	else {
+		rc = dsi_display_set_backlight(display->drm_conn,
+				display, last_bl);
+	}
+	panel->oplus_priv.hbm_max_state = hbm_max_state;
+
+	mutex_unlock(&display->display_lock);
+
+	return count;
+}
+
 static void oplus_display_print_cmd_desc(const struct dsi_panel_cmd_set *cmd_sets)
 {
 	int i, j, len;
@@ -1586,7 +1672,9 @@ static ssize_t oplus_display_set_dsi_command(struct kobject *obj,
 	}
 
 	strlcpy(data, buf, SZ_512);
-	data[strlen(data)-1]='\0';
+	if(strlen(data) != 0) {
+		data[strlen(data)-1]='\0';
+	}
 
 	if (!strcmp("dump", data)) {
 		rc = oplus_display_dump_dsi_command(display);
@@ -2893,6 +2981,8 @@ static OPLUS_ATTR(pwm_turbo, S_IRUGO|S_IWUSR, oplus_get_pwm_turbo_debug,
 		oplus_set_pwm_turbo_debug);
 static OPLUS_ATTR(ffc_mode, S_IRUGO|S_IWUSR, oplus_get_ffc_mode_debug,
 		oplus_set_ffc_mode_debug);
+static OPLUS_ATTR(hbm_max, S_IRUGO | S_IWUSR, oplus_display_get_hbm_max_debug,
+		oplus_display_set_hbm_max_debug);
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 static OPLUS_ATTR(fp_type, S_IRUGO | S_IWUSR, oplus_ofp_get_fp_type_attr, oplus_ofp_set_fp_type_attr);
 static OPLUS_ATTR(hbm, S_IRUGO | S_IWUSR, oplus_ofp_get_hbm_attr, oplus_ofp_set_hbm_attr);
@@ -2941,6 +3031,7 @@ static struct attribute *oplus_display_attrs[] = {
 	&oplus_attr_dynamic_te.attr,
 #endif /* OPLUS_FEATURE_DISPLAY */
 #ifdef OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION
+	&oplus_attr_hbm_max.attr,
 	&oplus_attr_temp_compensation_config.attr,
 	&oplus_attr_ntc_temp.attr,
 	&oplus_attr_shell_temp.attr,

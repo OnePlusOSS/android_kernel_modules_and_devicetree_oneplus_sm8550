@@ -4688,7 +4688,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	case TCP_NOTIFY_CHRDET_STATE:
 		pinfo->chrdet_state = noti->chrdet_state.chrdet;
 		pr_err("%s chrdet = %d\n", __func__, noti->chrdet_state.chrdet);
-		if (pinfo && pinfo->support_mt6375_charger)
+		if (pinfo->support_mt6375_charger)
 			oplus_chg_check_break(pinfo->chrdet_state);
 		if (pinfo->chrdet_state) {
 			oplus_chg_wake_update_work();
@@ -8490,7 +8490,7 @@ static int oplus_chg_get_chargeric_temp_val(void)
 	if (IS_ERR_OR_NULL(pinfo))
 		return -EINVAL;
 
-	if (pinfo && pinfo->chargeric_temp_chan) {
+	if (pinfo->chargeric_temp_chan) {
 		ret = iio_read_channel_processed(pinfo->chargeric_temp_chan, &val);
 		if (ret< 0) {
 			chg_err("read usb_temp_v_r_chan volt failed, rc=%d\n", ret);

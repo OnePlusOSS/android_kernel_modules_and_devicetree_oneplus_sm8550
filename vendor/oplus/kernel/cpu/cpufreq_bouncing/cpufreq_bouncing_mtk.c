@@ -828,13 +828,13 @@ static void cb_init_arch(void)
 	/* customized here */
 	/* clus 1 */
 	cb = &cb_stuff[1];
-	cb->limit_freq = 2100000;
-	cb->limit_level = 8;
+	cb->limit_freq = 2400000;
+	cb->limit_level = 5;
 
 	/* clus 2 */
 	cb = &cb_stuff[2];
-	cb->limit_freq = 2300000;
-	cb->limit_level = 9;
+	cb->limit_freq = 2500000;
+	cb->limit_level = 7;
 
 	update_delay_check = true;
 #endif

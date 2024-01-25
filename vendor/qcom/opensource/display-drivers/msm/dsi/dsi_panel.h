@@ -180,6 +180,7 @@ struct dsi_panel_oplus_privite {
 	bool pinctrl_enabled;
 	bool pwm_switch_support;
 	bool dynamic_demua_support;
+	u32 hbm_max_state;
 /********************************************
 	fp_type usage:
 	bit(0):lcd capacitive fingerprint(aod/fod are not supported)
@@ -424,13 +425,6 @@ struct dsi_panel {
 	bool pwm_power_on;
 	bool pwm_hbm_state;
 	ktime_t te_timestamp;
-	/* for notify worker */
-	struct kthread_worker *notify_worker;
-	struct kthread_work work;
-	enum panel_event_notifier_tag panel_event;
-	struct panel_event_notification notification;
-	struct completion notify_done;
-	int need_to_wait_notify_done;
 	/*as the judgment of the first light screen */
 	bool post_power_on;
 	/* for pwm disable duty worker*/

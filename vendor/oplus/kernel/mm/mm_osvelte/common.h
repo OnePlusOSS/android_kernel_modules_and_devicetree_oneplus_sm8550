@@ -19,8 +19,13 @@
 
 #define OSVELTE_MAJOR		(0)
 #define OSVELTE_MINOR		(1)
-#define OSVELTE_PATCH_NUM	(3)
+#define OSVELTE_PATCH_NUM	(4)
 #define OSVELTE_VERSION (OSVELTE_MAJOR << 16 | OSVELTE_MINOR)
+
+#define OSVELTE_STATIC_ASSERT(c)				\
+{								\
+	enum { OSVELTE_static_assert = 1 / (int)(!!(c)) };	\
+}
 
 #define osvelte_info(fmt, ...)      \
 	pr_info(OSVELTE_LOG_TAG ": " fmt, ##__VA_ARGS__)

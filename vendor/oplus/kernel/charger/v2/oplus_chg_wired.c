@@ -33,6 +33,10 @@
 #if IS_ENABLED(CONFIG_OPLUS_DYNAMIC_CONFIG_CHARGER)
 #include "oplus_cfg.h"
 #endif
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+#include <mt-plat/mtk_boot_common.h>
+#endif
+
 
 #define PDQC_CONFIG_WAIT_TIME_MS	15000
 #define QC_CHECK_WAIT_TIME_MS		20000
@@ -1102,7 +1106,11 @@ static void oplus_wired_plugin_work(struct work_struct *work)
 	struct oplus_chg_wired *chip =
 		container_of(work, struct oplus_chg_wired, plugin_work);
 	union mms_msg_data data = { 0 };
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+	int boot_mode = 0;
 
+	boot_mode = get_boot_mode();
+#endif
 	oplus_mms_get_item_data(chip->wired_topic, WIRED_ITEM_ONLINE, &data,
 				false);
 	chip->chg_online = data.intval;
@@ -1159,7 +1167,14 @@ static void oplus_wired_plugin_work(struct work_struct *work)
 		vote_override(chip->output_suspend_votable, OVERRIDE_VOTER, true, 0, false);
 		vote_override(chip->input_suspend_votable, OVERRIDE_VOTER, true, 0, false);
 		vote(chip->icl_votable, SPEC_VOTER, true, 500, true);
+#ifdef CONFIG_OPLUS_CHARGER_MTK
+#ifdef CONFIG_MTK_KERNEL_POWER_OFF_CHARGING
+		if (boot_mode != KERNEL_POWER_OFF_CHARGING_BOOT)
+			oplus_wired_set_awake(chip, false);
+#endif
+#else
 		oplus_wired_set_awake(chip, false);
+#endif
 	}
 
 	if (chip->gauge_topic != NULL)

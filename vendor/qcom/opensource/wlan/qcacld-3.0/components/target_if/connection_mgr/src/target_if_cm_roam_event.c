@@ -181,6 +181,11 @@ target_if_free_roam_synch_frame_ind(struct roam_synch_frame_ind *frame_ind)
 		frame_ind->bcn_probe_rsp_len = 0;
 		frame_ind->bcn_probe_rsp = NULL;
 	}
+	if (frame_ind->link_bcn_probe_rsp) {
+		qdf_mem_free(frame_ind->link_bcn_probe_rsp);
+		frame_ind->link_bcn_probe_rsp_len = 0;
+		frame_ind->link_bcn_probe_rsp = NULL;
+	}
 	if (frame_ind->reassoc_req) {
 		qdf_mem_free(frame_ind->reassoc_req);
 		frame_ind->reassoc_req_len = 0;

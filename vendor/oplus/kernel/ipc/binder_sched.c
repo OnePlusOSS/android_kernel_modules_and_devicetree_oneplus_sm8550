@@ -22,14 +22,18 @@ static inline void binder_set_inherit_ux(struct task_struct *thread_task, struct
 {
 	int from_depth = oplus_get_ux_depth(from_task);
 	int from_state = oplus_get_ux_state(from_task);
+	int type = get_ux_state_type(thread_task);
+
+	if (type != UX_STATE_NONE && type != UX_STATE_INHERIT)
+		return;
 
 	if (from_task && test_set_inherit_ux(from_task)) {
-		if (!test_task_ux(thread_task))
+		if (!test_inherit_ux(thread_task, INHERIT_UX_BINDER))
 			set_inherit_ux(thread_task, INHERIT_UX_BINDER, from_depth, from_state);
 		else
 			reset_inherit_ux(thread_task, from_task, INHERIT_UX_BINDER);
-	}  else if (from_task && test_task_is_rt(from_task)) { /* rt trans can be set as ux if binder thread is cfs class */
-		if (!test_task_ux(thread_task)) {
+	} else if (from_task && test_task_is_rt(from_task)) { /* rt trans can be set as ux if binder thread is cfs class */
+		if (!test_inherit_ux(thread_task, INHERIT_UX_BINDER)) {
 			int ux_value = SA_TYPE_LIGHT;
 
 			set_inherit_ux(thread_task, INHERIT_UX_BINDER, from_depth, ux_value);
@@ -127,10 +131,7 @@ static void android_vh_binder_proc_transaction_finish_handler(void *unused, stru
 	if (grp_leader) {
 		struct oplus_task_struct *ots = get_oplus_task_struct(current);
 
-		if (IS_ERR_OR_NULL(ots))
-			return;
-
-		if ((ots->im_flag == IM_FLAG_SURFACEFLINGER) && !sync && test_task_ux(grp_leader))
+		if (!IS_ERR_OR_NULL(ots) && (ots->im_flag == IM_FLAG_SURFACEFLINGER) && !sync && test_task_ux(grp_leader))
 			set_ux = true;
 	}
 

@@ -202,6 +202,14 @@
 					15 00 00 40 00 00 02 6F C5
 					15 00 00 00 00 00 02 BA 10
 
+					/* 0 ~ 4094 gamma */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 00 00 00 2D B3 00 01 01 B3 01 B3 02 B0 02 B0 03 D4 03 D4 05 0A 05 0A 05 0B 05 0B 07 4A 07 4A 0B 15 0B 15 0D BB 0D BB 0F FE 0F FE 0F FE 0F FE 0F FF
+
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 F5 23
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*120HZ SEQ Setting (different from OP Manual, custom by display hw)*/
@@ -270,6 +278,27 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 13
 					15 00 00 00 00 00 02 B2 4B
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					/* 60/120hz gamma + 4095*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 02
+					15 00 00 40 00 00 02 CC 30
+					15 00 00 40 00 00 02 BF 2B
+					39 00 00 40 00 00 13 B0 00 00 02 DA 02 DA 03 2D 03 77 03 AB 03 E1 04 3A 04 84
+					39 00 00 40 00 00 13 B1 04 C7 05 38 05 97 05 EA 06 37 06 7D 06 FD 07 74 07 E7
+					39 00 00 40 00 00 13 B2 08 4C 08 B1 0A 42 0B 1F 0B 5E 0B B4 0B B4 00 00 00 00
+					39 00 00 40 00 00 13 B3 00 00 03 00 03 00 03 32 03 65 03 98 03 C4 04 12 04 55
+					39 00 00 40 00 00 13 B4 04 8F 04 F4 05 4A 05 95 05 DA 06 19 06 8A 06 F2 07 50
+					39 00 00 40 00 00 13 B5 07 AC 07 FB 09 3C 09 DE 0A 05 0A 33 0A 33 00 00 00 00
+					39 00 00 40 00 00 13 B6 00 00 03 92 03 92 03 E1 04 30 04 73 04 AE 05 13 05 6A
+					39 00 00 40 00 00 13 B7 05 B5 06 35 06 A2 06 FF 07 57 07 A6 08 38 08 C0 09 41
+					39 00 00 40 00 00 13 B8 09 B9 0A 2B 0B F5 0C F3 0D 35 0D 8A 0D 8A 00 00 00 00
+					15 00 00 40 00 00 02 CE 01
+					15 00 00 40 00 00 02 CC 00
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -390,6 +419,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 
 				qcom,lm-split = <558 558>;
@@ -527,6 +558,14 @@
 					15 00 00 40 00 00 02 6F C5
 					15 00 00 00 00 00 02 BA 10
 
+					/* 0 ~ 4094 gamma */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 00 00 00 2D B3 00 01 01 B3 01 B3 02 B0 02 B0 03 D4 03 D4 05 0A 05 0A 05 0B 05 0B 07 4A 07 4A 0B 15 0B 15 0D BB 0D BB 0F FE 0F FE 0F FE 0F FE 0F FF
+
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 F5 23
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*display on*/
@@ -567,6 +606,27 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 12
 					15 00 00 00 00 00 02 B2 0F
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					/*90hz gamma + 4095*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 02
+					15 00 00 40 00 00 02 CC 30
+					15 00 00 40 00 00 02 BF 1B
+					39 00 00 40 00 00 13 B0 00 00 02 C0 02 C0 03 1B 03 6A 03 A2 03 DA 04 36 04 80
+					39 00 00 40 00 00 13 B1 04 C2 05 36 05 95 05 EA 06 36 06 7D 06 FE 07 73 07 E3
+					39 00 00 40 00 00 13 B2 08 4D 08 AD 0A 3E 0B 1E 0B 5E 0B B6 0B B6 00 00 00 00
+					39 00 00 40 00 00 13 B3 00 00 02 DB 02 DB 03 1B 03 56 03 8C 03 BB 04 0B 04 51
+					39 00 00 40 00 00 13 B4 04 8C 04 F2 05 48 05 95 05 D9 06 18 06 8A 06 F1 07 51
+					39 00 00 40 00 00 13 B5 07 AB 07 FD 09 3D 09 DD 0A 05 0A 30 0A 30 00 00 00 00
+					39 00 00 40 00 00 13 B6 00 00 03 77 03 77 03 D1 04 20 04 6A 04 A9 05 0F 05 68
+					39 00 00 40 00 00 13 B7 05 B2 06 33 06 A0 07 00 07 56 07 A6 08 39 08 BF 09 3F
+					39 00 00 40 00 00 13 B8 09 BA 0A 29 0B F3 0C F1 0D 35 0D 84 0D 84 00 00 00 00
+					15 00 00 40 00 00 02 CE 01
+					15 00 00 40 00 00 02 CC 00
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -689,6 +749,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,lm-split = <558 558>;
 				qcom,compression-mode = "dsc";
@@ -857,6 +919,14 @@
 					15 00 00 40 00 00 02 6F C5
 					15 00 00 00 00 00 02 BA 10
 
+					/* 0 ~ 4094 gamma */
+					39 00 00 40 00 00 06 F0 55 AA 52 08 00
+					39 00 00 00 00 00 2D B3 00 01 01 B3 01 B3 02 B0 02 B0 03 D4 03 D4 05 0A 05 0A 05 0B 05 0B 07 4A 07 4A 0B 15 0B 15 0D BB 0D BB 0F FE 0F FE 0F FE 0F FE 0F FF
+
+					39 00 00 40 00 00 05 FF AA 55 A5 81
+					15 00 00 40 00 00 02 6F 0E
+					15 00 00 00 00 00 02 F5 23
+
 					/*sleep out*/
 					05 00 00 00 78 00 01 11
 					/*60HZ SEQ Setting (different from OP Manual, custom by display hw)*/
@@ -925,6 +995,27 @@
 					39 00 00 40 00 00 06 F0 55 AA 52 08 00
 					15 00 00 40 00 00 02 6F 13
 					15 00 00 00 00 00 02 B2 4B
+				];
+				qcom,mdss-dsi-hbm-max-command = [
+					/* 60/120hz gamma + 4095*/
+					39 00 00 40 00 00 06 F0 55 AA 52 08 02
+					15 00 00 40 00 00 02 CC 30
+					15 00 00 40 00 00 02 BF 2B
+					39 00 00 40 00 00 13 B0 00 00 02 DA 02 DA 03 2D 03 77 03 AB 03 E1 04 3A 04 84
+					39 00 00 40 00 00 13 B1 04 C7 05 38 05 97 05 EA 06 37 06 7D 06 FD 07 74 07 E7
+					39 00 00 40 00 00 13 B2 08 4C 08 B1 0A 42 0B 1F 0B 5E 0B B4 0B B4 00 00 00 00
+					39 00 00 40 00 00 13 B3 00 00 03 00 03 00 03 32 03 65 03 98 03 C4 04 12 04 55
+					39 00 00 40 00 00 13 B4 04 8F 04 F4 05 4A 05 95 05 DA 06 19 06 8A 06 F2 07 50
+					39 00 00 40 00 00 13 B5 07 AC 07 FB 09 3C 09 DE 0A 05 0A 33 0A 33 00 00 00 00
+					39 00 00 40 00 00 13 B6 00 00 03 92 03 92 03 E1 04 30 04 73 04 AE 05 13 05 6A
+					39 00 00 40 00 00 13 B7 05 B5 06 35 06 A2 06 FF 07 57 07 A6 08 38 08 C0 09 41
+					39 00 00 40 00 00 13 B8 09 B9 0A 2B 0B F5 0C F3 0D 35 0D 8A 0D 8A 00 00 00 00
+					15 00 00 40 00 00 02 CE 01
+					15 00 00 40 00 00 02 CC 00
+					39 00 00 00 00 00 03 51 0F FF
+				];
+				qcom,mdss-dsi-hbm-exit-max-command = [
+					39 00 00 00 00 00 03 51 0F FE
 				];
 				qcom,mdss-dsi-panel-info-switch-page-command = [
 					/*read panel info switch page 01*/
@@ -1045,7 +1136,8 @@
 				qcom,mdss-dsi-timming-pwm-switch-high-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-timming-pwm-switch-low-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-pwm-switch-disable-compensation-command-state = "dsi_hs_mode";
-
+				qcom,mdss-dsi-hbm-max-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hbm-exit-max-command-state = "dsi_hs_mode";
 
 				qcom,lm-split = <558 558>;
 				qcom,compression-mode = "dsc";

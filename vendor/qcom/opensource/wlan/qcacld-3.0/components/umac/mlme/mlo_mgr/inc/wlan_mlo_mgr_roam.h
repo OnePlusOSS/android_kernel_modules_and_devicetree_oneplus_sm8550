@@ -92,6 +92,20 @@ mlo_roam_get_chan_freq(uint8_t vdev_id,
 		       struct roam_offload_synch_ind *sync_ind);
 
 /**
+ * mlo_roam_get_link_freq - get given link frequency
+ *
+ * @vdev_id: vdev id
+ * @sync_ind: roam sync ind pointer
+ *
+ * This api will be called to get the link frequency.
+ *
+ * Return: channel frequency
+ */
+uint32_t
+mlo_roam_get_link_freq(uint8_t vdev_id,
+		       struct roam_offload_synch_ind *sync_ind);
+
+/**
  * mlo_roam_get_link_id - get link id
  *
  * @vdev_id: vdev id

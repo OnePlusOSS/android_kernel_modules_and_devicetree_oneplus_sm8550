@@ -8,15 +8,22 @@
 #include <linux/slab.h>
 #include <linux/cpu.h>
 #include <trace/hooks/mm.h>
+#ifdef CONFIG_IOMMU_DMA_ALLOC_ADJUST_FLAGS
+#include <trace/hooks/iommu.h>
+#endif
 #include <trace/hooks/vmscan.h>
 #include <linux/genhd.h>
 #include <linux/proc_fs.h>
 #include <linux/version.h>
+#include <linux/cred.h>
 
 #include "../zram_drv.h"
 #include "../zram_drv_internal.h"
 #include "internal.h"
 #include "hybridswap.h"
+
+#include <../../cpu/sched/sched_assist/sa_common.h>
+#include <../../cpu/sched/sched_info/osi_healthinfo.h>
 
 static const char *swapd_text[NR_EVENT_ITEMS] = {
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
@@ -245,6 +252,14 @@ static void mem_cgroup_free_hook(void *data, struct mem_cgroup *memcg)
 	put_memcg_cache(hybs);
 }
 
+#ifdef CONFIG_IOMMU_DMA_ALLOC_ADJUST_FLAGS
+static void adjust_alloc_flags_hook(void *data, unsigned int order, gfp_t *flags)
+{
+	if (order > 3)
+		*flags &= ~__GFP_RECLAIM;
+}
+#endif
+
 void memcg_app_score_update(struct mem_cgroup *target)
 {
 	struct list_head *pos = NULL;
@@ -287,6 +302,15 @@ static void mem_cgroup_css_offline_hook(void *data,
 	css_put(css);
 }
 
+#define CURRENT_IS_BG 0x53
+static void pcplist_add_cma_pages_bypass_hook(void *unused, int migratetype,
+					      bool *res)
+{
+	int cur_uid = current_uid().val;
+	if (migratetype == CURRENT_IS_BG)
+		*res = !(test_task_ux(current) || is_fg(cur_uid));
+}
+
 #define REGISTER_HOOK(name) do {\
 	rc = register_trace_android_vh_##name(name##_hook, NULL);\
 	if (rc) {\
@@ -309,6 +333,9 @@ static int register_all_hooks(void)
 	REGISTER_HOOK(mem_cgroup_alloc);
 	/* mem_cgroup_free_hook */
 	REGISTER_HOOK(mem_cgroup_free);
+#ifdef CONFIG_IOMMU_DMA_ALLOC_ADJUST_FLAGS
+	REGISTER_HOOK(adjust_alloc_flags);
+#endif
 	/* mem_cgroup_css_online_hook */
 	REGISTER_HOOK(mem_cgroup_css_online);
 	/* mem_cgroup_css_offline_hook */
@@ -326,8 +353,11 @@ static int register_all_hooks(void)
 	/* mem_cgroup_id_remove_hook */
 	REGISTER_HOOK(mem_cgroup_id_remove);
 #endif
+	REGISTER_HOOK(pcplist_add_cma_pages_bypass);
 	return 0;
 
+	UNREGISTER_HOOK(pcplist_add_cma_pages_bypass);
+ERROR_OUT(pcplist_add_cma_pages_bypass):
 #ifdef CONFIG_HYBRIDSWAP_CORE
 	UNREGISTER_HOOK(mem_cgroup_id_remove);
 ERROR_OUT(mem_cgroup_id_remove):
@@ -344,6 +374,10 @@ ERROR_OUT(alloc_pages_slowpath):
 ERROR_OUT(mem_cgroup_css_offline):
 	UNREGISTER_HOOK(mem_cgroup_css_online);
 ERROR_OUT(mem_cgroup_css_online):
+#ifdef CONFIG_IOMMU_DMA_ALLOC_ADJUST_FLAGS
+	UNREGISTER_HOOK(adjust_alloc_flags);
+ERROR_OUT(adjust_alloc_flags):
+#endif
 	UNREGISTER_HOOK(mem_cgroup_free);
 ERROR_OUT(mem_cgroup_free):
 	UNREGISTER_HOOK(mem_cgroup_alloc);

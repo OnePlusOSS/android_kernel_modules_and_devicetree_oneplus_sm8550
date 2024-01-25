@@ -58,7 +58,6 @@
 #define OPLUS_VOOC_BCC_UPDATE_TIME	500
 #define OPLUS_VOOC_BCC_UPDATE_INTERVAL	\
 	round_jiffies_relative(msecs_to_jiffies(OPLUS_VOOC_BCC_UPDATE_TIME))
-#define MMI_ENABLE_VOOC_DELAY	msecs_to_jiffies(1000)
 
 struct oplus_vooc_spec_config {
 	int32_t vooc_over_low_temp;
@@ -138,7 +137,6 @@ struct oplus_chg_vooc {
 	struct delayed_work fw_update_work_fix;
 	struct delayed_work bcc_get_max_min_curr;
 	struct delayed_work boot_fastchg_allow_work;
-	struct delayed_work mmi_reset_work;
 
 	struct power_supply *usb_psy;
 	struct power_supply *batt_psy;
@@ -177,8 +175,6 @@ struct oplus_chg_vooc {
 	int curr_level;
 	int temp_over_count;
 	int cool_down;
-	int cycle_status;
-	int pre_sid;
 	bool fw_update_flag;
 	bool vooc_fw_update_newmethod;
 	bool cpa_support;
@@ -2565,7 +2561,6 @@ static void oplus_vooc_fastchg_work(struct work_struct *work)
 			charger_delay_check = true;
 			oplus_vooc_push_break_code(chip,
 						   TRACK_MCU_VOOCPHY_OTHER);
-			oplus_vooc_set_sid(chip, 0);
 			oplus_vooc_fastchg_exit(chip, true);
 			break;
 		}
@@ -2656,6 +2651,7 @@ static void oplus_vooc_fastchg_work(struct work_struct *work)
 		break;
 	case VOOC_NOTIFY_DATA_UNKNOWN:
 		charger_delay_check = true;
+		chip->fastchg_force_exit = true;
 		oplus_set_fast_status(chip, CHARGER_STATUS_FAST_TO_NORMAL);
 		if (chip->support_fake_vooc_check) {
 			vote(chip->vooc_disable_votable, COPYCAT_ADAPTER, true, 1,
@@ -2980,8 +2976,6 @@ static void oplus_vooc_plugin_work(struct work_struct *work)
 		     false);
 		vote(chip->vooc_disable_votable, COPYCAT_ADAPTER, false, 0,
 		     false);
-		cancel_delayed_work(&chip->mmi_reset_work);
-		vote(chip->vooc_disable_votable, MMI_CHG_VOTER, false, 0, false);
 		if (chip->wired_icl_votable)
 			vote(chip->wired_icl_votable, BTB_TEMP_OVER_VOTER,
 			     false, 0, true);
@@ -3017,7 +3011,6 @@ static void oplus_vooc_plugin_work(struct work_struct *work)
 		oplus_vooc_set_awake(chip, false);
 		oplus_vooc_reset_temp_range(chip);
 		chip->check_curr_delay = false;
-		chip->pre_sid = 0;
 
 		/* clean vooc switch status */
 		chip->switch_retry_count = 0;
@@ -3165,26 +3158,6 @@ static void oplus_vooc_comm_subs_callback(struct mms_subscribe *subs,
 			vote(chip->vooc_disable_votable, DEBUG_VOTER,
 			     data.intval, data.intval, false);
 			break;
-		case COMM_ITEM_CHG_CYCLE_STATUS:
-			oplus_mms_get_item_data(chip->comm_topic, id, &data, false);
-			if (!chip->cycle_status && data.intval &&
-			    is_client_vote_enabled(chip->vooc_disable_votable, FASTCHG_DUMMY_VOTER)) {
-				chip->pre_sid = chip->sid;
-				oplus_vooc_set_sid(chip, 0);
-			} else if (chip->cycle_status && !data.intval &&
-				   is_client_vote_enabled(chip->vooc_disable_votable, FASTCHG_DUMMY_VOTER)) {
-				if (chip->pre_sid)
-					oplus_vooc_set_sid(chip, chip->pre_sid);
-			}
-			if (chip->cycle_status && !data.intval) {
-				/* add for lock screen SVOOC UI issue, if SID come too fast,
-				charging status broadcaset and fast charging broadcaset are very close.
-				If lock screen receive fast charging broadcaset first, it will not show SVOOC UI */
-				vote(chip->vooc_disable_votable, MMI_CHG_VOTER, true, 1, false);
-				schedule_delayed_work(&chip->mmi_reset_work, MMI_ENABLE_VOOC_DELAY);
-			}
-			chip->cycle_status = data.intval;
-			break;
 		default:
 			break;
 		}
@@ -3254,20 +3227,6 @@ static void oplus_vooc_subscribe_comm_topic(struct oplus_mms *topic,
 	}
 	vote(chip->vooc_disable_votable, DEBUG_VOTER, data.intval, data.intval,
 	     false);
-	rc = oplus_mms_get_item_data(chip->comm_topic, COMM_ITEM_CHG_CYCLE_STATUS,
-				     &data, true);
-	if (rc < 0) {
-		chg_err("can't get COMM_ITEM_CHG_CYCLE_STATUS, rc=%d", rc);
-		data.intval = 0;
-	}
-	if (data.intval) {
-		oplus_vooc_set_sid(chip, 0);
-		if (is_client_vote_enabled(chip->vooc_disable_votable,
-					   FASTCHG_DUMMY_VOTER))
-			vote(chip->vooc_not_allow_votable, FASTCHG_DUMMY_VOTER,
-			     true, 1, false);
-	}
-	chip->cycle_status = data.intval;
 }
 
 static void oplus_vooc_gauge_update_work(struct work_struct *work)
@@ -4246,15 +4205,6 @@ static void oplus_vooc_fw_update_fix_work(struct work_struct *work)
 	vote(chip->vooc_disable_votable, UPGRADE_FW_VOTER, false, 0, false);
 }
 
-static void oplus_vooc_mmi_reset_work(struct work_struct *work)
-{
-	struct delayed_work *dwork = to_delayed_work(work);
-	struct oplus_chg_vooc *chip =
-		container_of(dwork, struct oplus_chg_vooc, mmi_reset_work);
-
-	vote(chip->vooc_disable_votable, MMI_CHG_VOTER, false, 0, false);
-}
-
 void oplus_vooc_fw_update_work_init(struct oplus_chg_vooc *chip)
 {
 	vote(chip->vooc_disable_votable, UPGRADE_FW_VOTER, true, 1, false);
@@ -5119,7 +5069,6 @@ static int oplus_vooc_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&chip->bcc_get_max_min_curr,
 			  oplus_vooc_bcc_get_curr_func);
 	INIT_DELAYED_WORK(&chip->boot_fastchg_allow_work, oplus_boot_fastchg_allow_work);
-	INIT_DELAYED_WORK(&chip->mmi_reset_work, oplus_vooc_mmi_reset_work);
 
 	oplus_vooc_init_watchdog_timer(chip);
 	oplus_vooc_awake_init(chip);

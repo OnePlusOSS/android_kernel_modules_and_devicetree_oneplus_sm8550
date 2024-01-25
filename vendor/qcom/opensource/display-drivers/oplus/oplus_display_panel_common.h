@@ -29,6 +29,8 @@
 
 #define to_dsi_display(x) container_of(x, struct dsi_display, host)
 
+extern u32 oplus_last_backlight;
+
 struct panel_id {
 	uint32_t DA;
 	uint32_t DB;
@@ -138,5 +140,7 @@ int oplus_sde_early_wakeup(struct dsi_panel *panel);
 void oplus_need_to_sync_te(struct dsi_panel *panel);
 void oplus_save_te_timestamp(struct sde_connector *c_conn, ktime_t timestamp);
 int oplus_display_panel_set_demua(void);
+int oplus_display_panel_set_hbm_max(void *data);
+int oplus_display_panel_get_hbm_max(void *data);
 #endif /* _OPLUS_DISPLAY_PANEL_COMMON_H_ */
 

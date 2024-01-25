@@ -8,10 +8,9 @@
 ../vendor/oplus/kernel/network/oplus_score
 ../vendor/oplus/kernel/network/oplus_apps_monitor
 ../vendor/oplus/kernel/network/oplus_qr_scan
-../vendor/oplus/kernel/network/sk_pid_hook
+../vendor/oplus/kernel/network/linkpower_module
 ../vendor/oplus/kernel/network/oplus_stats_calc
 ../vendor/oplus/kernel/network/data_module
-../vendor/oplus/kernel/network/qrtr_hook
 ../vendor/oplus/kernel/cpu/game_opt
 ../vendor/oplus/kernel/mm/memleak_detect
 ../vendor/oplus/kernel/network/oplus_game_first

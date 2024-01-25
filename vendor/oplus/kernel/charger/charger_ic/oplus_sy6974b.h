@@ -252,6 +252,7 @@ extern struct charger_consumer *charger_manager_get_by_name(
 		struct device *dev,	const char *name);
 extern struct oplus_chg_chip *g_oplus_chip;
 extern void Charger_Detect_Release(void);
+extern void Charger_Detect_Init(void);
 extern int get_rtc_spare_oplus_fg_value(void);
 extern int set_rtc_spare_oplus_fg_value(int value);
 extern void oplus_mt_usb_connect(void);
@@ -273,6 +274,7 @@ extern void oplus_wake_up_usbtemp_thread(void);
 extern int get_vbus_voltage(int *val);
 extern bool oplus_pd_without_usb(void);
 extern int oplus_force_get_subboard_temp(void);
+extern bool is_usb_rdy(void);
 #else
 extern bool oplus_get_otg_online_status_default(void);
 extern bool oplus_pd_without_usb(void);

@@ -7862,7 +7862,7 @@ QDF_STATUS csr_roam_issue_stop_bss_cmd(struct mac_context *mac,
 	sme_debug("Stop BSS vdev_id: %d bss_type %d", vdev_id, bss_type);
 	stop_bss_req = qdf_mem_malloc(sizeof(*stop_bss_req));
 	if (!stop_bss_req)
-		return QDF_STATUS_E_FAILURE;
+		goto error;
 
 	stop_bss_req->vdev_id = vdev_id;
 	stop_bss_req->cmd_id = csr_get_monotonous_number(mac);

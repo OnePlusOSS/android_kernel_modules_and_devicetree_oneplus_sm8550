@@ -19,6 +19,7 @@
 #include "mipc_msg_tlv_api.h"
 #include "mipc_msg_tlv_const.h"
 #include "heartbeat_proxy_mtk.h"
+#include "../../linkpower_netlink/linkpower_netlink.h"
 
 /* Modem */
 #define MAX_HBA_LIST_COUNT 5
@@ -28,33 +29,8 @@
 #define MIPC_DEF_VAL 0
 
 /* Netlink */
-#define HBA_NETLINK_MSG_MAX (__HBA_NETLINK_MSG_MAX - 1)
-#define HBA_NETLINK_CMD_MAX (__HBA_NETLINK_CMD_MAX - 1)
-#define HBA_FAMILY_NAME "heartbeat"
-#define HBA_FAMILY_VERSION 1
-#define NLA_DATA(nla) ((char *)((char *)(nla) + NLA_HDRLEN))
 #define HBA_NETLINK_SKB_QUEUE_LEN 5
-
-static int hba_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info);
-static const struct genl_ops hba_genl_ops[] = {
-	{
-		.cmd = HBA_NETLINK_CMD_DOWNLINK,
-		.flags = 0,
-		.doit = hba_netlink_nlmsg_handle,
-		.dumpit = NULL,
-	},
-};
-
-static struct genl_family hba_genl_family = {
-	.id = 0,
-	.hdrsize = 0,
-	.name = HBA_FAMILY_NAME,
-	.version = HBA_FAMILY_VERSION,
-	.maxattr = HBA_NETLINK_MSG_MAX,
-	.ops = hba_genl_ops,
-	.n_ops = ARRAY_SIZE(hba_genl_ops),
-	.parallel_ops = true,
-};
+extern int netlink_send_to_user(int msg_type, char *data, int data_len);
 
 static unsigned int hba_input_hook_v4(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 static struct nf_hook_ops hba_input_v4_ops[] __read_mostly = {
@@ -117,7 +93,6 @@ static struct sk_buff *hba_netlink_skb_queue[HBA_NETLINK_SKB_QUEUE_LEN];
 static struct task_struct *ccci_rx_task;
 static int hba_ccci_ipc_port_s = -1;
 static bool hba_mipc_register_ind = false;
-static int hba_netlink_pid = 0;
 static struct hba_list_st hba_list;
 static DEFINE_SPINLOCK(hba_list_lock);
 static DEFINE_SPINLOCK(netlink_list_lock);
@@ -467,99 +442,6 @@ error_with_free:
 }
 
 /**
- * @brief      Prepare netlink packets to be delivered to user space.
- *
- * @param[in]  cmd   The command
- * @param[in]  size  The size
- * @param[in]  pid   The pid
- * @param      skbp  The skbp
- *
- * @return     0 if successful, negative otherwise.
- */
-static int genl_msg_prepare_usr_msg(u8 cmd, size_t size, pid_t pid, struct sk_buff **skbp)
-{
-	struct sk_buff *skb = NULL;
-	/* Create a new netlink msg */
-	skb = genlmsg_new(size, GFP_ATOMIC);
-	if (skb == NULL) {
-		return -ENOMEM;
-	}
-	/* Add a new netlink message to an skb */
-	genlmsg_put(skb, pid, 0, &hba_genl_family, 0, cmd);
-	*skbp = skb;
-
-	return 0;
-}
-
-/**
- * @brief      Make netlink packets to be delivered to user space.
- *
- * @param      skb   The socket buffer
- * @param[in]  type  The type
- * @param      data  The data
- * @param[in]  len   The length
- *
- * @return     0 if successful, negative otherwise.
- */
-static int genl_msg_mk_usr_msg(struct sk_buff *skb, int type, void *data, int len)
-{
-	int ret = 0;
-	/* add a netlink attribute to a socket buffer */
-	if ((ret = nla_put(skb, type, len, data)) != 0) {
-		return ret;
-	}
-
-	return 0;
-}
-
-/**
- * @brief      Send netlink packet to user space.
- *
- * @param[in]  msg_type  The message type
- * @param      data      The data
- * @param[in]  data_len  The data length
- *
- * @return     0 if successful, negative otherwise.
- */
-static int hba_netlink_send_to_user(int msg_type, char *data, int data_len)
-{
-	int ret = 0;
-	void *head;
-	struct sk_buff *skbuff;
-	size_t size;
-
-	if (!hba_netlink_pid) {
-		printk("[heartbeat_proxy_mtk] hba_netlink_send_to_user failed, hba_netlink_pid=0.\n");
-		return -EINVAL;
-	}
-
-	size = nla_total_size(data_len);
-	ret = genl_msg_prepare_usr_msg(HBA_NETLINK_CMD_UPLINK, size, hba_netlink_pid, &skbuff);
-	if (ret < 0) {
-		printk("[heartbeat_proxy_mtk] hba_netlink_send_to_user failed, prepare_usr_msg ret=%d.\n", ret);
-		return ret;
-	}
-
-	ret = genl_msg_mk_usr_msg(skbuff, msg_type, data, data_len);
-	if (ret < 0) {
-		printk("[heartbeat_proxy_mtk] hba_netlink_send_to_user failed, mk_usr_msg ret=%d.\n", ret);
-		kfree_skb(skbuff);
-		return ret;
-	}
-
-	head = genlmsg_data(nlmsg_data(nlmsg_hdr(skbuff)));
-	genlmsg_end(skbuff, head);
-
-	ret = genlmsg_unicast(&init_net, skbuff, hba_netlink_pid);
-	if (ret < 0) {
-		printk("[heartbeat_proxy_mtk] hba_netlink_send_to_user failed, genlmsg_unicast ret=%d.\n", ret);
-		return ret;
-	}
-
-	return 0;
-}
-
-/**
  * @brief      Send a message to user space heartbeat program.
  *
  * @param[in]  netlink_id  The netlink identifier
@@ -587,7 +469,7 @@ static int send_msg_to_hba_user(int netlink_id, const char *proxy_key, hba_resul
 		response_msg->statistics.hitchhike_count = statistics->hitchhike_count;
 	}
 
-	ret = hba_netlink_send_to_user(netlink_id, (char *)msg_buf, sizeof(msg_buf));
+	ret = netlink_send_to_user(netlink_id, (char *)msg_buf, sizeof(msg_buf));
 	if (ret < 0) {
 		printk("[heartbeat_proxy_mtk] send_msg_to_hba_user failed, ret=%d.\n", ret);
 	}
@@ -838,7 +720,7 @@ static int hba_mipc_ctrl_response(mipc_msg_t *msg_ptr)
 			}
 			else {
 				printk("[heartbeat_proxy_mtk] hba_mipc_ctrl_response proxy_key=%s failed, mode=%d ret=%d.",
-				       ctrl_cnf.proxy_key, ctrl_cnf.result);
+				       ctrl_cnf.proxy_key, ctrl_cnf.mode, ctrl_cnf.result);
 				err = ctrl_cnf.result;
 			}
 			goto notify_user_with_unlock;
@@ -1705,20 +1587,6 @@ static unsigned int hba_input_hook_v6(void *priv, struct sk_buff *skb, const str
 }
 
 /**
- * @brief      Sets the netlink pid.
- *
- * @param      nlhdr  The nlhdr
- *
- * @return     0 if successful, negative otherwise.
- */
-static int set_android_pid(struct nlmsghdr *nlhdr)
-{
-	hba_netlink_pid = nlhdr->nlmsg_pid;
-
-	return 0;
-}
-
-/**
  * @brief      Read the state of the sock to fill the TCP sequence number message.
  *
  * @param[in]  sk        The sock
@@ -1748,7 +1616,7 @@ static int fill_seq_sync_msg(const struct sock *sk, hba_seq_sync_msg_struct *seq
 		return -ENODEV;
 	}
 
-	printk("[heartbeat_proxy_mtk] fill_seq_sync_msg lookup sk=%d successfully!\n", sk);
+	printk("[heartbeat_proxy_mtk] fill_seq_sync_msg lookup successfully!\n");
 
 	if (sk->sk_write_queue.qlen != 0) {
 		printk("[heartbeat_proxy_mtk] fill_seq_sync_msg failed, sk write queue=%d exceed 0.\n",
@@ -1879,14 +1747,13 @@ static int request_hba_establish(struct nlattr *nla)
 	spin_lock_bh(&hba_list_lock);
 	list_for_each_entry_safe(hba_node_entry, n, &hba_list.head, list_node) {
 		if (sk == hba_node_entry->hba.sk) {
-			printk("[heartbeat_proxy_mtk] request_hba_establish failed, repeated sk!\n",
-			       netlink_msg->proxy_key);
+			printk("[heartbeat_proxy_mtk] request_hba_establish failed, repeated sk!\n");
 			err = HBA_INT_ERR_PROXY_ALREADY_EXIST;
 			goto error_with_unlock;
 		}
 	}
 	if (hba_list.count > MAX_HBA_LIST_COUNT) {
-		printk("[heartbeat_proxy_mtk] request_hba_establish failed, heartbeat list exceed threshold.\n", ret);
+		printk("[heartbeat_proxy_mtk] request_hba_establish failed, heartbeat list exceed threshold.\n");
 		err = HBA_INT_ERR_NUM_ALREADY_MAX;
 		goto error_with_unlock;
 	}
@@ -2310,7 +2177,7 @@ send_md_with_unlock:
 /**
  * @brief      Reset heartbeat netlink skb queue.
  */
-static void reset_hba_netlink_skb_queue()
+static void reset_hba_netlink_skb_queue(void)
 {
 	int i = 0;
 	spin_lock_bh(&netlink_list_lock);
@@ -2357,7 +2224,6 @@ static void hba_netlink_nlmsg_handle_asyn(struct work_struct *work)
 		printk("[heartbeat_proxy_mtk] hba_netlink_nlmsg_handle_asyn index=%d type=%d.\n", i, nla->nla_type);
 		switch (nla->nla_type) {
 		case NETLINK_REQUEST_HBA_ESTABLISH:
-			set_android_pid(nlhdr);
 			request_hba_establish(nla);
 			break;
 		case NETLINK_REQUEST_HBA_PAUSE:
@@ -2392,7 +2258,7 @@ static void hba_netlink_nlmsg_handle_asyn(struct work_struct *work)
  *
  * @return     0 if successful, negative otherwise.
  */
-static int hba_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info)
+int hba_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info)
 {
 	int i = 0;
 	bool overflow = true;
@@ -2422,44 +2288,11 @@ static int hba_netlink_nlmsg_handle(struct sk_buff *skb, struct genl_info *info)
 }
 
 /**
- * @brief      Initialize heartbeat netlink program.
- *
- * @return     0 if successful, negative otherwise.
- */
-static int hba_netlink_init(void)
-{
-	int ret = 0;
-
-	ret = genl_register_family(&hba_genl_family);
-	if (ret) {
-		printk("[heartbeat_proxy_mtk] genl_register_family failed, ret=%d.\n", ret);
-		return ret;
-	}
-	else {
-		printk("[heartbeat_proxy_mtk] genl_register_family complete, id=%d.\n", hba_genl_family.id);
-	}
-
-	return 0;
-}
-
-/**
- * @brief      Uninstall heartbeat netlink program.
- *
- * @return     0 if successful, negative otherwise.
- */
-static int hba_netlink_exit(void)
-{
-	genl_unregister_family(&hba_genl_family);
-
-	return 0;
-}
-
-/**
  * @brief      Initialize MediaTek heartbeat proxy driver.
  *
  * @return     0 if successful, negative otherwise.
  */
-static int __init hba_proxy_mtk_init(void)
+int hba_proxy_mtk_init(void)
 {
 	int ret = 0;
 
@@ -2472,18 +2305,10 @@ static int __init hba_proxy_mtk_init(void)
 		return ret;
 	}
 
-	ret = hba_netlink_init();
-	if (ret < 0) {
-		printk("[heartbeat_proxy_mtk] module failed to init netlink.\n");
-		hba_ccci_ipc_close_port();
-		return ret;
-	}
-
 	ret = hba_netfilter_v4_init();
 	if (ret < 0) {
 		printk("[heartbeat_proxy_mtk] module failed to init netfilter_v4.\n");
 		hba_ccci_ipc_close_port();
-		hba_netlink_exit();
 		return ret;
 	}
 
@@ -2491,7 +2316,6 @@ static int __init hba_proxy_mtk_init(void)
 	if (ret < 0) {
 		printk("[heartbeat_proxy_mtk] module failed to init netfilter_v6.\n");
 		hba_ccci_ipc_close_port();
-		hba_netlink_exit();
 		nf_unregister_net_hooks(&init_net, hba_input_v4_ops, ARRAY_SIZE(hba_input_v4_ops));
 		return ret;
 	}
@@ -2504,19 +2328,10 @@ static int __init hba_proxy_mtk_init(void)
 /**
  * @brief      Uninstall MediaTek heartbeat proxy driver.
  */
-static void __exit hba_proxy_mtk_fini(void)
+void hba_proxy_mtk_fini(void)
 {
 	nf_unregister_net_hooks(&init_net, hba_input_v4_ops, ARRAY_SIZE(hba_input_v4_ops));
 	nf_unregister_net_hooks(&init_net, hba_input_v6_ops, ARRAY_SIZE(hba_input_v6_ops));
-	hba_netlink_exit();
 	hba_ccci_ipc_close_port();
 	reset_hba_netlink_skb_queue();
 }
-
-module_init(hba_proxy_mtk_init);
-module_exit(hba_proxy_mtk_fini);
-
-MODULE_LICENSE("GPL v2");
-MODULE_AUTHOR("Aska");
-MODULE_VERSION("1:1.0");
-MODULE_DESCRIPTION("OPLUS Modem heartbeat proxy driver on the MediaTek platform");

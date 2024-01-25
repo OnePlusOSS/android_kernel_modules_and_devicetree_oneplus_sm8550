@@ -936,7 +936,7 @@ bool is_fg(int uid)
 		ret = true;
 	return ret;
 }
-
+EXPORT_SYMBOL_GPL(is_fg);
 
 inline int current_is_fg(void)
 {

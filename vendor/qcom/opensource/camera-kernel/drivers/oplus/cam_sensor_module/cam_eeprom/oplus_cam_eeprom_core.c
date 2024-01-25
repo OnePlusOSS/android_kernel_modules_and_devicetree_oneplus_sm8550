@@ -507,6 +507,7 @@ int32_t EEPROM_Sem1217sWrite(struct cam_eeprom_ctrl_t *e_ctrl,
 		i2c_reg_settings.reg_setting = &i2c_reg_array;
 		i2c_reg_settings.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
 		i2c_reg_settings.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+		i2c_reg_settings.delay = 0x00;
 		rc = camera_io_dev_write(&e_ctrl->io_master_info, &i2c_reg_settings);
 		if (rc) {
 			CAM_ERR(CAM_EEPROM, "write ois off failed rc %d",rc);

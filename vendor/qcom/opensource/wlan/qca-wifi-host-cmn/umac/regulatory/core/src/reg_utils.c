@@ -422,7 +422,12 @@ reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
 
 	if (!qdf_mem_cmp(ap_ctry, sta_ctry, REG_ALPHA2_LEN)) {
 		*ctry_code_match = true;
-		if (ap_pwr_type == REG_VERY_LOW_POWER_AP) {
+		if (ap_pwr_type == REG_STANDARD_POWER_AP) {
+			if (!pdev_priv_obj->reg_rules.num_of_6g_client_reg_rules[ap_pwr_type]) {
+                                reg_err("SP not supported, can't connect");
+                                return QDF_STATUS_E_NOSUPPORT;
+                        }
+                } else if (ap_pwr_type == REG_VERY_LOW_POWER_AP) {
 			if (!pdev_priv_obj->reg_rules.num_of_6g_client_reg_rules[ap_pwr_type]) {
 				reg_err("VLP not supported, can't connect");
 				return QDF_STATUS_E_NOSUPPORT;

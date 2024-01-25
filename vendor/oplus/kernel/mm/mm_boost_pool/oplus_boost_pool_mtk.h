@@ -50,7 +50,7 @@ struct boost_pool {
 	wait_queue_head_t waitq;
 	struct task_struct *prefill_task;
 	struct mutex prefill_lock;
-	int min, low, alloc;
+	int min, isolate, alloc;
 	struct list_head list;
 	struct boost_page_pool *pools[0];
 };
