@@ -1,0 +1,22 @@
+$(warning "AUDIO_ROOT value is $(AUDIO_ROOT)")
+
+ifneq ($(findstring audio-kernel,$(AUDIO_ROOT)),)
+#Qcom Platform
+obj-y += qcom/ codecs/
+obj-$(CONFIG_ARCH_QCOM) += codecs/tfa98xx-v6/
+#add for sipa
+obj-y += codecs/sipa/
+obj-y += qcom/oplus_speaker_manager/
+
+else
+#MTK Platform
+$(warning "Build audio driver for mtk plaform")
+obj-$(CONFIG_OPLUS_MTK_AUDIO_EXT) += mtk/
+obj-$(CONFIG_SND_SOC_TFA9873) += codecs/tfa98xx/
+obj-$(CONFIG_SND_SOC_TFA9874) += codecs/tfa98xx/
+obj-$(CONFIG_SND_SOC_FSA) += codecs/fsa44xx/
+obj-$(CONFIG_SND_SOC_TFA_HAPTIC) += codecs/tfa_haptic/
+obj-$(CONFIG_SND_SOC_SIA81XX) += codecs/sia81xx/
+obj-$(CONFIG_SND_SOC_OPLUS_PA_MANAGER) += mtk/oplus_speaker_manager/
+obj-$(CONFIG_SND_SOC_OPLUS_TYPEC_SWITCH) += codecs/oplus_typec_switch/
+endif

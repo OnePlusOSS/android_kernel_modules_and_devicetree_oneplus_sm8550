@@ -1,0 +1,5 @@
+config OPLUS_FEATURE_FREQQOS_MONITOR
+	tristate "oplus_freqqos_monitor"
+	default n
+	help
+	  detection for cpufreq qos

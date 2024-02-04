@@ -1,0 +1,6 @@
+config OPLUS_FEATURE_DYNAMIC_READAHEAD
+	depends on OPLUS_FEATURE_SCHED_ASSIST && OPLUS_FEATURE_CPU_JANKINFO
+	tristate "dynamic pagecache readahead"
+	default n
+	help
+	  This driver used for dynamically tuning filemap readahead for performance.

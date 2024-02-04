@@ -1,0 +1,180 @@
+/* Copyright (c) 2020, Pixelworks
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&tlmm {
+	pxlw_iris_gpio: pxlw_iris_gpio {
+		iris_reset_active: iris_reset_active {
+			mux {
+				pins = "gpio109";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio109";
+				drive-strength = <8>;  /* 8 mA */
+				bias-disable;
+			};
+		};
+
+		iris_reset_suspend: iris_reset_suspend {
+			mux {
+				pins = "gpio109";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio109";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+
+		iris_wakeup_active: iris_wakeup_active {
+			mux {
+				pins = "gpio129";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio129";
+				drive-strength = <8>;
+				bias-disable;
+				output-low;
+			};
+		};
+
+		iris_wakeup_suspend: iris_wakeup_suspend {
+			mux {
+				pins = "gpio129";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio129";
+				drive-strength = <2>;
+				bias-pull-down;
+				input-enable;
+			};
+		};
+
+		iris_abyp_ready_active: iris_abyp_ready_active {
+			mux {
+				pins = "gpio181";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio181";
+				drive-strength = <8>;
+				bias-disable;
+			};
+		};
+
+		iris_abyp_ready_suspend: iris_abyp_ready_suspend {
+			mux {
+				pins = "gpio181";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio181";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+
+		iris_vdd18_active: iris_vdd18_active {
+			mux {
+				pins = "gpio92";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio92";
+				drive-strength = <8>;
+				bias-pull-up;
+			};
+		};
+
+		iris_vdd18_suspend: iris_vdd18_suspend {
+			mux {
+				pins = "gpio92";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio92";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+
+		iris_vdd09_active: iris_vdd09_active {
+			mux {
+				pins = "gpio105";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio105";
+				drive-strength = <8>;
+				bias-pull-up;
+			};
+		};
+
+		iris_vdd09_suspend: iris_vdd09_suspend {
+			mux {
+				pins = "gpio105";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio105";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+	};
+};
+
+&soc {
+	pxlw,iris {
+		compatible = "pxlw,iris";
+		index = <0>;
+
+		pinctrl-names = "iris_active", "iris_suspend";
+		pinctrl-0 = <&iris_reset_active &iris_wakeup_active &iris_abyp_ready_active>;
+		pinctrl-1 = <&iris_reset_suspend &iris_wakeup_suspend &iris_abyp_ready_suspend>;
+
+		qcom,iris-reset-gpio = <&tlmm 109 0>;
+		qcom,iris-wakeup-gpio = <&tlmm 129 0>;
+		qcom,iris-abyp-ready-gpio = <&tlmm 181 0>;
+		qcom,iris-vdd-gpio = <&tlmm 92 0>;
+		qcom,iris-vdd-0p9v-gpio = <&tlmm 105 0>;
+	};
+};
+
+&qupv3_se10_i2c {
+	status = "ok";
+	qcom,clk-freq-out = <400000>;
+	pixelworks@26 {  //i2c: 22, i3c: 26
+		status = "ok";
+		compatible = "pixelworks,iris";
+		reg = <0x26>;
+	};
+
+	pixelworks@22 {  //i2c: 22, i3c: 26
+		status = "ok";
+		compatible = "pixelworks,iris-i2c";
+		reg = <0x22>;
+	};
+};

@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2020-2030 Oplus. All rights reserved.
+
+# Qcom platform feature
+
+# MTK platform feature
+
+# common feature
+source "drivers/soc/oplus/dft/common/feedback/Kconfig"
+source "drivers/soc/oplus/dft/common/olc/Kconfig"

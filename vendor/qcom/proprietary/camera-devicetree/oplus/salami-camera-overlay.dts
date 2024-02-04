@@ -1,0 +1,17 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/qcom,gcc-kalama.h>
+#include <dt-bindings/clock/qcom,camcc-kalama.h>
+#include <dt-bindings/interconnect/qcom,kalama.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/regulator/qcom,rpmh-regulator-levels.h>
+
+#include "salami_camera_overlay_common.dtsi"
+/ {
+	model = "Qualcomm Technologies, Inc. Kalama salami";
+	compatible = "qcom,kalama-mtp", "qcom,kalama", "qcom,mtp";
+	qcom,msm-id = <519 0x10000>, <536 0x10000>, <519 0x20000>, <536 0x20000>;
+	qcom,board-id = <0x10008 0>;
+	oplus,project-id = <22811 22861 22862 22863 22864>;
+};

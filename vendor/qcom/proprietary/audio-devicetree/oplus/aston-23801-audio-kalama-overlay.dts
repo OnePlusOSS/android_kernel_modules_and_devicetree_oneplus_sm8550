@@ -1,0 +1,12 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../kalama-audio-mtp.dts"
+#include "kalama-audio-overlay-common.dtsi"
+#include "aston-23801-audio-kalama-overlay.dtsi"
+
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,aston";
+
+    oplus,project-id = <23801 23861>;
+};

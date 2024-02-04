@@ -1,0 +1,94 @@
+#ifndef __DIO_4480_H__
+#define __DIO_4480_H__
+//-----------------------------------------------------------------------------
+/* registers definitions */
+#define DIO4483_REG_DEVICE_ID												0x00
+#define DIO4480_REG_SWITCH_SETTINGS											0x04
+#define DIO4480_REG_SWITCH_SELECT											0x05
+#define DIO4480_REG_SWITCH_STATUS0											0x06
+#define DIO4480_REG_SWITCH_STATUS1											0x07
+#define DIO4480_REG_SLOW_L													0x08
+#define DIO4480_REG_SLOW_R													0x09
+#define DIO4480_REG_SLOW_MIC												0x0A
+#define DIO4480_REG_SLOW_SENSE												0x0B
+#define DIO4480_REG_SLOW_GND												0x0C
+#define DIO4480_REG_DELAY_L_R												0x0D
+#define DIO4480_REG_DELAY_L_MIC												0x0E
+#define DIO4480_REG_DELAY_L_SENSE											0x0F
+#define DIO4480_REG_DELAY_L_AGND											0x10
+#define DIO4480_REG_FUN_EN													0x12
+#define DIO4480_REG_JACK_STATUS												0x17
+#define DIO4480_REG_DETECTION_FLAG											0x18
+#define DIO4480_REG_RESET													0x1E
+#define DIO4480_REG_MASK													0xFF
+
+/* bits definitions */
+/* DEVICE_ID */
+#define DIO4480_DEVICE_ID_VENDOR_ID											(6,7)
+#define DIO4480_DEVICE_ID_VERSION_ID										(3,5)
+#define DIO4480_DEVICE_ID_REVISION_ID										(0,2)
+
+/* SWITCH SETTINGS */
+#define DIO4480_SWITCH_SETTINGS_DEVICE_ENABLE								(7)
+#define DIO4480_SWITCH_SETTINGS_SBU1_H_TO_SBUx								(6)
+#define DIO4480_SWITCH_SETTINGS_SBU2_H_TO_SBUx								(5)
+#define DIO4480_SWITCH_SETTINGS_DN_L_TO_DN_or_L								(4)
+#define DIO4480_SWITCH_SETTINGS_DN_R_TO_DP_or_R								(3)
+#define DIO4480_SWITCH_SETTINGS_SENSE_TO_GSBUx								(2)
+#define DIO4480_SWITCH_SETTINGS_MIC_TO_SBUx									(1)
+#define DIO4480_SWITCH_SETTINGS_AGND_TO_SBUx								(0)
+
+/* SWITCH SELECT */
+#define DIO4480_SWITCH_SELECT_USB2_SWITCH									(7)
+#define DIO4480_SWITCH_SELECT_SBU1_SWITCH									(6)
+#define DIO4480_SWITCH_SELECT_SBU2_SWITCH									(5)
+#define DIO4480_SWITCH_SELECT_DN_L_TO_DN_or_L								(4)
+#define DIO4480_SWITCH_SELECT_DN_R_TO_DP_or_R								(3)
+#define DIO4480_SWITCH_SELECT_SENSE_TO_GSBUx								(2)
+#define DIO4480_SWITCH_SELECT_MIC_TO_SBUx									(1)
+#define DIO4480_SWITCH_SELECT_AGND_TO_SBUx									(0)
+
+/* SWITCH STATUS 0 */
+#define DIO4480_SWITCH_STATUS0_SENSE_SWITCH_STATUS							(4,5)
+#define DIO4480_SWITCH_STATUS0_DP_R_SWITCH_STATUS							(2,3)
+#define DIO4480_SWITCH_STATUS0_DN_L_SWITCH_STATUS							(0,1)
+
+/* SWITCH STATUS 1 */
+#define DIO4480_SWITCH_STATUS1_SBU2_SWITCH_STATUS							(3,5)
+#define DIO4480_SWITCH_STATUS1_SBU1_SWITCH_STATUS							(0,2)
+#define DIO4480_SWITCH_STATUS1_SBU2_OPEN									(000B)
+#define DIO4480_SWITCH_STATUS1_SBU2_TO_MIC									(001B)
+#define DIO4480_SWITCH_STATUS1_SBU2_TO_AGND									(010B)
+#define DIO4480_SWITCH_STATUS1_SBU2_TO_SBU1_H								(011B)
+#define DIO4480_SWITCH_STATUS1_SBU2_TO_SBU2_H								(100B)
+#define DIO4480_SWITCH_STATUS1_SBU2_TO_BOTH_SBU1_H_AND_SBU2_H				(101B)
+#define DIO4480_SWITCH_STATUS1_SBU1_OPEN									(000B)
+#define DIO4480_SWITCH_STATUS1_SBU1_TO_MIC									(001B)
+#define DIO4480_SWITCH_STATUS1_SBU1_TO_AGND									(010B)
+#define DIO4480_SWITCH_STATUS1_SBU1_TO_SBU1_H								(011B)
+#define DIO4480_SWITCH_STATUS1_SBU1_TO_SBU2_H								(100B)
+#define DIO4480_SWITCH_STATUS1_SBU1_TO_BOTH_SBU1_H_AND_SBU2_H				(101B)
+
+/* SWITCH Function */
+#define DIO4480_FUNCTION_OVP_THRESHOLD_VOLTAGE								(7,6)
+#define DIO4480_FUNCTION_SLOW_TURN_ON										(3)
+#define DIO4480_FUNCTION_MIC_AUTO_TURN_OUT									(2)
+#define DIO4480_AUDIO_JACK_STATUS_3POLE										(1)
+#define DIO4480_FUNCTION_AUDIO_JACK_DECTION									(0)
+
+/* Audio Jack Status */
+#define DIO4480_AUDIO_JACK_STATUS_4POLE_SBU2_TO_MIC							(3)
+#define DIO4480_AUDIO_JACK_STATUS_4POLE_SBU1_TO_MIC							(2)
+#define DIO4480_AUDIO_JACK_STATUS_3POLE										(1)
+#define DIO4480_AUDIO_JACK_STATUS_NO_AUDIO_ACCESSORY						(0)
+
+/* Moisture Detection/Audio Jack Detection/Watchdog Interrupt Flag */
+#define DIO4480_DETECTION_FLAG_WATCHDOG_TIMEOUT_OCCURRED					(3)
+#define DIO4480_DETECTION_FLAG_AUDIO_JACK_DETECTION_CONFIGURATION_OCCURRED	(2)
+#define DIO4480_DETECTION_FLAG_MOISTURE_OCCURRED							(1)
+#define DIO4480_DETECTION_FLAG_MOISTURE_DETECTION							(0)
+
+/* Reset */
+#define DIO4480_I2C_RESET													(0)
+//-----------------------------------------------------------------------------
+#endif

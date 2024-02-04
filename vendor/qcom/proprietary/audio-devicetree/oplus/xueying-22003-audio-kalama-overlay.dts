@@ -1,0 +1,12 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../kalama-audio-mtp.dts"
+#include "kalama-audio-overlay-common.dtsi"
+#include "xueying-22003-audio-kalama-overlay.dtsi"
+
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,xueying";
+
+    oplus,project-id = <22003 22203 22899>;
+};

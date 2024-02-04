@@ -1,0 +1,47 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../qcom/kalama-mtp-overlay.dts"
+#include "kalama_overlay_common.dtsi"
+#include "salami_overlay_common_evb.dtsi"
+#include "oplus_chg/oplus-chg-22811.dtsi"
+#include "sensor/salami-sensor-22811.dtsi"
+#include "nfc/salami_nfc_es1.dtsi"
+
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,salami";
+
+    oplus,project-id = <22811 22861 22862 22863 22864>;
+    oplus,hw-id = <OPLUS_EVB1 OPLUS_EVB2 OPLUS_EVB3 OPLUS_EVB4 OPLUS_EVB5 OPLUS_EVB6 OPLUS_EVB7>;
+};
+
+&tlmm {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  rf_cable0_active: rf_cable0_active {
+    mux {
+      pins = "gpio51";
+      function = "gpio";
+    };
+    config {
+      pins = "gpio51";
+      drive-strength = <2>;
+      input-enable;
+      bias-pull-up;
+    };
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+};
+
+&soc {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  oplus_rf_cable {
+    compatible = "oplus,rf_cable";
+    interrupt-parent = <&tlmm>;
+    rf_cable_support_num = <1>;
+    rf,cable0-gpio = <&tlmm 51 0>;
+    rf,cable-support-timer = <0>;
+    pinctrl-names = "rf_cable_active";
+    pinctrl-0 = <&rf_cable0_active>;
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+};
