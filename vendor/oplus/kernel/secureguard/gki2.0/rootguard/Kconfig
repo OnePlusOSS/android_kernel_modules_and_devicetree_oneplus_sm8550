@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-only
+config OPLUS_KERNEL_SECURE_GUARD
+    tristate "oplus kernel secure guard"
+    help
+        This is the master switch of OPLUS_KERNEL_HARDENING, say N will turn off the compilation
+        function of this repository.
+
+config OPLUS_FEATURE_SECURE_ROOTGUARD
+    tristate "oplus kernel root_check"
+    help
+        define this config to enable root_check of kernel on tracepoint hook. Say n will disable
+        the function,
+
+config OPLUS_FEATURE_SECURE_EXECGUARD
+    tristate "oplus kernel exec guard"
+    help
+        define this config to enable kernel execve check on tracepoint hook. Say n will disable
+        the function,
+
+config OPLUS_FEATURE_SECURE_CAPGUARD
+    tristate "oplus kernel cap guard"
+    help
+        define this config to enable capa check of kernel on tracepoint hook. Say n will disable
+        the function,
+
+config OPLUS_FEATURE_SECURE_SRGUARD
+    tristate "oplus kernel sepolicy reload guard"
+    help
+        define this config to enable sepolicy reload  check of kernel on kretprobe. Say n will
+        disable the function,
+        
+config OPLUS_FEATURE_SECURE_SOCKETGUARD
+    tristate "oplus kernel socket guard"
+    help
+        define this config to enable heap-spary  check of kernel on kretprobe. Say n will disable
+        the function,

@@ -1,0 +1,81 @@
+/* Copyright (c) 2020, Pixelworks
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "pxlw-iris7-cfg-dsi-panel-AA536-P-3-A0001-dsc-cmd.dtsi"
+#include "dsi-panel-AA536-P-3-A0001-dsc-cmd-2nd.dtsi"
+
+&soc {
+	dsi_iris_pwr_supply: dsi_iris_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "px_v18r";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <62000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+
+	/* avoid failed to parse power config */
+	dsi_panel_pwr_sec_supply: dsi_panel_pwr_sec_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "dummy";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <60700>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <0>;
+		};
+	};
+};
+
+/* select panel */
+&mdss_mdp {
+	pxlw,dsi-display-primary-active = "qcom,mdss_dsi_panel_AA536_P_3_A0001_dsc_cmd";
+	pxlw,dsi-display-secondary-active = "qcom,mdss_dsi_panel_AA536_P_3_A0001_dsc_cmd_2nd";
+};
+
+&sde_dsi {
+	pxlw,iris-lightup-config = <&mdss_iris_cfg_AA536_P_3_A0001_dsc_cmd>;
+	px_v18r-supply = <&L12B>;
+};
+
+&sde_dsi1 {
+	px_v18r-supply = <&L12B>;
+};
+
+&dsi_panel_AA536_P_3_A0001_dsc_cmd {
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x7f 0x1>;
+	qcom,iris-supply-entries = <&dsi_iris_pwr_supply>;
+};
+
+&dsi_panel_AA536_P_3_A0001_dsc_cmd_2nd {
+	qcom,dsi-sec-ctrl-num = <1>;
+	qcom,dsi-sec-phy-num = <1>;
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x7f 0x1>;
+
+	qcom,panel-sec-supply-entries = <&dsi_panel_pwr_sec_supply>;
+	qcom,dsi-select-sec-clocks = "pll_byte_clk1", "pll_dsi_clk1";
+};
+
+&dsi_vtdr6130_amoled_video {
+	pxlw,iris-chip-capability = <0x1 0x1 0x7 0x3 0x1>;
+	qcom,iris-supply-entries = <&dsi_iris_pwr_supply>;
+};

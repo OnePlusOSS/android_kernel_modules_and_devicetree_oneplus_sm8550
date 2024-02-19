@@ -1,0 +1,7 @@
+&sde_dsi {
+	qcom,dsi-default-panel = <&dsi_vtdr6130_amoled_video>;
+};
+
+&dsi_vtdr6130_amoled_video {
+	/delete-property/ qcom,esd-check-enabled;
+};

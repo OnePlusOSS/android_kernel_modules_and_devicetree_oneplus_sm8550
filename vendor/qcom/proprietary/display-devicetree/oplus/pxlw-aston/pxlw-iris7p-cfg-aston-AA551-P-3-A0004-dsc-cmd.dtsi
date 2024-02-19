@@ -1,0 +1,241 @@
+/*Fullchip
+
+//dtype, last, wait, ip, opt, dlen
+//sys*/
+//commit: 8112c219393a49215c64201f3a4e598da1c2b54d
+//build : 2023-10-17 17:20:55
+&soc {
+pxlw {
+mdss_iris7p_cfg_aston_AA551_P_3_A0004_dsc_cmd: pxlw,mdss_iris7p_cfg_aston_AA551_P_3_A0004_dsc_cmd {
+  pxlw,platform = <1>;
+  pxlw,panel-type = "PANEL_OLED";
+  /*low power control: dynamic power gating, ulps low power, analog bypass */
+  pxlw,low-power = [01 01 02];
+  /* virtual channel enable: PT, FRC */
+  pxlw,virtual-channel-enable = [00 00];
+  pxlw,virtual-channel-id = [00 02 03];
+  pxlw,chip-ver = <0x6935>;
+  pxlw,pkt-payload-size = <228>;
+  pxlw,min-color-temp = <2500>;
+  pxlw,max-color-temp = <10000>;
+  /*first value represents lightup, second is pq update*/
+  /*0: non-embedded, 1: embedded-no-ma, 2: embedded-ma*/
+  pxlw,dsi-trans-mode = [00 01];
+  /*the 3 groups represent 3 trans modes, non-embedded, embedded-no-ma, embedded-ma*/
+  /*in non-embedded mode, the value must be a multiple of 256*/
+  /*in embedded mode, the value must be a multiple of (pkt-payload-size + 8)*/
+  pxlw,dsi-trans-len = <0x1000 0x400>, <0x0 0x0>, <0x0 0x0>;
+  /* 0: DSI_VIDEO_MODE, 1: DSI_CMD_MODE */
+  pxlw,iris-tx-mode = /bits/ 8 <1>;
+  pxlw,panel-dimming-brightness = <4095>;
+  pxlw,panel-te = <60>;
+  pxlw,ap-te = <60>;
+  pxlw,esd-ctrl = <7>;
+  pxlw,timing-cmd-map = [02 01 00 FF];
+  pxlw,master-timing-cmd-map = [00 00 00 00];
+  pxlw,cmd-param-from-firmware = <1>;
+  pxlw,iris-lightup-sequence-pre0= [
+    00  00  00
+    00  01  00
+  ];
+  pxlw,iris-lightup-sequence-pre1= [
+    00  00  00
+    00  01  00
+  ];
+  pxlw,iris-lightup-sequence-cont-splash= [
+    00  00  00
+  ];
+  pxlw,iris-lightup-sequence= [
+    /* sys  */
+    00  16  01
+    00  1a  00
+    /* mipi */
+    01  00  00
+    01  01  00
+    01  02  00
+    01  03  00
+    02  00  00
+    02  01  00
+    02  02  00
+    02  03  00
+    /* dtg  */
+    05  00  00
+    05  F0  00
+    /* dport */
+    04  01  00
+    04  E1  00
+    04  80  00
+    /* pwil */
+    03  01  00
+    03  02  00
+    03  03  00
+    03  04  00
+    03  05  00
+    03  06  00
+    03  07  00
+    03  08  00
+    03  09  00
+    03  0a  00
+    03  10  00
+    03  11  00
+    03  12  00
+    03  40  00
+    03  80  00
+    /* blending  */
+    2e  00  00
+    2e  40  00
+    2e  80  00
+    /*gamma,65-bin*/
+    86  00  00
+    /*3dlut,17-bin*/
+    81  01  00
+    81  02  00
+    81  03  00
+    81  04  00
+    81  05  00
+    81  06  00
+    /*dpp pre_lut*/
+    92  10  00
+    92  00  00
+    /*dpp dlv_lut*/
+    96  00  00
+    /* dpp  */
+    0e  f0  01
+    0e  00  00
+    0e  10  00
+    0e  20  00
+    0e  21  00
+    0e  23  00
+    0e  30  00
+    0e  31  00
+    0e  32  00
+    0e  33  00
+    0e  34  00
+    0e  40  00
+    0e  50  00
+    0e  51  00
+    0e  52  00
+    0e  60  00
+    0e  61  00
+    0e  70  00
+    0e  90  00
+    0e  a0  00
+    0e  c0  00
+    0e  d0  00
+    0e  e0  00
+    0e  80  00
+    /* scl */
+    0b  00  00
+    83  10  00
+    83  50  00
+    83  90  00
+    83  d0  00
+    8e  10  00
+    8e  50  00
+    8e  90  00
+    8e  d0  00
+    /* srcnn */
+    39  00  00
+    39  01  00
+    39  10  00
+    39  20  00
+    39  30  00
+    39  40  00
+    39  80  00
+    8a  10  00
+    8a  50  00
+    8a  90  00
+    8a  d0  00
+    94  a0  00
+    94  10  00
+    94  11  00
+    94  12  00
+    94  13  00
+    94  14  00
+    94  20  00
+    94  21  00
+    94  22  00
+    94  23  00
+    94  24  00
+    /* frc dsc */
+    25  00  00
+    25  01  00
+    26  00  00
+    26  01  00
+    24  00  00
+    24  01  00
+    24  80  00
+    /* dsc */
+    08  00  00
+    08  01  00
+    08  02  00
+    07  00  00
+    07  01  00
+    /* psr_mif */
+    2d  00  00
+    /* dma */
+    11  f0  00
+    11  d0  00
+    11  d3  00
+    11  d1  00
+    11  d2  00
+    11  d4  00
+    11  d5  00
+    11  ee  00
+    11  e1  00
+  ];
+  pxlw,iris-fps-switch-sequence= [
+    /* sys */
+    00  15  00
+    /* dtg */
+    05  00  01
+    05  f9  00
+    /* dport */
+    04  e1  00
+    /* dma */
+    11  e5  00
+  ];
+  pxlw,iris-fps-clk-switch-sequence= [
+    /* sys */
+    00  00  00
+    00  18  00
+    00  15  00
+    /* mipi_tx */
+    02  01  00
+    /* dtg */
+    05  00  01
+    05  f9  00
+    /* dport */
+    04  e1  00
+    /* dma */
+    11  e1  00
+  ];
+  pxlw,iris-pq-default-val= [
+    00  00
+    /* dpp */
+    0e  20
+    0e  30
+    0e  50
+    0e  60
+    0e  70
+    0e  90
+    0e  a0
+    0e  c0
+    0e  d0
+    0e  e0
+    81  01
+    86  00
+    86  10
+    86  20
+    92  00
+    96  00
+    /* sr2d */
+    39  10
+    39  20
+    39  30
+    39  40
+  ];
+
+  };
+  };
+};

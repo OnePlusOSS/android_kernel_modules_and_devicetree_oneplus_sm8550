@@ -1,0 +1,4 @@
+
+config OPLUS_FEATURE_LAY_DETECT
+	bool "lay_detecthub for MediaTek package"
+	default n

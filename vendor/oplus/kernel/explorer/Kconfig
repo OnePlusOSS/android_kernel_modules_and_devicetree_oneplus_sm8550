@@ -1,0 +1,9 @@
+#
+# Explorer IPC drivers configuration
+#
+
+config EXPLORER_IPC
+	  tristate "Explorer IPC driver"
+	  default y
+	  help
+	    Provide IPC driver for Explorer.

@@ -1,0 +1,33 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include <dt-bindings/iio/qcom,spmi-adc5-gen3-pmk8550.h>
+#include "../display/kalama-sde-display-mtp-overlay.dts"
+#include "kalama-display-overlay-common.dtsi"
+#include "zonda-22635-display-kalama-overlay.dtsi"
+/* #if defined(CONFIG_PXLW_IRIS) */
+#include "pxlw-iris7-kalama-common.dtsi"
+#include "pxlw-zonda/dsi-panel-pxlw.dtsi"
+/* #endif */
+
+/ {
+	model = "Qualcomm Technologies, Inc. Kalama MTP,zonda";
+
+	oplus,project-id = <22635 22714 23603 23667>;
+};
+
+/*Adapt parameters to obtain screen temperature*/
+&pmk8550_vadc {
+    disp0_con_therm_adc {
+        reg = <PMK8550_ADC5_GEN3_AMUX_THM2_GPIO1_100K_PU>;
+        label = "disp0_con_therm_adc";
+        qcom,pre-scaling = <1 1>;
+        qcom,ratiometric;
+        qcom,hw-settle-time = <200>;
+    };
+};
+
+&sde_dsi{
+    io-channels = <&pmk8550_vadc PMK8550_ADC5_GEN3_AMUX_THM2_GPIO1_100K_PU>;
+    io-channel-names = "disp0_con_therm_adc";
+};

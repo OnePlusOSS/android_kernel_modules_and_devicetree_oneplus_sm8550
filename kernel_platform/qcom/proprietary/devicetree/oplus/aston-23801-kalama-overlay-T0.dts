@@ -1,0 +1,124 @@
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/oplus/hw-id.h>
+#include "../qcom/kalama-mtp-overlay.dts"
+#include "kalama_overlay_common.dtsi"
+#include "salami_overlay_common.dtsi"
+#include "oplus_chg/oplus-chg-23801.dtsi"
+#include "oplus_misc/oplus-misc-23801.dtsi"
+#include "sensor/aston-sensor-23801.dtsi"
+#include "uff_sm8550.dtsi"
+#include "nfc/aston_nfc_sn220.dtsi"
+#include "tp/aston-oplus_tp-23801.dtsi"
+/ {
+    model = "Qualcomm Technologies, Inc. Kalama MTP,aston";
+
+    oplus,project-id = <23801>;
+    oplus,hw-id = <OPLUS_T0 OPLUS_T1>;
+};
+
+&tlmm {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  rf_cable0_active: rf_cable0_active {
+    mux {
+      pins = "gpio62";
+      function = "gpio";
+    };
+    config {
+      pins = "gpio62";
+      drive-strength = <2>;
+      input-enable;
+      bias-pull-up;
+    };
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+
+  //#ifdef OPLUS_FEATRUE_ESIM
+  esim_en_gpio: esim_en_gpio  {
+      pins = "gpio4";
+      function = "normal";
+      bias-disable; /* NO pull */
+      qcom,drive-strength = <2>; /* 2 MA */
+      power-source = <1>; /* 1.8V */
+      output-high;
+  };
+  //#endif /* OPLUS_FEATRUE_ESIM */
+};
+
+&soc {
+  //#ifdef OPLUS_FEATURE_RF_CABLE_DETECT
+  oplus_rf_cable {
+    compatible = "oplus,rf_cable";
+    interrupt-parent = <&tlmm>;
+    rf_cable_support_num = <1>;
+    rf,cable0-gpio = <&tlmm 62 0>;
+    rf,cable-support-timer = <0>;
+    pinctrl-names = "rf_cable_active";
+    pinctrl-0 = <&rf_cable0_active>;
+  };
+  //#endif /* OPLUS_FEATURE_RF_CABLE_DETECT */
+
+  //#ifdef OPLUS_FEATRUE_ESIM
+  oplus-gpio {
+    compatible = "oplus,oplus-gpio";
+    pinctrl-names = "default", "sim2_det_no_pull", "sim2_det_pull_high", "sim2_det_pull_low";
+    pinctrl-0 = <&esim_gpio &esim_det_gpio &sim2_det_no_pull &esim_en_gpio>;
+    pinctrl-1 = <&sim2_det_no_pull>;
+    pinctrl-2 = <&sim2_det_pull_high>;
+    pinctrl-3 = <&sim2_det_pull_low>;
+    oplus,oplus-gpio-esim = <&pm8550vs_g_gpios 4 0>;
+    oplus,oplus-esim-det = <&pm8550_gpios 9 0>;
+    oplus,oplus-sim2-det = <&pm8550vs_c_gpios 5 0>;
+    oplus,oplus-esim-en = <&tlmm 59 0>;
+    oplus,uim-reset-pin = "modem_solution";
+  };
+  //#endif /* OPLUS_FEATRUE_ESIM */
+};
+
+//#ifdef OPLUS_FEATRUE_ESIM
+&pm8550vs_c_gpios {
+  sim2_det_no_pull: sim2_det_no_pull {
+      pins = "gpio5";
+      function = "normal";
+      input-enable;
+      power-source = <1>;
+      bias-disable;
+  };
+
+  sim2_det_pull_high: sim2_det_pull_high {
+      pins = "gpio5";
+      function = "normal";
+      input-enable;
+      power-source = <1>;
+      bias-pull-up;
+  };
+
+  sim2_det_pull_low: sim2_det_pull_low {
+      pins = "gpio5";
+      function = "normal";
+      input-enable;
+      power-source = <1>;
+      bias-pull-down;
+  };
+};
+
+&pm8550vs_g_gpios {
+  esim_gpio: esim_gpio  {
+      pins = "gpio4";
+      function = "normal";
+      bias-disable; /* NO pull */
+      qcom,drive-strength = <2>; /* 2 MA */
+      output-high;
+  };
+};
+
+&pm8550_gpios {
+  esim_det_gpio: esim_det_gpio {
+      pins = "gpio9";
+      function = "normal";
+      bias-disable; /* NO pull */
+      qcom,drive-strength = <2>; /* 2 MA */
+      output-high;
+  };
+};
+//#endif /* OPLUS_FEATRUE_ESIM */

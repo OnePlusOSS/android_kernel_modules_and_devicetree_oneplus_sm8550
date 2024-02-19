@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-2022 Oplus. All rights reserved.
+
+#ifdef OPLUS_FEATURE_PMIC_MONITOR
+source "drivers/soc/oplus/dfr/qcom/qcom_pmic_monitor/Kconfig"
+#endif /* OPLUS_FEATURE_PMIC_MONITOR */
+
+#ifdef OPLUS_FEATURE_FORCE_SHUTDOWN
+source "drivers/soc/oplus/dfr/qcom/force_shutdown/Kconfig"
+#endif /* OPLUS_FEATURE_FORCE_SHUTDOWN */
+
+#ifdef OPLUS_FEATURE_QCOM_PMICWD
+source "drivers/soc/oplus/dfr/qcom/qcom_pmicwd/Kconfig"
+#endif /* OPLUS_FEATURE_QCOM_PMICWD */
+
+#ifdef OPLUS_FEATURE_QCOM_WATCHDOG
+source "drivers/soc/oplus/dfr/qcom/qcom_watchdog/Kconfig"
+#endif /* OPLUS_FEATURE_QCOM_WATCHDOG */
+
+#ifdef OPLUS_FEATURE_DUMP_REASON
+source "drivers/soc/oplus/dfr/qcom/dump_device_info/Kconfig"
+#endif /* OPLUS_FEATURE_DUMP_REASON */
+
+#ifdef OPLUS_FEATURE_DUMP_REASON
+source "drivers/soc/oplus/dfr/qcom/dump_reason/Kconfig"
+#endif /* OPLUS_FEATURE_DUMP_REASON */
+
+#ifdef OPLUS_FEATURE_FULLDUMP_BACK
+source "drivers/soc/oplus/dfr/qcom/oplus_ordump/Kconfig"
+#endif /* OPLUS_FEATURE_FULLDUMP_BACK */
+
+#ifdef OPLUS_FEATURE_MTK_FORCE_SHUTDOWN
+source "drivers/soc/oplus/dfr/mtk/mtk_shutdown_reboot/Kconfig"
+#endif /* OPLUS_FEATURE_MTK_FORCE_SHUTDOWN */
+
+#ifdef OPLUS_FEATURE_PMIC_MONITOR_MTK
+source "drivers/soc/oplus/dfr/mtk/oplus_pmic_monitor_mtk/Kconfig"
+#endif /* OPLUS_FEATURE_PMIC_MONITOR_MTK */
+
+#ifdef OPLUS_FEATURE_SHUTDOWN_DETECT
+source "drivers/soc/oplus/dfr/common/shutdown_detect/Kconfig"
+#endif /* OPLUS_FEATURE_SHUTDOWN_DETECT */
+
+#ifdef OPLUS_FEATURE_HUNG_TASK_ENHANCE
+source "drivers/soc/oplus/dfr/common/hung_task_enhance/Kconfig"
+#endif /* OPLUS_FEATURE_HUNG_TASK_ENHANCE */
+
+#ifdef OPLUS_FEATURE_SAUPWK
+source "drivers/soc/oplus/dfr/common/oplus_saupwk/Kconfig"
+#endif /* OPLUS_FEATURE_SAUPWK */
+
+#ifdef OPLUS_FEATURE_THEIA
+source "drivers/soc/oplus/dfr/common/theia/Kconfig"
+#endif /* OPLUS_FEATURE_THEIA */
+
+#ifdef OPLUS_FEATURE_INIT_WATCHDOG
+source "drivers/soc/oplus/dfr/common/init_watchdog/Kconfig"
+#endif /* OPLUS_FEATURE_INIT_WATCHDOG */
+
+#ifdef OPLUS_FEATURE_KEYEVENT_HANDLER
+source "drivers/soc/oplus/dfr/common/keyevent_handler/Kconfig"
+#endif /* OPLUS_FEATURE_KEYEVENT_HANDLER */
+
+#ifdef OPLUS_FEATURE_COMBKEY_MONITOR
+source "drivers/soc/oplus/dfr/common/combkey_monitor/Kconfig"
+#endif /* OPLUS_FEATURE_COMBKEY_MONITOR */
+
+#ifdef CONFIG_OPLUS_FEATURE_FAULT_INJECT
+source "drivers/soc/oplus/dfr/fault_inject/Kconfig"
+#endif /*CONFIG_OPLUS_FEATURE_FAULT_INJECT*/
+
+#ifdef CONFIG_OPLUS_FEATURE_FDLEAK_CHECK
+source "drivers/soc/oplus/dfr/common/oplus_fdleak/Kconfig"
+#endif /*CONFIG_OPLUS_FEATURE_FDLEAK_CHECK*/
+
+#ifdef CONFIG_OPLUS_BSP_DFR_USERSPACE_BACKTRACE
+source "drivers/soc/oplus/dfr/common/oplus_bsp_dfr_ubt/Kconfig"
+#endif /* CONFIG_OPLUS_BSP_DFR_USERSPACE_BACKTRACE */
+
+#ifdef OPLUS_FEATURE_LAST_BOOT_REASON
+source "drivers/soc/oplus/dfr/common/last_boot_reason/Kconfig"
+#endif /*OPLUS_FEATURE_LAST_BOOT_REASON*/
+
