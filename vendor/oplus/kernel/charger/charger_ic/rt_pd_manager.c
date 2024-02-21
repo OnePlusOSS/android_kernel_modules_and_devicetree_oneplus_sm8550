@@ -57,7 +57,7 @@
 extern void oplus_otg_enable_by_buckboost(void);
 extern void oplus_otg_disable_by_buckboost(void);
 extern void tcpc_late_sync(void);
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 extern void oplus_set_splitchg_request_dpdm(bool enable);
 extern void oplus_notify_pd_event(unsigned long evt);
 extern void oplus_chip_otg_enable(void);
@@ -266,7 +266,7 @@ static inline void start_usb_host(struct rt_pd_manager_data *rpmd)
 static inline void stop_usb_peripheral(struct rt_pd_manager_data *rpmd)
 {
 	dev_err(rpmd->dev, "%s\n", __func__);
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 	oplus_set_splitchg_request_dpdm(false);
 #endif
 	extcon_set_state_sync(rpmd->extcon, EXTCON_USB, false);
@@ -499,7 +499,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 				    __func__, noti->vbus_state.mv);
 		/* enable/disable OTG power output */
 		if (noti->vbus_state.mv) {
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 			oplus_chip_otg_enable();
 #else
 			oplus_otg_enable_by_buckboost();
@@ -508,7 +508,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			otg_enable = true;
 		} else {
 			if (otg_enable) {
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 				oplus_chip_otg_disable();
 #else
 				oplus_otg_disable_by_buckboost();
@@ -774,14 +774,14 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 				    __func__, noti->pd_state.connected);
 		switch (noti->pd_state.connected) {
 		case PD_CONNECT_NONE:
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 			oplus_notify_pd_event(PD_CONNECT_NONE);
 #else
 			oplus_set_pd_active(QTI_POWER_SUPPLY_PD_INACTIVE);
 #endif
 			break;
 		case PD_CONNECT_HARD_RESET:
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 			oplus_notify_pd_event(PD_CONNECT_HARD_RESET);
 #else
 			oplus_set_pd_active(QTI_POWER_SUPPLY_PD_INACTIVE);
@@ -797,7 +797,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			smblib_set_prop(rpmd,
 				POWER_SUPPLY_PROP_PD_USB_SUSPEND_SUPPORTED,
 					&val);
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 			oplus_notify_pd_event(noti->pd_state.connected);
 #else
 			oplus_set_pd_active(QTI_POWER_SUPPLY_PD_ACTIVE);
@@ -837,7 +837,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			smblib_set_prop(rpmd,
 				POWER_SUPPLY_PROP_PD_USB_SUSPEND_SUPPORTED,
 					&val);
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 			oplus_notify_pd_event(PD_CONNECT_PE_READY_SNK_APDO);
 #else
 			oplus_set_pd_active(QTI_POWER_SUPPLY_PD_PPS_ACTIVE);

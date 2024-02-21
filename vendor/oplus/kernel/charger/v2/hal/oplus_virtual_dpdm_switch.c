@@ -138,7 +138,7 @@ static int oplus_switch_to_vooc(struct oplus_dpdm_switch_ic *chip)
 		do {
 			oplus_set_audio_switch_status(1);
 			status = oplus_get_audio_switch_status();
-			if (!(TYPEC_AUDIO_SWITCH_STATE_FAST_CHG & status)) {
+			if (!(TYPEC_AUDIO_SWITCH_STATE_FAST_CHG & status) || status < 0) {
 				chg_err("set switch to vooc failed , retry=%d, status = 0x%x\n", retry, status);
 			} else {
 				chg_info("set switch to vooc success , retry=%d\n", retry);
@@ -182,7 +182,7 @@ static int oplus_switch_to_ufcs(struct oplus_dpdm_switch_ic *chip)
 		do {
 			oplus_set_audio_switch_status(1);
 			status = oplus_get_audio_switch_status();
-			if (!(TYPEC_AUDIO_SWITCH_STATE_FAST_CHG & status)) {
+			if (!(TYPEC_AUDIO_SWITCH_STATE_FAST_CHG & status) || status < 0) {
 				chg_err("set switch to ufcs failed , retry=%d, status = 0x%x\n", retry, status);
 			} else {
 				chg_info("set switch to ufcs success , retry=%d\n", retry);

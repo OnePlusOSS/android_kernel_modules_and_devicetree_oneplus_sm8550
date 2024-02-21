@@ -167,6 +167,8 @@ oplus_chg-$(CONFIG_OPLUS_SM6375R_CHARGER) += \
 		charger_ic/rt_pd_manager.o \
 		charger_ic/oplus_usbtemp.o \
 		charger_ic/oplus_sc6607_charger.o
+ifeq ($(OPLUS_VND_ENV_SEPARATE_CHG_MUSE),yes)
+ccflags-y += -DOPLUS_CHG_SEPARATE_MUSE
 oplus_chg-$(CONFIG_OPLUS_SM6115R_CHARGER) += \
 		voocphy/oplus_voocphy.o \
                 charger_ic/oplus_battery_sm6115R.o \
@@ -174,6 +176,20 @@ oplus_chg-$(CONFIG_OPLUS_SM6115R_CHARGER) += \
 		charger_ic/oplus_sy697x.o \
 		charger_ic/oplus_sgm7220.o \
 		charger_ic/rt_pd_manager.o
+else
+oplus_chg-$(CONFIG_OPLUS_SM6115R_CHARGER) += \
+		voocphy/oplus_voocphy.o \
+		charger_ic/oplus_sy6974b.o \
+		charger_ic/oplus_sgm7220.o \
+		charger_ic/oplus_sy6970.o \
+		charger_ic/oplus_sgm41511.o \
+		charger_ic/oplus_sgm41512.o \
+		charger_ic/oplus_discrete_charger.o \
+		charger_ic/oplus_mp2650.o \
+		charger_ic/rt_pd_manager.o \
+		charger_ic/oplus_usbtemp.o \
+		charger_ic/oplus_sc6607_charger.o
+endif
 oplus_chg-$(CONFIG_OPLUS_CHARGER_MTK6983S) += \
 		charger_ic/oplus_mp2650.o \
 		charger_ic/oplus_usbtemp.o \

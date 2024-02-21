@@ -30,16 +30,17 @@ extern const char *cmd_set_prop_map[];
 extern int oplus_debug_max_brightness;
 bool is_evt_panel = false;
 bool is_dvt_0_panel = false;
+bool is_pvt_panel = false;
 bool is_gamma_panel = false;
+bool is_demura_panel = false;
 
 int oplus_panel_cmd_print(struct dsi_panel *panel, enum dsi_cmd_set_type type)
 {
 	switch (type) {
-	case DSI_CMD_READ_SAMSUNG_PANEL_REGISTER_ON:
 	case DSI_CMD_SET_ROI:
-	case DSI_CMD_READ_SAMSUNG_PANEL_REGISTER_OFF:
 	case DSI_CMD_ESD_SWITCH_PAGE:
 	case DSI_CMD_SKIPFRAME_DBV:
+	case DSI_CMD_DEFAULT_SWITCH_PAGE:
 #ifdef OPLUS_FEATURE_DISPLAY_ADFR_IGNORE
 	case DSI_CMD_ADFR_MIN_FPS_0:
 	case DSI_CMD_ADFR_MIN_FPS_1:
@@ -119,9 +120,16 @@ int oplus_panel_get_id(struct dsi_display *display, char *boot_str)
 				is_dvt_0_panel = true;
 				LCD_INFO("is_dvt_panel true\n");
 			}
+			if((0x3F == display->panel_id_da) && (0x07 <= display->panel_id_db)) {
+				is_pvt_panel = true;
+			}
 			if((0x07 == display->panel_id_db) && (0x00 == display->panel_id_dc)) {
 				is_gamma_panel = true;
 				LCD_INFO("is_gamma_panel true\n");
+			}
+			if((0x07 == display->panel_id_db) && (0x01 == display->panel_id_dc)) {
+				is_demura_panel = true;
+				LCD_INFO("is_demura_panel true\n");
 			}
 		} else {
 			LCD_INFO("fail to parse panel id\n");
@@ -212,6 +220,15 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 			switch (*type) {
 			case DSI_CMD_SET_ON:
 				*type = DSI_CMD_SET_ON_GAMMA;
+				break;
+			default:
+				break;
+			}
+		}
+		if (is_demura_panel) {
+			switch (*type) {
+			case DSI_CMD_SET_ON:
+				*type = DSI_CMD_SET_ON_DEMURA;
 				break;
 			default:
 				break;
@@ -484,7 +501,9 @@ int oplus_panel_parse_vsync_config(
 		}
 	}
 
-	LCD_INFO("vsync width = %d, vsync period = %d\n", priv_info->vsync_width, priv_info->vsync_period);
+	priv_info->refresh_rate = mode->timing.refresh_rate;
+
+	LCD_INFO("vsync width = %d, vsync period = %d, refresh rate = %d\n", priv_info->vsync_width, priv_info->vsync_period, priv_info->refresh_rate);
 
 	return 0;
 }

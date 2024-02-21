@@ -74,21 +74,26 @@ static bool mutex_list_add(struct task_struct *task, struct list_head *entry, st
 
 static void mutex_set_inherit_ux(struct mutex *lock, struct task_struct *task)
 {
-	bool is_ux = false;
+	bool is_ux = false, is_rt = false;
 	struct task_struct *owner = NULL;
 
 	if (!lock)
 		return;
 
 	is_ux = test_set_inherit_ux(task);
+	is_rt = rt_prio(task->prio);
 
 	owner = __mutex_owner(lock);
 
-	if (is_ux && !test_inherit_ux(owner, INHERIT_UX_MUTEX)) {
+	if ((is_ux || is_rt) && !test_inherit_ux(owner, INHERIT_UX_MUTEX)) {
 		int type = get_ux_state_type(owner);
 
-		if ((type == UX_STATE_NONE) || (type == UX_STATE_INHERIT))
-			set_inherit_ux(owner, INHERIT_UX_MUTEX, oplus_get_ux_depth(task), oplus_get_ux_state(task));
+		if ((type == UX_STATE_NONE) || (type == UX_STATE_INHERIT)) {
+			if(is_ux)
+				set_inherit_ux(owner, INHERIT_UX_MUTEX, oplus_get_ux_depth(task), oplus_get_ux_state(task));
+			if(is_rt)
+				set_inherit_ux(owner, INHERIT_UX_MUTEX, oplus_get_ux_depth(task), SA_TYPE_LIGHT);
+		}
 	}
 }
 

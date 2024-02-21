@@ -4478,6 +4478,14 @@ int iris_sync_panel_brightness(int32_t step, void *phys_enc)
 	return rc;
 }
 
+struct iris_ctrl_seq *iris_get_current_seq(void)
+{
+	struct iris_cfg *pcfg = iris_get_cfg();
+	struct iris_ctrl_seq *pseq = _iris_get_ctrl_seq(pcfg);
+
+	return pseq;
+}
+
 static ssize_t _iris_chip_id_read(struct file *file, char __user *buff,
 		size_t count, loff_t *ppos)
 {

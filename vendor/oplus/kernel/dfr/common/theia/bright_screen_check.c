@@ -44,7 +44,7 @@ static char bright_skip_stages[][64] = {
 
 static int br_start_check_systemid = -1;
 u64 mLastPwkTime = 0;
-u64 FrequencyInterval = 60000;
+u64 FrequencyInterval = 300000;
 
 int bright_screen_timer_restart(void)
 {

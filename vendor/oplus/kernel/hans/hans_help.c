@@ -317,13 +317,19 @@ void hans_check_uid_proc_status_detail(struct binder_proc *proc, enum message_ty
 							} else {
 								printk(KERN_ERR "HANS binder: internal uid %d:%d->%d\n", to_uid, from_pid, to_pid);
 							}
+						} else if (!(btrans->flags & TF_ONE_WAY)){
+							/*binder thread is full, anyway, there is a sync binder, should unfreeze it*/
+							spin_unlock(&btrans->lock);
+							binder_inner_proc_unlock(proc);
+							hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_THREAD2", 1);
+							return;
 						} else {
 							spin_unlock(&btrans->lock);
 						}
 					} else if (w != NULL && w->type != BINDER_WORK_TRANSACTION_COMPLETE && w->type != BINDER_WORK_NODE) {
 						/* under binder error/dead status, to_proc could be null, user "-1" instead uid/pid */
 						binder_inner_proc_unlock(proc);
-						hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_THREAD2", 1);
+						hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_THREAD3", 1);
 						return;
 					}
 				}
@@ -370,13 +376,20 @@ void hans_check_uid_proc_status_detail(struct binder_proc *proc, enum message_ty
 					} else {
 						printk(KERN_ERR "HANS binder: internal uid %d:%d->%d\n", to_uid, from_pid, to_pid);
 					}
+				} else if (!(btrans->flags & TF_ONE_WAY)) {
+					/*binder thread is full, anyway, there is a sync binder, should unfreeze it*/
+					spin_unlock(&btrans->lock);
+					binder_inner_proc_unlock(proc);
+					hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_PROC2", 1);
+					return;
+
 				} else {
 					spin_unlock(&btrans->lock);
 				}
 			} else if (w != NULL && w->type != BINDER_WORK_TRANSACTION_COMPLETE && w->type != BINDER_WORK_NODE) {
 				/* under binder error/dead status, to_proc could be null, user "-1" instead uid/pid */
 				binder_inner_proc_unlock(proc);
-				hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_PROC2", 1);
+				hans_report(type, -1, -1, -1, to_uid, "FROZEN_TRANS_PROC3", 1);
 				return;
 			}
 		}

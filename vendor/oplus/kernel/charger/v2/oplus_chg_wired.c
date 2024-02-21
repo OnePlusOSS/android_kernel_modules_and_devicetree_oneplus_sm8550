@@ -782,6 +782,9 @@ static void oplus_wired_pd_config_work(struct work_struct *work)
 		if (spec->vbatt_pdqc_to_9v_thr > 0 &&
 		    chip->vbat_mv < spec->vbatt_pdqc_to_9v_thr) {
 			chg_info("pd starts to boost,retry count %d.\n", chip->pd_retry_count);
+			/* Set the current to 500ma before PD before boost ot 9V */
+			vote(chip->icl_votable, SPEC_VOTER, true, PDQC_BUCK_DEF_CURR_MA,
+			     true);
 			mutex_lock(&chip->icl_lock);
 			rc = oplus_wired_set_pd_config(OPLUS_PD_9V_PDO);
 			mutex_unlock(&chip->icl_lock);

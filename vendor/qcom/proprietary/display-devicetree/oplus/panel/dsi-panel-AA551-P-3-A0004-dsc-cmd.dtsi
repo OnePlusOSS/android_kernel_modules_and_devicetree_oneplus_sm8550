@@ -100,13 +100,7 @@
 				oplus,ofp-need-to-separate-backlight;
 				oplus,ofp-backlight-on-period = <1>;
 
-				qcom,mdss-dsi-panel-read-register-open-command = [
-
-				];
 				qcom,mdss-dsi-panel-id1-command = [
-
-				];
-				qcom,mdss-dsi-panel-read-register-close-command = [
 
 				];
 				qcom,mdss-dsi-timing-switch-command = [
@@ -352,20 +346,39 @@
 							39 00 00 40 00 00 13 B5 1D 13 04 FF 10 0F 0F 0C 02 03 74 3C 38 2F 26 15 0A 04
 							39 00 00 40 00 00 13 B8 04 04 02 08 02 01 18 07 05 03 34 16 13 0F 08 55 28 24
 							39 00 00 00 00 00 13 B9 1D 13 07 04 30 2B 24 05 02 01 70 3B 33 2B 1F 10 05 01
-							//CTC
-							39 00 00 40 00 00 04 FF 08 38 31
-							39 00 00 40 00 00 13 80 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 81 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 13 86 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 87 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 09 8D 04 10 10 10 0D 06 06 06
 							//ODC POWER ON
 							39 00 00 40 00 00 04 FF 08 38 49
 							15 00 00 40 00 00 02 DC 03
 							//VDDI 0.979V
 							39 00 00 40 00 00 04 FF 08 38 05
 							15 00 00 40 00 00 02 95 66
-							39 00 00 00 00 00 04 FF 08 38 00
+							//PHBM
+							39 00 00 40 00 00 04 FF 08 38 1E
+							39 00 00 40 00 00 02 C0 10
+							39 00 00 40 00 00 02 C1 10
+							39 00 00 40 00 00 07 C2 FF FF ED 61 00 62
+							39 00 00 40 00 00 27 C5 44 00 00 44 00 00 44 00 00 43 07 73 21 75 A7 00 C3 00 44
+												 00 00 44 00 00 44 00 00 44 00 00 44 00 00 44 00 00 04 00
+							39 00 00 40 00 00 04 FF 08 38 13
+							39 00 00 40 00 00 02 D1 88
+							39 00 00 40 00 00 04 FF 08 38 17
+							39 00 00 40 00 00 02 A0 CC
+							39 00 00 40 00 00 02 AE 00
+							39 00 00 40 00 00 04 FF 08 38 24
+							39 00 00 40 00 00 02 80 04
+							39 00 00 40 00 00 02 81 40
+							39 00 00 40 00 00 04 FF 08 38 10
+							39 00 00 40 00 00 02 83 2B
+							39 00 00 40 00 00 04 FF 08 38 1F
+							39 00 00 40 00 00 02 80 08
+							39 00 00 40 00 00 04 FF 08 38 00
+							39 00 00 40 00 00 02 96 07
+							39 00 00 40 00 00 02 97 E9
+							39 00 00 40 00 00 02 98 02
+							39 00 00 40 00 00 02 99 78
+							39 00 00 40 00 00 04 FF 08 38 08
+							39 00 00 40 00 00 02 C8 62
+							39 00 00 40 00 00 04 FF 08 38 00
 							05 00 00 00 78 00 01 11
 							05 00 00 00 00 00 01 29
 				];
@@ -872,6 +885,36 @@
 					15 00 00 40 00 00 02 8B 78
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
+				qcom,mdss-dsi-panel-read-register-open-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 B2
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 40 00 00 02 99 E4
+					39 00 00 40 00 00 06 93 0A 9B 6C C5 E4
+					39 00 00 40 00 00 06 94 0B AC 32 56 AA
+					39 00 00 40 00 00 06 95 0B AD B3 B4 2B
+					39 00 00 40 00 00 06 96 0C BD 34 13 AC
+					39 00 00 40 00 00 06 97 0C BD 66 38 DE
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command = [
+					39 00 00 40 00 00 04 FF 08 38 1E
+					39 00 00 40 00 00 07 C2 FF FF E5 61 00 62
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 13
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 10
+				];
 				qcom,mdss-dsi-aod-high-mode-command = [
 					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 00 00 00 05 51 00 00 0D BB
@@ -1369,6 +1412,18 @@
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
 				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 04 FF 08 38 29
+					39 00 00 40 00 00 02 82 22
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 02 88 7A
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 01
+					39 00 00 40 00 00 04 FF 08 38 6F
+					39 00 00 40 00 00 05 C6 02 D6 00 10
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 00
+					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 40 00 00 04 FF 08 38 08
 					15 00 00 40 00 00 02 B0 55
 					39 00 00 40 00 00 04 FF 08 38 4F
@@ -1548,6 +1603,12 @@
 				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_pack_mode";
+				qcom,mdss-dsi-panel-read-register-open-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-read-register-close-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
@@ -1640,13 +1701,7 @@
 				oplus,ofp-backlight-on-period = <1>;
 				oplus,apollo-panel-async-bl-delay = <6000>;
 
-				qcom,mdss-dsi-panel-read-register-open-command = [
-
-				];
 				qcom,mdss-dsi-panel-id1-command = [
-
-				];
-				qcom,mdss-dsi-panel-read-register-close-command = [
 
 				];
 				qcom,mdss-dsi-timing-switch-command = [
@@ -1881,9 +1936,9 @@
 							39 00 00 40 00 00 05 98 08 00 8C 02
 							39 00 00 40 00 00 11 A0 04 04 04 04 04 04 04 04 04 00 04 05 04 04 03 04
 							39 00 00 40 00 00 12 A4 04 01 01 00 01 00 04 04 00 04 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 A5 04 04 04 04 FA 0F 10 04 04 00 04 09 05 04 03 04
+							39 00 00 40 00 00 11 A5 04 04 04 04 03 08 06 03 04 00 04 09 05 04 03 04
 							39 00 00 40 00 00 12 A9 00 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 AA 04 04 04 04 08 08 04 04 04 00 04 05 04 04 04 04
+							39 00 00 40 00 00 11 AA 04 04 04 04 04 06 06 04 04 00 04 05 04 04 04 04
 							39 00 00 40 00 00 12 AE 02 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
 							39 00 00 40 00 00 13 B0 01 01 01 01 0B 01 16 00 05 03 35 03 15 0F 05 20 10 23
 							39 00 00 40 00 00 13 B1 00 00 00 01 05 FE FE 05 01 01 69 FE 37 30 24 16 08 03
@@ -1891,20 +1946,39 @@
 							39 00 00 40 00 00 13 B5 1D 13 04 FF 10 0F 0F 0C 02 03 74 3C 38 2F 26 15 0A 04
 							39 00 00 40 00 00 13 B8 04 04 02 08 02 01 18 07 05 03 34 16 13 0F 08 55 28 24
 							39 00 00 00 00 00 13 B9 1D 13 07 04 30 2B 24 05 02 01 70 3B 33 2B 1F 10 05 01
-							//CTC
-							39 00 00 40 00 00 04 FF 08 38 31
-							39 00 00 40 00 00 13 80 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 81 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 13 86 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 87 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 09 8D 04 10 10 10 0D 06 06 06
 							//ODC POWER ON
 							39 00 00 40 00 00 04 FF 08 38 49
 							15 00 00 40 00 00 02 DC 03
 							//VDDI 0.979V
 							39 00 00 40 00 00 04 FF 08 38 05
 							15 00 00 40 00 00 02 95 66
-							39 00 00 00 00 00 04 FF 08 38 00
+							//PHBM
+							39 00 00 40 00 00 04 FF 08 38 1E
+							39 00 00 40 00 00 02 C0 10
+							39 00 00 40 00 00 02 C1 10
+							39 00 00 40 00 00 07 C2 FF FF ED 61 00 62
+							39 00 00 40 00 00 27 C5 44 00 00 44 00 00 44 00 00 43 07 73 21 75 A7 00 C3 00 44
+												 00 00 44 00 00 44 00 00 44 00 00 44 00 00 44 00 00 04 00
+							39 00 00 40 00 00 04 FF 08 38 13
+							39 00 00 40 00 00 02 D1 88
+							39 00 00 40 00 00 04 FF 08 38 17
+							39 00 00 40 00 00 02 A0 CC
+							39 00 00 40 00 00 02 AE 00
+							39 00 00 40 00 00 04 FF 08 38 24
+							39 00 00 40 00 00 02 80 04
+							39 00 00 40 00 00 02 81 40
+							39 00 00 40 00 00 04 FF 08 38 10
+							39 00 00 40 00 00 02 83 2B
+							39 00 00 40 00 00 04 FF 08 38 1F
+							39 00 00 40 00 00 02 80 08
+							39 00 00 40 00 00 04 FF 08 38 00
+							39 00 00 40 00 00 02 96 07
+							39 00 00 40 00 00 02 97 E9
+							39 00 00 40 00 00 02 98 02
+							39 00 00 40 00 00 02 99 78
+							39 00 00 40 00 00 04 FF 08 38 08
+							39 00 00 40 00 00 02 C8 62
+							39 00 00 40 00 00 04 FF 08 38 00
 							05 00 00 00 78 00 01 11
 							05 00 00 00 00 00 01 29
 				];
@@ -2292,6 +2366,36 @@
 					39 00 00 40 00 00 04 FF 08 38 4F
 					15 00 00 40 00 00 02 8B 78
 					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-panel-read-register-open-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 B2
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 40 00 00 02 99 E4
+					39 00 00 40 00 00 06 93 0A 9B 6C C5 E4
+					39 00 00 40 00 00 06 94 0B AC 32 56 AA
+					39 00 00 40 00 00 06 95 0B AD B3 B4 2B
+					39 00 00 40 00 00 06 96 0C BD 34 13 AC
+					39 00 00 40 00 00 06 97 0C BD 66 38 DE
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command = [
+					39 00 00 40 00 00 04 FF 08 38 1E
+					39 00 00 40 00 00 07 C2 FF FF E5 61 00 62
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 13
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 10
 				];
 				qcom,mdss-dsi-aod-high-mode-command = [
 					39 00 00 40 00 00 04 FF 08 38 00
@@ -2798,6 +2902,18 @@
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
 				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 04 FF 08 38 29
+					39 00 00 40 00 00 02 82 22
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 02 88 7A
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 01
+					39 00 00 40 00 00 04 FF 08 38 6F
+					39 00 00 40 00 00 05 C6 02 D6 00 10
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 00
+					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 40 00 00 04 FF 08 38 08
 					15 00 00 40 00 00 02 B0 55
 					39 00 00 40 00 00 04 FF 08 38 4F
@@ -2977,6 +3093,12 @@
 				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_pack_mode";
+				qcom,mdss-dsi-panel-read-register-open-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-read-register-close-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
@@ -3063,13 +3185,7 @@
 				oplus,ofp-backlight-on-period = <1>;
 				oplus,apollo-panel-async-bl-delay = <9000>;
 
-				qcom,mdss-dsi-panel-read-register-open-command = [
-
-				];
 				qcom,mdss-dsi-panel-id1-command = [
-
-				];
-				qcom,mdss-dsi-panel-read-register-close-command = [
 
 				];
 				qcom,mdss-dsi-timing-switch-command = [
@@ -3304,9 +3420,9 @@
 							39 00 00 40 00 00 05 98 08 00 8C 02
 							39 00 00 40 00 00 11 A0 04 04 04 04 04 04 04 04 04 00 04 05 04 04 03 04
 							39 00 00 40 00 00 12 A4 04 01 01 00 01 00 04 04 00 04 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 A5 04 04 04 04 FA 0F 10 04 04 00 04 09 05 04 03 04
+							39 00 00 40 00 00 11 A5 04 04 04 04 03 08 06 03 04 00 04 09 05 04 03 04
 							39 00 00 40 00 00 12 A9 00 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 AA 04 04 04 04 08 08 04 04 04 00 04 05 04 04 04 04
+							39 00 00 40 00 00 11 AA 04 04 04 04 04 06 06 04 04 00 04 05 04 04 04 04
 							39 00 00 40 00 00 12 AE 02 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
 							39 00 00 40 00 00 13 B0 01 01 01 01 0B 01 16 00 05 03 35 03 15 0F 05 20 10 23
 							39 00 00 40 00 00 13 B1 00 00 00 01 05 FE FE 05 01 01 69 FE 37 30 24 16 08 03
@@ -3314,20 +3430,39 @@
 							39 00 00 40 00 00 13 B5 1D 13 04 FF 10 0F 0F 0C 02 03 74 3C 38 2F 26 15 0A 04
 							39 00 00 40 00 00 13 B8 04 04 02 08 02 01 18 07 05 03 34 16 13 0F 08 55 28 24
 							39 00 00 00 00 00 13 B9 1D 13 07 04 30 2B 24 05 02 01 70 3B 33 2B 1F 10 05 01
-							//CTC
-							39 00 00 40 00 00 04 FF 08 38 31
-							39 00 00 40 00 00 13 80 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 81 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 13 86 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 87 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 09 8D 04 10 10 10 0D 06 06 06
 							//ODC POWER ON
 							39 00 00 40 00 00 04 FF 08 38 49
 							15 00 00 40 00 00 02 DC 03
 							//VDDI 0.979V
 							39 00 00 40 00 00 04 FF 08 38 05
 							15 00 00 40 00 00 02 95 66
-							39 00 00 00 00 00 04 FF 08 38 00
+							//PHBM
+							39 00 00 40 00 00 04 FF 08 38 1E
+							39 00 00 40 00 00 02 C0 10
+							39 00 00 40 00 00 02 C1 10
+							39 00 00 40 00 00 07 C2 FF FF ED 61 00 62
+							39 00 00 40 00 00 27 C5 44 00 00 44 00 00 44 00 00 43 07 73 21 75 A7 00 C3 00 44
+												 00 00 44 00 00 44 00 00 44 00 00 44 00 00 44 00 00 04 00
+							39 00 00 40 00 00 04 FF 08 38 13
+							39 00 00 40 00 00 02 D1 88
+							39 00 00 40 00 00 04 FF 08 38 17
+							39 00 00 40 00 00 02 A0 CC
+							39 00 00 40 00 00 02 AE 00
+							39 00 00 40 00 00 04 FF 08 38 24
+							39 00 00 40 00 00 02 80 04
+							39 00 00 40 00 00 02 81 40
+							39 00 00 40 00 00 04 FF 08 38 10
+							39 00 00 40 00 00 02 83 2B
+							39 00 00 40 00 00 04 FF 08 38 1F
+							39 00 00 40 00 00 02 80 08
+							39 00 00 40 00 00 04 FF 08 38 00
+							39 00 00 40 00 00 02 96 07
+							39 00 00 40 00 00 02 97 E9
+							39 00 00 40 00 00 02 98 02
+							39 00 00 40 00 00 02 99 78
+							39 00 00 40 00 00 04 FF 08 38 08
+							39 00 00 40 00 00 02 C8 62
+							39 00 00 40 00 00 04 FF 08 38 00
 							05 00 00 00 78 00 01 11
 							05 00 00 00 00 00 01 29
 				];
@@ -3715,6 +3850,36 @@
 					15 00 00 40 00 00 02 8B 78
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
+				qcom,mdss-dsi-panel-read-register-open-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 B2
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 40 00 00 02 99 E4
+					39 00 00 40 00 00 06 93 0A 9B 6C C5 E4
+					39 00 00 40 00 00 06 94 0B AC 32 56 AA
+					39 00 00 40 00 00 06 95 0B AD B3 B4 2B
+					39 00 00 40 00 00 06 96 0C BD 34 13 AC
+					39 00 00 40 00 00 06 97 0C BD 66 38 DE
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command = [
+					39 00 00 40 00 00 04 FF 08 38 1E
+					39 00 00 40 00 00 07 C2 FF FF E5 61 00 62
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 13
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 10
+				];
 				qcom,mdss-dsi-aod-high-mode-command = [
 					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 00 00 00 05 51 00 00 0D BB
@@ -3745,8 +3910,8 @@
 					39 00 00 40 00 00 04 FF 08 38 02
 					15 00 00 40 00 00 02 A6 00
 					15 00 00 40 00 00 02 A7 00
-					39 00 00 40 00 00 08 B0 00 00 80 00 00 00 00
-					39 00 00 40 00 00 09 B1 FF FF FF 00 00 00 00 00
+					39 00 00 40 00 00 08 B0 01 11 80 00 00 00 00
+					39 00 00 40 00 00 09 B1 FF FF FF 01 00 00 00 00
 					15 00 00 40 00 00 02 B6 B0
 					15 00 00 40 00 00 02 B8 00
 					39 00 00 00 00 00 04 FF 08 38 00
@@ -4212,6 +4377,18 @@
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
 				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 04 FF 08 38 29
+					39 00 00 40 00 00 02 82 22
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 02 88 7A
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 01
+					39 00 00 40 00 00 04 FF 08 38 6F
+					39 00 00 40 00 00 05 C6 02 D6 00 10
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 00
+					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 40 00 00 04 FF 08 38 08
 					15 00 00 40 00 00 02 B0 55
 					39 00 00 40 00 00 04 FF 08 38 4F
@@ -4391,6 +4568,12 @@
 				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_pack_mode";
+				qcom,mdss-dsi-panel-read-register-open-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-read-register-close-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
@@ -4479,13 +4662,7 @@
 				oplus,ofp-need-to-separate-backlight;
 				oplus,ofp-backlight-on-period = <1>;
 
-				qcom,mdss-dsi-panel-read-register-open-command = [
-
-				];
 				qcom,mdss-dsi-panel-id1-command = [
-
-				];
-				qcom,mdss-dsi-panel-read-register-close-command = [
 
 				];
 				qcom,mdss-dsi-timing-switch-command = [
@@ -4707,9 +4884,9 @@
 							39 00 00 40 00 00 05 98 08 00 8C 02
 							39 00 00 40 00 00 11 A0 04 04 04 04 04 04 04 04 04 00 04 05 04 04 03 04
 							39 00 00 40 00 00 12 A4 04 01 01 00 01 00 04 04 00 04 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 A5 04 04 04 04 FA 0F 10 04 04 00 04 09 05 04 03 04
+							39 00 00 40 00 00 11 A5 04 04 04 04 03 08 06 03 04 00 04 09 05 04 03 04
 							39 00 00 40 00 00 12 A9 00 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
-							39 00 00 40 00 00 11 AA 04 04 04 04 08 08 04 04 04 00 04 05 04 04 04 04
+							39 00 00 40 00 00 11 AA 04 04 04 04 04 06 06 04 04 00 04 05 04 04 04 04
 							39 00 00 40 00 00 12 AE 02 01 01 00 01 00 04 04 00 03 04 04 05 04 04 04 04
 							39 00 00 40 00 00 13 B0 01 01 01 01 0B 01 16 00 05 03 35 03 15 0F 05 20 10 23
 							39 00 00 40 00 00 13 B1 00 00 00 01 05 FE FE 05 01 01 69 FE 37 30 24 16 08 03
@@ -4717,20 +4894,39 @@
 							39 00 00 40 00 00 13 B5 1D 13 04 FF 10 0F 0F 0C 02 03 74 3C 38 2F 26 15 0A 04
 							39 00 00 40 00 00 13 B8 04 04 02 08 02 01 18 07 05 03 34 16 13 0F 08 55 28 24
 							39 00 00 00 00 00 13 B9 1D 13 07 04 30 2B 24 05 02 01 70 3B 33 2B 1F 10 05 01
-							//CTC
-							39 00 00 40 00 00 04 FF 08 38 31
-							39 00 00 40 00 00 13 80 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 81 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 13 86 F0 BA 8B 5D 2D D3 A3 75 46 F0 30 66 56 15 EB FC B2 A9
-							39 00 00 40 00 00 13 87 F0 B1 85 00 2A D6 A8 7B 4F F0 30 63 2C 00 FA FC B2 A9
-							39 00 00 40 00 00 09 8D 04 10 10 10 0D 06 06 06
 							//ODC POWER ON
 							39 00 00 40 00 00 04 FF 08 38 49
 							15 00 00 40 00 00 02 DC 03
 							//VDDI 0.979V
 							39 00 00 40 00 00 04 FF 08 38 05
 							15 00 00 40 00 00 02 95 66
-							39 00 00 00 00 00 04 FF 08 38 00
+							//PHBM
+							39 00 00 40 00 00 04 FF 08 38 1E
+							39 00 00 40 00 00 02 C0 10
+							39 00 00 40 00 00 02 C1 10
+							39 00 00 40 00 00 07 C2 FF FF ED 61 00 62
+							39 00 00 40 00 00 27 C5 44 00 00 44 00 00 44 00 00 43 07 73 21 75 A7 00 C3 00 44
+												 00 00 44 00 00 44 00 00 44 00 00 44 00 00 44 00 00 04 00
+							39 00 00 40 00 00 04 FF 08 38 13
+							39 00 00 40 00 00 02 D1 88
+							39 00 00 40 00 00 04 FF 08 38 17
+							39 00 00 40 00 00 02 A0 CC
+							39 00 00 40 00 00 02 AE 00
+							39 00 00 40 00 00 04 FF 08 38 24
+							39 00 00 40 00 00 02 80 04
+							39 00 00 40 00 00 02 81 40
+							39 00 00 40 00 00 04 FF 08 38 10
+							39 00 00 40 00 00 02 83 2B
+							39 00 00 40 00 00 04 FF 08 38 1F
+							39 00 00 40 00 00 02 80 08
+							39 00 00 40 00 00 04 FF 08 38 00
+							39 00 00 40 00 00 02 96 07
+							39 00 00 40 00 00 02 97 E9
+							39 00 00 40 00 00 02 98 02
+							39 00 00 40 00 00 02 99 78
+							39 00 00 40 00 00 04 FF 08 38 08
+							39 00 00 40 00 00 02 C8 62
+							39 00 00 40 00 00 04 FF 08 38 00
 							05 00 00 00 78 00 01 11
 							05 00 00 00 00 00 01 29
 				];
@@ -4754,9 +4950,13 @@
 					39 00 00 40 00 00 02 C2 00
 					39 00 00 40 00 00 02 C3 00
 					39 00 00 40 00 00 04 FF 08 38 4F
+					15 00 00 40 00 00 02 81 02
+					15 00 00 40 00 00 02 80 01
 					15 00 00 40 00 00 02 88 78
 					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 40 00 00 03 44 00 01
+					39 00 00 40 00 00 04 FF 08 38 20
+					39 00 00 40 00 00 02 BE 56
 					39 00 00 40 00 00 04 FF 08 38 4F
 					15 00 00 40 00 00 02 8B 78
 					39 00 00 00 00 00 04 FF 08 38 00
@@ -4867,7 +5067,6 @@
 					39 00 00 40 00 00 02 A7 00
 					39 00 00 40 00 00 08 B0 00 00 00 00 00 00 00
 					39 00 00 40 00 00 09 B1 00 00 00 00 00 00 00 00
-					39 00 00 40 00 00 09 C0 00 0C 00 00 00 00 00 00
 					39 00 00 40 00 00 06 C1 00 00 00 00 80
 					39 00 00 40 00 00 02 C2 01
 					39 00 00 40 00 00 02 C3 80
@@ -5092,6 +5291,36 @@
 					15 00 00 40 00 00 02 8B 78
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
+				qcom,mdss-dsi-panel-read-register-open-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 B2
+				];
+				qcom,mdss-dsi-panel-read-register-close-command = [
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 40 00 00 02 99 E4
+					39 00 00 40 00 00 06 93 0A 9B 6C C5 E4
+					39 00 00 40 00 00 06 94 0B AC 32 56 AA
+					39 00 00 40 00 00 06 95 0B AD B3 B4 2B
+					39 00 00 40 00 00 06 96 0C BD 34 13 AC
+					39 00 00 40 00 00 06 97 0C BD 66 38 DE
+					15 00 00 00 00 00 02 99 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command = [
+					39 00 00 40 00 00 04 FF 08 38 1E
+					39 00 00 40 00 00 07 C2 FF FF E5 61 00 62
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 13
+				];
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 00 00 00 02 95 10
+				];
 				qcom,mdss-dsi-aod-high-mode-command = [
 					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 00 00 00 05 51 00 00 0D BB
@@ -5236,6 +5465,18 @@
 					39 00 00 00 00 00 04 FF 08 38 00
 				];
 				qcom,mdss-dsi-hbm-max-command = [
+					39 00 00 40 00 00 04 FF 08 38 29
+					39 00 00 40 00 00 02 82 22
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 02 88 7A
+					39 00 00 40 00 00 04 FF 08 38 00
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 01
+					39 00 00 40 00 00 04 FF 08 38 6F
+					39 00 00 40 00 00 05 C6 02 D6 00 10
+					39 00 00 40 00 00 04 FF 08 38 23
+					39 00 00 40 00 00 02 CC 00
+					39 00 00 40 00 00 04 FF 08 38 00
 					39 00 00 40 00 00 04 FF 08 38 08
 					15 00 00 40 00 00 02 B0 55
 					39 00 00 40 00 00 04 FF 08 38 4F
@@ -5415,18 +5656,24 @@
 				qcom,mdss-dsi-nolp-hpwm-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-on-command-state = "dsi_lp_pack_mode";
 				qcom,mdss-dsi-hbm-off-command-state = "dsi_lp_pack_mode";
+				qcom,mdss-dsi-panel-read-register-open-state = "dsi_lp_mode";
+				qcom,mdss-dsi-panel-read-register-close-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-gamma-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-on-command-state = "dsi_lp_mode";
+				qcom,mdss-dsi-lhbm-pressed-icon-off-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-panel-info-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-default-switch-page-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-reset-scanline-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-recovery-scanline-command-state = "dsi_hs_mode";
 
 				qcom,mdss-dsi-qsync-off-commands-state ="dsi_hs_pack_mode";
-				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_pack_mode";
-				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_pack_mode";
-				qcom,mdss-dsi-adfr-min-fps-2-command-state = "dsi_hs_pack_mode";
-				qcom,mdss-dsi-hpwm-adfr-min-fps-0-command-state = "dsi_hs_pack_mode";
-				qcom,mdss-dsi-hpwm-adfr-min-fps-1-command-state = "dsi_hs_pack_mode";
-				qcom,mdss-dsi-hpwm-adfr-min-fps-2-command-state = "dsi_hs_pack_mode";
+				qcom,mdss-dsi-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-adfr-min-fps-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-adfr-min-fps-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-adfr-min-fps-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-hpwm-adfr-min-fps-2-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-adfr-high-precision-fps-0-command-state = "dsi_hs_pack_mode";
 				qcom,mdss-dsi-adfr-high-precision-fps-1-command-state = "dsi_hs_pack_mode";
 				qcom,mdss-dsi-adfr-high-precision-fps-2-command-state = "dsi_hs_pack_mode";
@@ -5494,10 +5741,13 @@
 	qcom,mdss-dsi-bl-inverted-dbv;
 	qcom,ulps-enabled;
 	qcom,dsi-select-clocks = "pll_byte_clk0", "pll_dsi_clk0";
-	/* ofp config */
-	oplus,ofp-fp-type = <0x88>;
-	oplus,ofp-need-to-wait-data-before-aod-on;
 	oplus,enhance_mipi_strength;
+
+	/* ofp config */
+	oplus,ofp-fp-type = <0x90>;
+	oplus,ofp-fp-type-compatible-mode;
+	oplus,ofp-need-to-wait-data-before-aod-on;
+	oplus,ofp-need-to-update-lhbm-pressed-icon-gamma;
 
 	/* adfr config */
 	/* just for qsync enable*/

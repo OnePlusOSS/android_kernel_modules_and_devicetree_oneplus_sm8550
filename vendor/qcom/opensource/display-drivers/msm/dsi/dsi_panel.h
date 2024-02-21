@@ -424,11 +424,13 @@ struct dsi_panel {
 	/* for pwm disable duty worker*/
 	struct workqueue_struct *oplus_pwm_disable_duty_set_wq;
 	struct work_struct oplus_pwm_disable_duty_set_work;
+	struct workqueue_struct *oplus_pwm_switch_send_next_cmdq_wq;
+	struct work_struct oplus_pwm_switch_send_next_cmdq_work;
+	ktime_t ts_timestamp;
 	u32 last_us_per_frame;
 	u32 last_vsync_width;
 	u32 last_refresh_rate;
-	struct workqueue_struct *oplus_pwm_switch_send_next_cmdq_wq;
-	struct work_struct oplus_pwm_switch_send_next_cmdq_work;
+	u32 work_frame;
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 #if defined(CONFIG_PXLW_IRIS)

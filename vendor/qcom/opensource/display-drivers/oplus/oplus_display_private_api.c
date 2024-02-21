@@ -392,14 +392,14 @@ int dsi_display_read_panel_reg(struct dsi_display *display, u8 cmd, void *data,
 		return -EINVAL;
 	}
 
-	if(display->enabled == false) {
+	if(display->panel->panel_initialized == false) {
 		pr_info("%s primary display is disable, try sec display\n", __func__);
 		display = get_sec_display();
 		if (!display) {
 			pr_info("%s sec display is null\n", __func__);
 			return -1;
 		}
-		if (display->enabled == false) {
+		if (display->panel->panel_initialized == false) {
 			pr_info("%s second panel is disabled", __func__);
 			return -1;
 		}
@@ -407,7 +407,7 @@ int dsi_display_read_panel_reg(struct dsi_display *display, u8 cmd, void *data,
 
 	mutex_lock(&display->display_lock);
 	/* if (is_set_seed && (get_oplus_display_power_status() != OPLUS_DISPLAY_POWER_ON)) { */
-	if (display->panel->power_mode != SDE_MODE_DPMS_ON) {
+	if (display->panel->power_mode == SDE_MODE_DPMS_OFF) {
 		pr_err("%s:panel off\n", __func__);
 		goto done;
 	}

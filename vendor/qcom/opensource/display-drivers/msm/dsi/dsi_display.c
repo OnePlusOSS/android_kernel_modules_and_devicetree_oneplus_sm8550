@@ -44,6 +44,10 @@
 #include "../oplus/oplus_display_temp_compensation.h"
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
 
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+#include "../oplus/oplus_onscreenfingerprint.h"
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
+
 #if defined(CONFIG_PXLW_IRIS) || defined(CONFIG_PXLW_SOFT_IRIS)
 #include "dsi_iris_api.h"
 #endif
@@ -9163,6 +9167,10 @@ int dsi_display_enable(struct dsi_display *display)
 		oplus_adfr_fakeframe_status_update(display->panel, true);
 		oplus_adfr_timing_mux_vsync_switch(display);
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+
+#ifdef OPLUS_FEATURE_DISPLAY
+		display->panel->ts_timestamp = ktime_get();
+#endif /* OPLUS_FEATURE_DISPLAY */
 		rc = dsi_panel_switch(display->panel);
 		if (rc)
 			DSI_ERR("[%s] failed to switch DSI panel mode, rc=%d\n",
@@ -9209,6 +9217,12 @@ error:
 		oplus_temp_compensation_data_update(display);
 	}
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
+
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+	if (display && oplus_ofp_is_supported()) {
+		oplus_ofp_lhbm_pressed_icon_gamma_update(display);
+	}
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
 
 	SDE_EVT32(SDE_EVTLOG_FUNC_EXIT);
 	return rc;

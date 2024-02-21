@@ -522,6 +522,7 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 	#define DUMP_REG_BUF_SIZE 100
 	char dump_buf[DUMP_REG_BUF_SIZE];
 	int len = 0;
+	const u32 MAX_READ_CNT = 100;
 
 	if (!_iris_is_valid_type(display, type))
 		return -EPERM;
@@ -626,9 +627,9 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 			IRIS_LOGE("wrong prameter count in reg dump: %d", count);
 			break;
 		}
-		dump_read_cnt = values[0];
 		dump_reg_addr = &values[1];
 		dump_reg_cnt = count - 1;
+		dump_read_cnt = values[0] > MAX_READ_CNT ? MAX_READ_CNT : values[0];
 		for (i = 0; i < dump_read_cnt; i++) {
 			for (j = 0; j < dump_reg_cnt; j++)
 				pcfg->iris_i2c_read(dump_reg_addr[j], &dump_reg_val[j]);

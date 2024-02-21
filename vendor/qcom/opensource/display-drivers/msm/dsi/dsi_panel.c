@@ -2158,6 +2158,10 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-hbm-on-command",
 	"qcom,mdss-dsi-hbm-on-onepulse-command",
 	"qcom,mdss-dsi-hbm-off-command",
+	"qcom,mdss-dsi-lhbm-pressed-icon-gamma-command",
+	"qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command",
+	"qcom,mdss-dsi-lhbm-pressed-icon-on-command",
+	"qcom,mdss-dsi-lhbm-pressed-icon-off-command",
 	"qcom,mdss-dsi-aor-on-command",
 	"qcom,mdss-dsi-aor-off-command",
 	"qcom,mdss-dsi-aod-high-mode-command",
@@ -2250,6 +2254,7 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-gamma-pre-read-90hz-command",
 	"qcom,mdss-dsi-gamma-pre-read-off-command",
 	"qcom,mdss-dsi-gamma-remap-command",
+	"qcom,mdss-dsi-on-demura-command",
 #endif /* OPLUS_FEATURE_DISPLAY */
 #if defined(CONFIG_PXLW_IRIS)
 	"qcom,mdss-dsi-iris-switch-tsp-vsync-scanline-command",
@@ -2340,6 +2345,10 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-hbm-on-command-state",
 	"qcom,mdss-dsi-hbm-on-onepulse-command-state",
 	"qcom,mdss-dsi-hbm-off-command-state",
+	"qcom,mdss-dsi-lhbm-pressed-icon-gamma-command-state",
+	"qcom,mdss-dsi-lhbm-pressed-icon-grayscale-command-state",
+	"qcom,mdss-dsi-lhbm-pressed-icon-on-command-state",
+	"qcom,mdss-dsi-lhbm-pressed-icon-off-command-state",
 	"qcom,mdss-dsi-aor-on-command-state",
 	"qcom,mdss-dsi-aor-off-command-state",
 	"qcom,mdss-dsi-aod-high-mode-command-state",
@@ -2432,6 +2441,7 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-gamma-pre-read-90hz-command-state",
 	"qcom,mdss-dsi-gamma-pre-read-off-command-state",
 	"qcom,mdss-dsi-gamma-remap-command-state",
+	"qcom,mdss-dsi-on-demura-command-state",
 #endif /* OPLUS_FEATURE_DISPLAY */
 #if defined(CONFIG_PXLW_IRIS)
 	"qcom,mdss-dsi-iris-switch-tsp-vsync-scanline-command-state",
@@ -5498,12 +5508,7 @@ int dsi_panel_switch(struct dsi_panel *panel)
 
 #ifdef OPLUS_FEATURE_DISPLAY
 	if (!strcmp(panel->name, "AA551 P 3 A0004 dsc cmd mode panel")) {
-		if (panel->last_refresh_rate == 60) {
-			oplus_sde_early_wakeup(panel);
-			oplus_wait_for_vsync(panel);
-			oplus_panel_switch_to_sync_te(panel);
-			usleep_range(120, 120);
-		}
+		oplus_panel_switch_to_sync_te(panel);
 	} else if(oplus_panel_pwm_onepulse_is_enabled(panel)) {
 		oplus_sde_early_wakeup(panel);
 		oplus_wait_for_vsync(panel);

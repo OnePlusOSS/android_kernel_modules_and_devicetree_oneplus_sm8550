@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  * Copyright (c) 2016-2019, 2021, The Linux Foundation. All rights reserved.
  */
 
@@ -177,15 +177,6 @@ struct sde_hw_intr_ops {
 	 * @irq_idx:	Lookup irq index return from irq_idx_lookup
 	 */
 	void (*clear_interrupt_status)(
-			struct sde_hw_intr *intr,
-			int irq_idx);
-
-	/**
-	 * clear_intr_status_nolock() - clears the HW interrupts without lock
-	 * @intr:	HW interrupt handle
-	 * @irq_idx:	Lookup irq index return from irq_idx_lookup
-	 */
-	void (*clear_intr_status_nolock)(
 			struct sde_hw_intr *intr,
 			int irq_idx);
 

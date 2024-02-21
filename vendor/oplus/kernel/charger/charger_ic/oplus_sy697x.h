@@ -584,7 +584,7 @@ struct sy697x {
 	int			before_unsuspend_icl;
 	struct oplus_chg_chip *oplus_chgchip;
 	const struct oplus_chgic_operations *chgic_ops;
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	struct tcpc_device *tcpc;
 	int pd_type;
 #endif

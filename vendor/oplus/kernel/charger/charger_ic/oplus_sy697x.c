@@ -66,7 +66,7 @@
 #include "oplus_sy697x.h"
 #include "../voocphy/oplus_voocphy.h"
 #include "../oplus_configfs.h"
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 #include "../../../../../../kernel_platform/msm-kernel/drivers/usb/typec/pd/inc/tcpci.h"
 #include "../../../../../../kernel_platform/msm-kernel/drivers/usb/typec/pd/inc/tcpm.h"
 #endif
@@ -76,8 +76,8 @@ int sc8547_subsys_init(void);
 void sc8547_subsys_exit(void);
 int sgm7220_i2c_init(void);
 void sgm7220_i2c_exit(void);
-extern int rt1711_driver_init(void);
-extern void rt1711_driver_exit(void);
+extern int et7303_driver_init(void);
+extern void et7303_driver_exit(void);
 extern void oplus_enable_device_mode(bool enable);
 #endif
 
@@ -704,7 +704,7 @@ int oplus_sy697x_get_usb_status(void)
 int oplus_set_mode(int mode)
 {
 	int rc = 0;
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(use_rt1715) {
 		if(g_sy != NULL && g_sy->tcpc != NULL) {
 			rc = tcpm_typec_change_role(g_sy->tcpc, mode ? TYPEC_ROLE_DRP : TYPEC_ROLE_SNK);
@@ -729,7 +729,7 @@ int oplus_set_mode(int mode)
 #define IBUS_2A 2000
 #define IBUS_3A 3000
 
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 #define CHG_HV_THR     6500
 #define CHG_SOC_THR    90
 int oplus_sy697x_get_pd_type(void)
@@ -1204,7 +1204,7 @@ bool oplus_get_otg_online_status_default(void)
 		return false;
 	}
 
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(use_rt1715) {
 		if (g_sy != NULL && g_sy->tcpc != NULL) {
 			if (tcpm_inquire_typec_attach_state(g_sy->tcpc) == TYPEC_ATTACHED_SRC)
@@ -1357,7 +1357,7 @@ static void oplus_usbtemp_recover_work(struct work_struct *work)
 
 static bool opluschg_get_typec_cc_orientation(union power_supply_propval *val)
 {
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(use_rt1715) {
 		if (g_sy != NULL && g_sy->tcpc != NULL) {
 			if (tcpm_inquire_typec_attach_state(g_sy->tcpc) != TYPEC_UNATTACHED) {
@@ -5136,7 +5136,7 @@ static int opluschg_get_chargerid(void)
 }
 bool oplus_sy697x_check_pdphy_ready(void)
 {
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(g_sy && !g_sy->tcpc)
 		return true;
 
@@ -5166,7 +5166,7 @@ int oplus_sy697x_get_charger_subtype(void)
 		return CHARGER_SUBTYPE_DEFAULT;
 #endif
 	}else{
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 		if (g_sy->pd_type == PD_CONNECT_PE_READY_SNK ||
 		    g_sy->pd_type == PD_CONNECT_PE_READY_SNK_PD30 ||
 		    g_sy->pd_type == PD_CONNECT_PE_READY_SNK_APDO) {
@@ -5759,7 +5759,7 @@ struct oplus_chg_operations  oplus_chg_sy697x_ops = {
 	.need_to_check_ibatt = oplus_sy697x_need_to_check_ibatt,
 	.get_dyna_aicl_result = oplus_sy697x_get_dyna_aicl_result,
 	.get_shortc_hw_gpio_status = NULL,
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	.oplus_chg_get_pd_type = oplus_sy697x_get_pd_type,
 	.oplus_chg_pd_setup = oplus_sy697x_pd_setup,
 #endif
@@ -5861,7 +5861,7 @@ void oplus_sy697x_set_otg_switch_status(bool value)
 	}
 
 	g_oplus_chip->otg_switch = value;
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(use_rt1715) {
 		if(g_sy != NULL && g_sy->tcpc != NULL) {
 			chg_err("%s: value=%d\n", __FUNCTION__, value);
@@ -6402,7 +6402,7 @@ static int oplus_sy697x_iio_init(struct smb5 *chip, struct device *pdev,
 	return rc;
 }
 
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 #define TCPC_COMPLETE_RETRY_COUNT 10
 #define TCPC_COMPLETE_WORK_DELAY round_jiffies_relative(msecs_to_jiffies(300))
 static struct delayed_work tcpc_complete_work;
@@ -6531,7 +6531,7 @@ static int sy697x_charger_probe(struct i2c_client *client,
 		ret = -EINVAL;
 		goto err_parse_dt;
 	}
-#ifdef CONFIG_TCPC_CLASS
+#if IS_ENABLED(CONFIG_TCPC_CLASS)
 	if(use_rt1715) {
 		sy->tcpc = tcpc_dev_get_by_name("type_c_port0");
 		if (!sy->tcpc) {
@@ -6652,6 +6652,8 @@ static int sy697x_charger_probe(struct i2c_client *client,
 
 	pr_err("sy697x probe successfully Part Num:%d, Revision:%d\n!", sy->part_no, sy->revision);
 	chg_init_done = 1;
+	// Init rt pd manager
+	rt_pd_manager_init();
 	return 0;
 err_init:
 err_parse_dt:
@@ -6866,7 +6868,7 @@ void __exit sy697x_charger_exit(void)
 	rt_pd_manager_exit();
 	sc8547_subsys_exit();
 	sgm7220_i2c_exit();
-	rt1711_driver_exit();
+	et7303_driver_exit();
 	bq27541_driver_exit();
 	i2c_del_driver(&sy697x_charger_driver);
 }
@@ -6885,8 +6887,7 @@ int __init sy697x_charger_init(void)
 	bq27541_driver_init();
 	sc8547_subsys_init();
 	sgm7220_i2c_init();
-	rt1711_driver_init();
-	rt_pd_manager_init();
+	et7303_driver_init();
 	return ret;
 }
 oplus_chg_module_register(sy697x_charger);

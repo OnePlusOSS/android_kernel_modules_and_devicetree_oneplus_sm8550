@@ -3,6 +3,18 @@
 #include "block_metrics.h"
 #include <trace/events/block.h>
 
+#define BLK_METRICS_LAT(op, size, layer)   \
+    atomic64_t blk_metrics_lat_##op##_##size##_##layer[LAT_500M_TO_MAX + 1] = {0};
+
+BLK_METRICS_LAT(read,    4k, in_blk);
+BLK_METRICS_LAT(read,    4k, in_drv);
+BLK_METRICS_LAT(write,   4k, in_blk);
+BLK_METRICS_LAT(write,   4k, in_drv);
+BLK_METRICS_LAT(read,  512k, in_blk);
+BLK_METRICS_LAT(read,  512k, in_drv);
+BLK_METRICS_LAT(write, 512k, in_blk);
+BLK_METRICS_LAT(write, 512k, in_drv);
+
 bool block_rq_issue_enabled = false;
 bool block_rq_complete_enabled = false;
 module_param(block_rq_issue_enabled, bool, S_IRUGO | S_IWUSR);
@@ -24,6 +36,8 @@ static void block_stat_update(struct request *rq, enum io_op_type op_type,
     u64 in_block = (rq->io_start_time_ns > rq->start_time_ns) && rq->start_time_ns ?
                     (rq->io_start_time_ns - rq->start_time_ns) : 0;
     u64 in_d_and_b = in_driver + in_block;
+    u64 in_driver_lat_range = LAT_500M_TO_MAX;
+    u64 in_block_lat_range = LAT_500M_TO_MAX;
     enum io_range io_range = IO_SIZE_MAX;
     u32 nr_bytes = blk_rq_bytes(rq);
 
@@ -56,6 +70,39 @@ static void block_stat_update(struct request *rq, enum io_op_type op_type,
             blk_metrics[op_type][i][io_range].max_time = in_d_and_b;
             spin_unlock_irqrestore(&blk_metrics_lock[op_type][i][io_range], flags);
             elapse = 0;
+            if (op_type == OP_READ) {
+                if (likely(io_range == IO_SIZE_0_TO_4K)) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    memset(&blk_metrics_lat_read_4k_in_blk, 0, sizeof(blk_metrics_lat_read_4k_in_blk));
+                    memset(&blk_metrics_lat_read_4k_in_drv, 0, sizeof(blk_metrics_lat_read_4k_in_drv));
+                    atomic64_set(&blk_metrics_lat_read_4k_in_blk[in_block_lat_range], 1);
+                    atomic64_set(&blk_metrics_lat_read_4k_in_drv[in_driver_lat_range], 1);
+                } else if (io_range == IO_SIZE_512K_TO_MAX) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    memset(&blk_metrics_lat_read_512k_in_blk, 0, sizeof(blk_metrics_lat_read_512k_in_blk));
+                    memset(&blk_metrics_lat_read_512k_in_drv, 0, sizeof(blk_metrics_lat_read_512k_in_drv));
+                    atomic64_set(&blk_metrics_lat_read_512k_in_blk[in_block_lat_range], 1);
+                    atomic64_set(&blk_metrics_lat_read_512k_in_drv[in_driver_lat_range], 1);
+                }
+            } else if (op_type == OP_WRITE) {
+                if (likely(io_range == IO_SIZE_0_TO_4K)) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    memset(&blk_metrics_lat_write_4k_in_blk, 0, sizeof(blk_metrics_lat_write_4k_in_blk));
+                    memset(&blk_metrics_lat_write_4k_in_drv, 0, sizeof(blk_metrics_lat_write_4k_in_drv));
+                    atomic64_set(&blk_metrics_lat_write_4k_in_blk[in_block_lat_range], 1);
+                    atomic64_set(&blk_metrics_lat_write_4k_in_drv[in_driver_lat_range], 1);
+                } else if (io_range == IO_SIZE_512K_TO_MAX) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    memset(&blk_metrics_lat_write_512k_in_blk, 0, sizeof(blk_metrics_lat_write_512k_in_blk));
+                    memset(&blk_metrics_lat_write_512k_in_drv, 0, sizeof(blk_metrics_lat_write_512k_in_drv));
+                    atomic64_set(&blk_metrics_lat_write_512k_in_blk[in_block_lat_range], 1);
+                    atomic64_set(&blk_metrics_lat_write_512k_in_drv[in_driver_lat_range], 1);
+                }
+            }
         } else { /* 没有满足一个采样周期时更新数据 */
             flags = 0;
             spin_lock_irqsave(&blk_metrics_lock[op_type][i][io_range], flags);
@@ -75,6 +122,32 @@ static void block_stat_update(struct request *rq, enum io_op_type op_type,
                (blk_metrics[op_type][i][io_range].max_time > in_d_and_b) ?
                blk_metrics[op_type][i][io_range].max_time : in_d_and_b;
             spin_unlock_irqrestore(&blk_metrics_lock[op_type][i][io_range], flags);
+            if (op_type == OP_READ) {
+                if (likely(io_range == IO_SIZE_0_TO_4K)) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    atomic64_inc(&blk_metrics_lat_read_4k_in_blk[in_block_lat_range]);
+                    atomic64_inc(&blk_metrics_lat_read_4k_in_drv[in_driver_lat_range]);
+                } else if (io_range == IO_SIZE_512K_TO_MAX) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    atomic64_inc(&blk_metrics_lat_read_512k_in_blk[in_block_lat_range]);
+                    atomic64_inc(&blk_metrics_lat_read_512k_in_drv[in_driver_lat_range]);
+                }
+            } else if (op_type == OP_WRITE) {
+                if (likely(io_range == IO_SIZE_0_TO_4K)) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    atomic64_inc(&blk_metrics_lat_write_4k_in_blk[in_block_lat_range]);
+                    atomic64_inc(&blk_metrics_lat_write_4k_in_drv[in_driver_lat_range]);
+                } else if (io_range == IO_SIZE_512K_TO_MAX) {
+                    lat_range_check(in_block, in_block_lat_range);
+                    lat_range_check(in_driver, in_driver_lat_range);
+                    atomic64_inc(&blk_metrics_lat_write_512k_in_blk[in_block_lat_range]);
+                    atomic64_inc(&blk_metrics_lat_write_512k_in_drv[in_driver_lat_range]);
+                }
+            }
+
         }
         if (unlikely(elapse >= sample_cycle_config[i].cycle_value)) {
             /* 过期复位 */
@@ -417,21 +490,45 @@ bio_read:
                 blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_blk_max_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].layer[IN_BLOCK].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_blk_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_read_4k_in_blk[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_drv_avg_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].elapse_time /
                 blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_drv_max_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_4k_drv_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_read_4k_in_drv[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_blk_avg_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].elapse_time /
                 blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_blk_max_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_blk_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_read_512k_in_blk[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_drv_avg_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].elapse_time /
                 blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_drv_max_time")) {
         value = blk_metrics[OP_READ][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_read_512k_drv_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_read_512k_in_drv[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     }
 
 bio_write:
@@ -480,21 +577,45 @@ bio_write:
                 blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_blk_max_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].layer[IN_BLOCK].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_blk_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_write_4k_in_blk[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_drv_avg_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].elapse_time /
                 blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_drv_max_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_0_TO_4K].layer[IN_DRIVER].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_4k_drv_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_write_4k_in_drv[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_blk_avg_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].elapse_time /
                 blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_blk_max_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_BLOCK].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_blk_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_write_512k_in_blk[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_drv_avg_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].elapse_time /
                 blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].total_cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_drv_max_time")) {
         value = blk_metrics[OP_WRITE][cycle][IO_SIZE_512K_TO_MAX].layer[IN_DRIVER].max_time;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "bio_write_512k_drv_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&blk_metrics_lat_write_512k_in_drv[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     }
 
     seq_printf(seq_filp, "%llu\n", value);
@@ -520,6 +641,14 @@ void block_metrics_reset(void)
                          * sizeof(struct blk_metrics_struct));
     io_metrics_print("size:%lu\n", OP_MAX * CYCLE_MAX * IO_SIZE_MAX
                               * sizeof(struct blk_metrics_struct));
+    memset(&blk_metrics_lat_read_4k_in_blk, 0, sizeof(blk_metrics_lat_read_4k_in_blk));
+    memset(&blk_metrics_lat_read_4k_in_drv, 0, sizeof(blk_metrics_lat_read_4k_in_drv));
+    memset(&blk_metrics_lat_write_4k_in_blk, 0, sizeof(blk_metrics_lat_write_4k_in_blk));
+    memset(&blk_metrics_lat_write_4k_in_drv, 0, sizeof(blk_metrics_lat_write_4k_in_drv));
+    memset(&blk_metrics_lat_read_512k_in_blk, 0, sizeof(blk_metrics_lat_read_512k_in_blk));
+    memset(&blk_metrics_lat_read_512k_in_drv, 0, sizeof(blk_metrics_lat_read_512k_in_drv));
+    memset(&blk_metrics_lat_write_512k_in_blk, 0, sizeof(blk_metrics_lat_write_512k_in_blk));
+    memset(&blk_metrics_lat_write_512k_in_drv, 0, sizeof(blk_metrics_lat_write_512k_in_drv));
 }
 
 void block_metrics_init(void)

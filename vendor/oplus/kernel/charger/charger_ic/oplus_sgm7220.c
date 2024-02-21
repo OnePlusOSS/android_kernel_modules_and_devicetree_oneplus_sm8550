@@ -32,7 +32,7 @@
 
 #include <linux/usb/typec.h>
 #include <linux/power_supply.h>
-#ifdef CONFIG_OPLUS_SM6115R_CHARGER
+#ifdef OPLUS_CHG_SEPARATE_MUSE
 #include "oplus_battery_sm6115R.h"
 #else
 #include "oplus_battery_sm6375.h"

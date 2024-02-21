@@ -387,9 +387,11 @@ static void oplus_cpa_protocol_switch_work(struct work_struct *work)
 		return;
 	} else {
 		mutex_lock(&cpa->start_lock);
-		if (!READ_ONCE(cpa->started))
+		if (!READ_ONCE(cpa->started)) {
 			schedule_delayed_work(&cpa->protocol_switch_timeout_work,
 				msecs_to_jiffies(PROTOCAL_SWITCH_REPLY_TIMEOUT_MS));
+			chg_info("switch %s schedule protocol_switch_timeout_work\n", get_protocol_name_str(type));
+		}
 		mutex_unlock(&cpa->start_lock);
 		protocol = READ_ONCE(cpa->protocol_to_be_switched);
 		protocol &= ~BIT(type);
@@ -412,8 +414,8 @@ static void oplus_cpa_switch_end_work(struct work_struct *work)
 	}
 
 	type = cpa->current_protocol_type;
+	WRITE_ONCE(cpa->started, false);
 	oplus_cpa_set_current_protocol_type(cpa, CHG_PROTOCOL_INVALID);
-	cpa->started = false;
 
 	msg = oplus_mms_alloc_msg(MSG_TYPE_ITEM, MSG_PRIO_HIGH, CPA_ITEM_CHG_TYPE);
 	if (msg == NULL) {
@@ -428,7 +430,9 @@ static void oplus_cpa_switch_end_work(struct work_struct *work)
 
 	chg_info("%s protocol identify end, to_be_switched=0x%x\n",
 		 get_protocol_name_str(type), cpa->protocol_to_be_switched);
+	mutex_lock(&cpa->cpa_request_lock);
 	protocol_identify_request(cpa, READ_ONCE(cpa->protocol_to_be_switched));
+	mutex_unlock(&cpa->cpa_request_lock);
 }
 
 static void oplus_cpa_chg_type_change_work(struct work_struct *work)
@@ -1175,6 +1179,9 @@ int oplus_cpa_switch_end(struct oplus_mms *topic, enum oplus_chg_protocol_type t
 		return -EINVAL;
 	}
 	cpa = oplus_mms_get_drvdata(topic);
+	if (type != cpa->current_protocol_type)
+		return -EINVAL;
+
 	return schedule_work(&cpa->switch_end_work);
 
 }

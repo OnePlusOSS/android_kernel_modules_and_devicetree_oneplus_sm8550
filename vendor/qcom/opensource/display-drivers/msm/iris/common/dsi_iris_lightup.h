@@ -403,6 +403,7 @@ void iris_set_ocp_base_addr(const uint8_t *payload, uint32_t val);
 void iris_set_ocp_first_val(const uint8_t *payload, uint32_t val);
 void iris_display_mode_name_update(void);
 uint32_t iris_get_cnn_model_count(void);
+struct iris_ctrl_seq *iris_get_current_seq(void);
 int iris_debug_display_mode_get_i7(char *kbuf, int size, bool debug);
 int iris_debug_display_mode_get_i7p(char *kbuf, int size, bool debug);
 int iris_debug_display_info_get(char *kbuf, int size);

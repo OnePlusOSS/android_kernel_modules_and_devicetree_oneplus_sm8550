@@ -244,6 +244,7 @@ void oplus_panel_update_backlight(struct dsi_panel *panel,
 
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	if (oplus_ofp_is_supported()) {
+		oplus_ofp_lhbm_backlight_update(NULL, panel, &bl_lvl);
 		if (oplus_ofp_backlight_filter(panel, bl_lvl)) {
 			return;
 		}

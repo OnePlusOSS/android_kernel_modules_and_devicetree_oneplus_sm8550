@@ -1152,6 +1152,11 @@ static void oplus_otg_init_status_func(struct work_struct *work)
 	struct battery_chg_dev *bcdev = container_of(work,
 		struct battery_chg_dev, otg_init_work.work);
 
+	if (bcdev->otg_online) {
+		bcdev->otg_online = false;
+		chg_err("oplus_otg_init_status_func disable otg");
+		oplus_chg_ic_virq_trigger(bcdev->buck_ic, OPLUS_IC_VIRQ_OTG_ENABLE);
+	}
 	oplus_otg_ap_enable(bcdev, true);
 }
 
@@ -1727,13 +1732,6 @@ void oplus_turn_off_power_when_adsp_crash(void)
 
 	schedule_delayed_work(&bcdev->plugin_irq_work, 0);
 	oplus_adsp_voocphy_fastchg_event_handle(ADSP_VPHY_FAST_NOTIFY_CRASH);
-	if (bcdev->otg_online == true) {
-		bcdev->otg_online = false;
-#ifdef OPLUS_CHG_UNDEF /* TODO */
-		oplus_wpc_set_booster_en_val(0);
-#endif
-		oplus_set_otg_ovp_en_val(bcdev, 0);
-	}
 }
 EXPORT_SYMBOL(oplus_turn_off_power_when_adsp_crash);
 
@@ -1795,7 +1793,7 @@ static void oplus_adsp_crash_recover_func(struct work_struct *work)
 		chg_err("recover QC");
 		write_property_id(bcdev, pst, BATT_SET_QC, 0);
 	}
-	schedule_delayed_work(&bcdev->otg_init_work, 0);
+	schedule_delayed_work(&bcdev->otg_init_work, msecs_to_jiffies(500));
 	schedule_delayed_work(&bcdev->plugin_irq_work, 0);
 	msleep(2000);
 	bcdev->adsp_crash = 0;

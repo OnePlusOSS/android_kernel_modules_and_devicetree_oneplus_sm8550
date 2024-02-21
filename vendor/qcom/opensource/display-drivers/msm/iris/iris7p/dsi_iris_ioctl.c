@@ -56,6 +56,7 @@ static bool iris_special_config(u32 type)
 	case IRIS_SET_DPP_APL_RES:
 	case IRIS_ENABLE_DPP_APL:
 	case IRIS_CLEAR_FRC_MIF_INT:
+	case IRIS_PT_SR_LUT_SET:
 		return true;
 	default:
 		break;
@@ -252,7 +253,7 @@ static int _iris_configure(u32 display, u32 type, u32 value)
 		pqlt_cur_setting->scurvelevel = value;
 		iris_scurve_enable_set(pqlt_cur_setting->scurvelevel);
 		break;
-	case IRIS_SCALER_PP_FILTER_LEVEL:
+	case IRIS_SR_FILTER_LEVEL:
 		iris_scl_sr1d_filter(1, &value);
 		break;
 	case IRIS_PT_SR_SET:
@@ -294,6 +295,19 @@ static int _iris_configure(u32 display, u32 type, u32 value)
 	case IRIS_N2M_ENABLE:
 		iris_configure_memc(type, value);
 		break;
+	case IRIS_PT_SR_LUT_SET:
+	{
+		bool need_lock = true;
+
+		if (pcfg->abyp_ctrl.abypass_mode == ANALOG_BYPASS_MODE)
+			need_lock = false;
+		if (need_lock)
+			mutex_lock(&pcfg->panel->panel_lock);
+		iris_scl_update_model(1, &value);
+		if (need_lock)
+			mutex_unlock(&pcfg->panel->panel_lock);
+		break;
+	}
 	case IRIS_MODE_SET:
 	case IRIS_VIDEO_FRAME_RATE_SET:
 	case IRIS_OUT_FRAME_RATE_SET:
@@ -353,6 +367,7 @@ int iris_configure_i7p(u32 display, u32 type, u32 value)
 	case IRIS_OSD_LAYER_EMPTY:
 	case IRIS_SET_METADATA:
 	case IRIS_LOOP_BACK_MODE:
+	case IRIS_PT_SR_LUT_SET:
 		/* don't lock panel_lock */
 		return _iris_configure(display, type, value);
 	}
@@ -571,7 +586,7 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 	case IRIS_SCALER_FILTER_LEVEL:
 		iris_scl_ioinc_filter(count, values);
 		break;
-	case IRIS_SCALER_PP_FILTER_LEVEL:
+	case IRIS_SR_FILTER_LEVEL:
 		iris_scl_sr1d_filter(count, values);
 		break;
 	case IRIS_PT_SR_SET:
@@ -597,6 +612,19 @@ static int _iris_configure_ex(u32 display, u32 type, u32 count, u32 *values)
 	case IRIS_SET_MVD_META:
 		IRIS_LOGI("unused in iris7p");
 		break;
+	case IRIS_PT_SR_LUT_SET:
+	{
+		bool need_lock = true;
+
+		if (pcfg->abyp_ctrl.abypass_mode == ANALOG_BYPASS_MODE)
+			need_lock = false;
+		if (need_lock)
+			mutex_lock(&pcfg->panel->panel_lock);
+		iris_scl_update_model(count, values);
+		if (need_lock)
+			mutex_unlock(&pcfg->panel->panel_lock);
+		break;
+	}
 	default:
 		IRIS_LOGE("%s(), unrecognized type: 0x%04x(%d)", __func__, type, type);
 		goto error;
@@ -621,6 +649,7 @@ int iris_configure_ex_i7p(u32 display, u32 type, u32 count, u32 *values)
 
 	switch (type) {
 	case IRIS_WAIT_VSYNC:
+	case IRIS_PT_SR_LUT_SET:
 		/* don't lock panel_lock */
 		return _iris_configure_ex(display, type, count, values);
 	default:

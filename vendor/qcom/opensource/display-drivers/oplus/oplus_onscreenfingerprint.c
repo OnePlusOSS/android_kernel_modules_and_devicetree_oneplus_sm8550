@@ -48,6 +48,8 @@
 #define OPLUS_OFP_GET_BRIGHTNESS_ADAPTATION_CONFIG(fp_type)	((fp_type) & OPLUS_OFP_FP_TYPE_BRIGHTNESS_ADAPTATION)
 #define OPLUS_OFP_GET_ULTRASONIC_CONFIG(fp_type)			((fp_type) & OPLUS_OFP_FP_TYPE_ULTRASONIC)
 #define OPLUS_OFP_GET_ULTRA_LOW_POWER_AOD_CONFIG(fp_type)	((fp_type) & OPLUS_OFP_FP_TYPE_ULTRA_LOW_POWER_AOD)
+/* dbv level */
+#define OPLUS_OFP_900NIT_DBV_LEVEL 							(0x0DBB)
 
 #define to_dsi_display(x) container_of(x, struct dsi_display, host)
 
@@ -65,6 +67,7 @@ static DEFINE_MUTEX(oplus_ofp_lock);
 
 /* -------------------- extern -------------------- */
 /* extern params */
+extern bool is_pvt_panel;
 extern u32 oplus_last_backlight;
 
 /* extern functions */
@@ -126,6 +129,29 @@ static struct oplus_ofp_params *oplus_ofp_get_params(unsigned int display_id)
 	return &g_oplus_ofp_params[display_id];
 }
 
+static int oplus_ofp_fp_type_compatible_mode_config(void)
+{
+	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
+
+	OFP_DEBUG("start\n");
+
+	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_fp_type_compatible_mode_config");
+
+	if (p_oplus_ofp_params->fp_type_compatible_mode) {
+		if (!is_pvt_panel) {
+			/* these panels do not support lhbm */
+			p_oplus_ofp_params->fp_type = 0x88;
+			OFP_INFO("fp_type:0x%x\n", p_oplus_ofp_params->fp_type);
+		}
+	}
+
+	OPLUS_OFP_TRACE_END("oplus_ofp_fp_type_compatible_mode_config");
+
+	OFP_DEBUG("end\n");
+
+	return 0;
+}
+
 /* get fp_type value from panel dtsi */
 int oplus_ofp_init(void *dsi_panel)
 {
@@ -180,6 +206,11 @@ int oplus_ofp_init(void *dsi_panel)
 
 	OFP_INFO("fp_type:0x%x\n", p_oplus_ofp_params->fp_type);
 
+	/* indicates whether fp type compatible mode is set or not */
+	p_oplus_ofp_params->fp_type_compatible_mode = utils->read_bool(utils->data, "oplus,ofp-fp-type-compatible-mode");
+	OFP_INFO("fp_type_compatible_mode:%d\n", p_oplus_ofp_params->fp_type_compatible_mode);
+	oplus_ofp_fp_type_compatible_mode_config();
+
 	if (oplus_ofp_is_supported()) {
 		/* indicates whether gamut needs to be bypassed in aod/fod scenarios or not */
 		p_oplus_ofp_params->need_to_bypass_gamut = utils->read_bool(utils->data, "oplus,ofp-need-to-bypass-gamut");
@@ -219,6 +250,12 @@ int oplus_ofp_init(void *dsi_panel)
 			if (rc) {
 				OFP_ERR("failed to register touchpanel event notifier, rc=%d\n", rc);
 			}
+		}
+
+		if (oplus_ofp_local_hbm_is_enabled()) {
+			/* indicates whether lhbm pressed icon gamma needs to be read and updated or not */
+			p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma = utils->read_bool(utils->data, "oplus,ofp-need-to-update-lhbm-pressed-icon-gamma");
+			OFP_INFO("need_to_update_lhbm_pressed_icon_gamma:%d\n", p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma);
 		}
 	}
 
@@ -721,6 +758,58 @@ static int oplus_ofp_panel_cmd_set_nolock(void *dsi_panel, enum dsi_cmd_set_type
 		OPLUS_OFP_TRACE_END("dsi_panel_seed_mode");
 		break;
 
+	case DSI_CMD_LHBM_PRESSED_ICON_ON:
+		oplus_ofp_set_hbm_state(true);
+		oplus_hbm_pwm_state(panel, true);
+
+		if (p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma && (panel->bl_config.bl_level > OPLUS_OFP_900NIT_DBV_LEVEL)) {
+			OFP_INFO("set backlight level to OPLUS_OFP_900NIT_DBV_LEVEL after pressed icon on\n");
+			OPLUS_OFP_TRACE_BEGIN("dsi_panel_set_backlight");
+			rc = dsi_panel_set_backlight(panel, OPLUS_OFP_900NIT_DBV_LEVEL);
+			OPLUS_OFP_TRACE_END("dsi_panel_set_backlight");
+			if (rc) {
+				OFP_ERR("unable to set backlight\n");
+			}
+		}
+		break;
+
+	case DSI_CMD_LHBM_PRESSED_ICON_OFF:
+		oplus_ofp_set_hbm_state(false);
+		oplus_hbm_pwm_state(panel, false);
+
+		/*
+		 if backlight level is in global hbm range before hbm on, reset the oplus_global_hbm_flags,
+		 so that it can reenter global hbm level after hbm off
+		*/
+		if (oplus_display_panel_get_global_hbm_status()) {
+			oplus_display_panel_set_global_hbm_status(GLOBAL_HBM_DISABLE);
+		}
+
+		/* recovery backlight level */
+		OPLUS_OFP_TRACE_BEGIN("dsi_panel_set_backlight");
+		rc = dsi_panel_set_backlight(panel, panel->bl_config.bl_level);
+		OPLUS_OFP_TRACE_END("dsi_panel_set_backlight");
+		if (rc) {
+			OFP_ERR("unable to set backlight\n");
+			goto error;
+		}
+
+		/*
+		 the normal backlight of some panel takes effect for more than one frame,
+		 so increase the corresponding delay to ensure that the dim layer can match the brightness
+		*/
+		if (panel->cur_mode->priv_info->oplus_ofp_backlight_on_period > 1) {
+			refresh_rate = panel->cur_mode->timing.refresh_rate;
+			us_per_frame = 1000000/refresh_rate;
+			delay_us = (panel->cur_mode->priv_info->oplus_ofp_backlight_on_period - 1) * us_per_frame;
+
+			OPLUS_OFP_TRACE_BEGIN("usleep_range");
+			usleep_range(delay_us, (delay_us + 10));
+			OFP_INFO("usleep_range %u done\n", delay_us);
+			OPLUS_OFP_TRACE_END("usleep_range");
+		}
+		break;
+
 	case DSI_CMD_ULTRA_LOW_POWER_AOD_ON:
 		p_oplus_ofp_params->ultra_low_power_aod_state = true;
 		OFP_INFO("ultra_low_power_aod_state:%d\n", p_oplus_ofp_params->ultra_low_power_aod_state);
@@ -832,9 +921,353 @@ error:
 	return rc;
 }
 
+/*
+ due to the fact that the brightness of lhbm pressed icon may change with the backlight,
+ it is necessary to readjust the lhbm pressed icon gamma to meet the requirements of fingerprint unlocking
+*/
+int oplus_ofp_lhbm_pressed_icon_gamma_update(void *dsi_display)
+{
+	static bool calibrated = false;
+	unsigned char rx_buf_0[5] = {0};
+	unsigned char rx_buf_1[5] = {0};
+	unsigned char *tx_buf = NULL;
+	static unsigned char extrapolated_value[5][6] = {0};
+	int rc = 0;
+	int rgb_data_0[3] = {0};
+	int rgb_data_1[3] = {0};
+	int rgb_data_2[3] = {0};
+	unsigned int i = 0;
+	unsigned int j = 0;
+	unsigned int lcm_cmd_count = 0;
+	static unsigned int failure_count = 0;
+	struct dsi_display *display = dsi_display;
+	struct dsi_cmd_desc *cmds = NULL;
+	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
+
+	OFP_DEBUG("start\n");
+
+	if (!oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is not enabled, no need to update lhbm pressed icon gamma\n");
+		return 0;
+	}
+
+	if (!display || !display->panel || !display->panel->cur_mode || !display->panel->cur_mode->priv_info || !p_oplus_ofp_params) {
+		OFP_ERR("Invalid params\n");
+		return -EINVAL;
+	}
+
+	if (!p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma) {
+		OFP_DEBUG("need_to_update_lhbm_pressed_icon_gamma is not config, no need to update lhbm pressed icon gamma\n");
+		return 0;
+	}
+
+	if (!dsi_panel_initialized(display->panel) || display->panel->bl_config.bl_level) {
+		OFP_DEBUG("should not update lhbm pressed icon gamma if panel is not initialized or panel backlight is turned on\n");
+		return 0;
+	}
+
+	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_lhbm_pressed_icon_gamma_update");
+
+	if (!calibrated && (failure_count < 100)) {
+		/* read lhbm pressed icon gamma */
+		rc = oplus_ofp_display_cmd_set(display, DSI_CMD_PANEL_READ_REGISTER_OPEN);
+		if (rc) {
+			OFP_ERR("[%s] failed to send DSI_CMD_PANEL_READ_REGISTER_OPEN cmds, rc=%d\n", display->name, rc);
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_PANEL_READ_REGISTER_CLOSE);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_PANEL_READ_REGISTER_CLOSE cmds, rc=%d\n", display->name, rc);
+			}
+			goto error;
+		}
+
+		rc = dsi_display_read_panel_reg(display, 0x96, rx_buf_0, 5);
+		if (rc) {
+			OFP_ERR("failed to read panel reg 0x96, rc=%d\n", rc);
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_PANEL_READ_REGISTER_CLOSE);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_PANEL_READ_REGISTER_CLOSE cmds, rc=%d\n", display->name, rc);
+			}
+			goto error;
+		}
+
+		rc = dsi_display_read_panel_reg(display, 0x97, rx_buf_1, 5);
+		if (rc) {
+			OFP_ERR("failed to read panel reg 0x97, rc=%d\n", rc);
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_PANEL_READ_REGISTER_CLOSE);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_PANEL_READ_REGISTER_CLOSE cmds, rc=%d\n", display->name, rc);
+			}
+			goto error;
+		}
+
+		rc = oplus_ofp_display_cmd_set(display, DSI_CMD_PANEL_READ_REGISTER_CLOSE);
+		if (rc) {
+			OFP_ERR("[%s] failed to send DSI_CMD_PANEL_READ_REGISTER_CLOSE cmds, rc=%d\n", display->name, rc);
+			goto error;
+		}
+		for (i = 0; i < 5; i++) {
+			OFP_INFO("rx_buf_0[%u] = 0x%02X, rx_buf_1[%u] = 0x%02X\n", i, rx_buf_0[i], i, rx_buf_1[i]);
+		}
+
+		/* readjust the corresponding gamma value through extrapolation */
+		rgb_data_0[0] = ((rx_buf_0[0] & 0x0F) << 8) | rx_buf_0[2];
+		rgb_data_0[1] = ((rx_buf_0[1] & 0xF0) << 4) | rx_buf_0[3];
+		rgb_data_0[2] = ((rx_buf_0[1] & 0x0F) << 8) | rx_buf_0[4];
+		rgb_data_1[0] = ((rx_buf_1[0] & 0x0F) << 8) | rx_buf_1[2];
+		rgb_data_1[1] = ((rx_buf_1[1] & 0xF0) << 4) | rx_buf_1[3];
+		rgb_data_1[2] = ((rx_buf_1[1] & 0x0F) << 8) | rx_buf_1[4];
+
+		rgb_data_2[0] = (173 * 110 - 24700) * (rgb_data_1[0] - rgb_data_0[0]) / 800 + rgb_data_0[0];
+		rgb_data_2[1] = (173 * 110 - 24700) * (rgb_data_1[1] - rgb_data_0[1]) / 800 + rgb_data_0[1];
+		rgb_data_2[2] = (173 * 110 - 24700) * (rgb_data_1[2] - rgb_data_0[2]) / 800 + rgb_data_0[2];
+		extrapolated_value[0][0] = 0x93;
+		extrapolated_value[0][1] = rgb_data_2[0] >> 8;
+		extrapolated_value[0][2] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		extrapolated_value[0][3] = rgb_data_2[0] & 0xFF;
+		extrapolated_value[0][4] = rgb_data_2[1] & 0xFF;
+		extrapolated_value[0][5] = rgb_data_2[2] & 0xFF;
+		if (!extrapolated_value[0][1] && !extrapolated_value[0][2] && !extrapolated_value[0][3]
+				&& !extrapolated_value[0][4] && !extrapolated_value[0][5]) {
+			OFP_ERR("the extrapolated_value[0] are incorrect\n");
+			rc = -EINVAL;
+			goto error;
+		}
+
+		rgb_data_2[0] = (205 * 110 - 24700) * (rgb_data_1[0] - rgb_data_0[0]) / 800 + rgb_data_0[0];
+		rgb_data_2[1] = (205 * 110 - 24700) * (rgb_data_1[1] - rgb_data_0[1]) / 800 + rgb_data_0[1];
+		rgb_data_2[2] = (205 * 110 - 24700) * (rgb_data_1[2] - rgb_data_0[2]) / 800 + rgb_data_0[2];
+		extrapolated_value[1][0] = 0x94;
+		extrapolated_value[1][1] = rgb_data_2[0] >> 8;
+		extrapolated_value[1][2] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		extrapolated_value[1][3] = rgb_data_2[0] & 0xFF;
+		extrapolated_value[1][4] = rgb_data_2[1] & 0xFF;
+		extrapolated_value[1][5] = rgb_data_2[2] & 0xFF;
+		if (!extrapolated_value[1][1] && !extrapolated_value[1][2] && !extrapolated_value[1][3]
+				&& !extrapolated_value[1][4] && !extrapolated_value[1][5]) {
+			OFP_ERR("the extrapolated_value[1] are incorrect\n");
+			rc = -EINVAL;
+			goto error;
+		}
+
+		rgb_data_2[0] = (226 * 110 - 24700) * (rgb_data_1[0] - rgb_data_0[0]) / 800 + rgb_data_0[0];
+		rgb_data_2[1] = (226 * 110 - 24700) * (rgb_data_1[1] - rgb_data_0[1]) / 800 + rgb_data_0[1];
+		rgb_data_2[2] = (226 * 110 - 24700) * (rgb_data_1[2] - rgb_data_0[2]) / 800 + rgb_data_0[2];
+		extrapolated_value[2][0] = 0x95;
+		extrapolated_value[2][1] = rgb_data_2[0] >> 8;
+		extrapolated_value[2][2] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		extrapolated_value[2][3] = rgb_data_2[0] & 0xFF;
+		extrapolated_value[2][4] = rgb_data_2[1] & 0xFF;
+		extrapolated_value[2][5] = rgb_data_2[2] & 0xFF;
+		if (!extrapolated_value[2][1] && !extrapolated_value[2][2] && !extrapolated_value[2][3]
+				&& !extrapolated_value[2][4] && !extrapolated_value[2][5]) {
+			OFP_ERR("the extrapolated_value[2] are incorrect\n");
+			rc = -EINVAL;
+			goto error;
+		}
+
+		rgb_data_2[0] = (247 * 110 - 24700) * (rgb_data_1[0] - rgb_data_0[0]) / 800 + rgb_data_0[0];
+		rgb_data_2[1] = (247 * 110 - 24700) * (rgb_data_1[1] - rgb_data_0[1]) / 800 + rgb_data_0[1];
+		rgb_data_2[2] = (247 * 110 - 24700) * (rgb_data_1[2] - rgb_data_0[2]) / 800 + rgb_data_0[2];
+		extrapolated_value[3][0] = 0x96;
+		extrapolated_value[3][1] = rgb_data_2[0] >> 8;
+		extrapolated_value[3][2] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		extrapolated_value[3][3] = rgb_data_2[0] & 0xFF;
+		extrapolated_value[3][4] = rgb_data_2[1] & 0xFF;
+		extrapolated_value[3][5] = rgb_data_2[2] & 0xFF;
+		if (!extrapolated_value[3][1] && !extrapolated_value[3][2] && !extrapolated_value[3][3]
+				&& !extrapolated_value[3][4] && !extrapolated_value[3][5]) {
+			OFP_ERR("the extrapolated_value[3] are incorrect\n");
+			rc = -EINVAL;
+			goto error;
+		}
+
+		rgb_data_2[0] = (255 * 110 - 24700) * (rgb_data_1[0] - rgb_data_0[0]) / 800 + rgb_data_0[0];
+		rgb_data_2[1] = (255 * 110 - 24700) * (rgb_data_1[1] - rgb_data_0[1]) / 800 + rgb_data_0[1];
+		rgb_data_2[2] = (255 * 110 - 24700) * (rgb_data_1[2] - rgb_data_0[2]) / 800 + rgb_data_0[2];
+		extrapolated_value[4][0] = 0x97;
+		extrapolated_value[4][1] = rgb_data_2[0] >> 8;
+		extrapolated_value[4][2] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		extrapolated_value[4][3] = rgb_data_2[0] & 0xFF;
+		extrapolated_value[4][4] = rgb_data_2[1] & 0xFF;
+		extrapolated_value[4][5] = rgb_data_2[2] & 0xFF;
+		if (!extrapolated_value[4][1] && !extrapolated_value[4][2] && !extrapolated_value[4][3]
+				&& !extrapolated_value[4][4] && !extrapolated_value[4][5]) {
+			OFP_ERR("the extrapolated_value[4] are incorrect\n");
+			rc = -EINVAL;
+			goto error;
+		}
+
+		for (i = 0; i < 5; i++) {
+			for (j = 0; j < 6; j++) {
+				OFP_INFO("extrapolated_value[%u][%u] = 0x%02X\n", i, j, extrapolated_value[i][j]);
+			}
+		}
+
+		calibrated = true;
+		OFP_INFO("update lhbm pressed icon gamma successfully\n");
+	}
+
+	if (calibrated) {
+		cmds = display->panel->cur_mode->priv_info->cmd_sets[DSI_CMD_LHBM_PRESSED_ICON_GAMMA].cmds;
+		lcm_cmd_count = display->panel->cur_mode->priv_info->cmd_sets[DSI_CMD_LHBM_PRESSED_ICON_GAMMA].count;
+		if (lcm_cmd_count != 8) {
+			OFP_ERR("Invalid DSI_CMD_LHBM_PRESSED_ICON_GAMMA cmd sets\n");
+			rc = -EINVAL;
+		} else {
+			for (i = 0; i < 5; i++) {
+				tx_buf = (unsigned char *)cmds[2+i].msg.tx_buf;
+				memcpy(tx_buf, extrapolated_value[i], 6);
+			}
+			/* send the adjusted gamma value */
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_LHBM_PRESSED_ICON_GAMMA);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_GAMMA cmds, rc=%d\n", display->name, rc);
+			}
+		}
+	}
+
+error:
+	/* if gamma read fails more than 100 times, no further operation will be performed */
+	if (!calibrated && (failure_count < 100)) {
+		failure_count++;
+		OFP_ERR("failure_count:%u\n", failure_count);
+	}
+
+	OPLUS_OFP_TRACE_END("oplus_ofp_lhbm_pressed_icon_gamma_update");
+
+	OFP_DEBUG("end\n");
+
+	return rc;
+}
+
+/*
+ when the backlight is in the outdoor hbm state, the brightness of the lhbm pressed icon is too high, which causes the unlocking failure.
+ therefore, the backlight brightness must be limited to the normal state in the fingerprint unlocking scenario
+*/
+int oplus_ofp_lhbm_backlight_update(void *sde_encoder_virt, void *dsi_panel, unsigned int *bl_level)
+{
+	bool new_icon_layer_status = false;
+	static bool last_icon_layer_status = false;
+	int rc = 0;
+	uint64_t hbm_enable = 0;
+	struct sde_encoder_virt *sde_enc = sde_encoder_virt;
+	struct sde_connector *c_conn = NULL;
+	struct dsi_display *display = NULL;
+	struct dsi_panel *panel = dsi_panel;
+	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
+
+	OFP_DEBUG("start\n");
+
+	if (!oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is not enabled, no need to update backlight after icon on/off\n");
+		return 0;
+	}
+
+	if (!p_oplus_ofp_params) {
+		OFP_ERR("Invalid p_oplus_ofp_params params\n");
+		return -EINVAL;
+	}
+
+	if (!p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma) {
+		OFP_DEBUG("need_to_update_lhbm_pressed_icon_gamma is not set, no need to update backlight after icon on/off\n");
+		return 0;
+	}
+
+	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_lhbm_backlight_update");
+
+	if (!panel || !bl_level) {
+		if (!sde_enc || !sde_enc->cur_master || !sde_enc->cur_master->connector) {
+			OFP_ERR("Invalid sde_enc params\n");
+			return -EINVAL;
+		}
+
+		c_conn = to_sde_connector(sde_enc->cur_master->connector);
+		if (!c_conn) {
+			OFP_ERR("Invalid c_conn params\n");
+			return -EINVAL;
+		}
+
+		if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
+			OFP_DEBUG("not in dsi mode, should not update backlight after icon on/off\n");
+			return 0;
+		}
+
+		display = c_conn->display;
+
+		if (!display || !display->panel) {
+			OFP_ERR("Invalid display params\n");
+			return -EINVAL;
+		}
+
+		hbm_enable = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HBM_ENABLE);
+		new_icon_layer_status = hbm_enable & OPLUS_OFP_PROPERTY_ICON_LAYER;
+
+		if (!p_oplus_ofp_params->aod_unlocking && !p_oplus_ofp_params->doze_active) {
+			if (!last_icon_layer_status && new_icon_layer_status) {
+				if (display->panel->bl_config.bl_level > OPLUS_OFP_900NIT_DBV_LEVEL) {
+					OFP_INFO("set backlight level to OPLUS_OFP_900NIT_DBV_LEVEL after icon on\n");
+					mutex_lock(&display->panel->panel_lock);
+					rc = dsi_panel_set_backlight(display->panel, OPLUS_OFP_900NIT_DBV_LEVEL);
+					if (rc) {
+						OFP_ERR("unable to set backlight\n");
+					}
+					mutex_unlock(&display->panel->panel_lock);
+				}
+			} else if (last_icon_layer_status && !new_icon_layer_status) {
+				if (display->panel->bl_config.bl_level > OPLUS_OFP_900NIT_DBV_LEVEL) {
+					OFP_INFO("recovery backlight level to %u after icon off\n", display->panel->bl_config.bl_level);
+					mutex_lock(&display->panel->panel_lock);
+					rc = dsi_panel_set_backlight(display->panel, display->panel->bl_config.bl_level);
+					if (rc) {
+						OFP_ERR("unable to set backlight\n");
+					}
+					mutex_unlock(&display->panel->panel_lock);
+				}
+			}
+		}
+
+		last_icon_layer_status = new_icon_layer_status;
+	} else {
+		display = to_dsi_display(panel->host);
+		if (!display) {
+			OFP_ERR("Invalid display params\n");
+			return -EINVAL;
+		}
+
+		c_conn = to_sde_connector(display->drm_conn);
+		if (!c_conn) {
+			OFP_ERR("Invalid c_conn params\n");
+			return -EINVAL;
+		}
+
+		if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
+			OFP_DEBUG("not in dsi mode, should not update backlight after icon on\n");
+			return -EINVAL;
+		}
+
+		hbm_enable = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_HBM_ENABLE);
+		if (!p_oplus_ofp_params->aod_unlocking && !p_oplus_ofp_params->doze_active
+				&& (hbm_enable & OPLUS_OFP_PROPERTY_ICON_LAYER) && (*bl_level > OPLUS_OFP_900NIT_DBV_LEVEL)) {
+			*bl_level = OPLUS_OFP_900NIT_DBV_LEVEL;
+			OFP_INFO("icon layer is on and backlight lvl is greater than OPLUS_OFP_900NIT_DBV_LEVEL, set backlight to OPLUS_OFP_900NIT_DBV_LEVEL\n");
+		}
+	}
+
+	OPLUS_OFP_TRACE_END("oplus_ofp_lhbm_backlight_update");
+
+	OFP_DEBUG("end\n");
+
+	return rc;
+}
+
 int oplus_ofp_send_hbm_state_event(unsigned int hbm_state)
 {
 	OFP_DEBUG("start\n");
+
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is enabled, no need to send hbm state event\n");
+		return 0;
+	}
 
 	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_send_hbm_state_event");
 
@@ -920,7 +1353,7 @@ static int oplus_ofp_hbm_wait_handle(void *sde_connector, bool hbm_en)
 
 	OFP_DEBUG("start\n");
 
-	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled() || oplus_ofp_local_hbm_is_enabled()) {
+	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled()) {
 		OFP_DEBUG("no need to handle hbm wait\n");
 		return 0;
 	}
@@ -1027,7 +1460,7 @@ static int oplus_ofp_set_panel_hbm(void *sde_connector, bool hbm_en)
 
 	OFP_DEBUG("start\n");
 
-	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled() || oplus_ofp_local_hbm_is_enabled()) {
+	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled()) {
 		OFP_DEBUG("no need to set panel hbm\n");
 		return 0;
 	}
@@ -1072,19 +1505,35 @@ static int oplus_ofp_set_panel_hbm(void *sde_connector, bool hbm_en)
 	/* delay before hbm cmds */
 	oplus_ofp_hbm_wait_handle(c_conn, hbm_en);
 
-	/* send hbm cmds */
-	if (hbm_en) {
-		rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_ON);
-		if (rc) {
-			OFP_ERR("[%s] failed to send DSI_CMD_HBM_ON cmds, rc=%d\n", display->name, rc);
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		/* send lhbm pressed icon cmds */
+		if (hbm_en) {
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_LHBM_PRESSED_ICON_ON);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_ON cmds, rc=%d\n", display->name, rc);
+			}
+		} else {
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_LHBM_PRESSED_ICON_OFF);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_OFF cmds, rc=%d\n", display->name, rc);
+			}
 		}
+		OFP_INFO("lhbm pressed icon cmds are flushed\n");
 	} else {
-		rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_OFF);
-		if (rc) {
-			OFP_ERR("[%s] failed to send DSI_CMD_HBM_OFF cmds, rc=%d\n", display->name, rc);
+		/* send hbm cmds */
+		if (hbm_en) {
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_ON);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_HBM_ON cmds, rc=%d\n", display->name, rc);
+			}
+		} else {
+			rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_OFF);
+			if (rc) {
+				OFP_ERR("[%s] failed to send DSI_CMD_HBM_OFF cmds, rc=%d\n", display->name, rc);
+			}
 		}
+		OFP_INFO("hbm cmds are flushed\n");
 	}
-	OFP_INFO("hbm cmds are flushed\n");
 
 	if (!hbm_en && p_oplus_ofp_params->aod_unlocking) {
 		p_oplus_ofp_params->aod_unlocking = false;
@@ -1111,7 +1560,7 @@ int oplus_ofp_hbm_handle(void *sde_encoder_virt)
 
 	OFP_DEBUG("start\n");
 
-	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled() || oplus_ofp_local_hbm_is_enabled()) {
+	if (oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_ultrasonic_is_enabled()) {
 		OFP_DEBUG("no need to handle hbm\n");
 		return 0;
 	}
@@ -1303,7 +1752,7 @@ int oplus_ofp_pressed_icon_status_update(void *sde_encoder_phys, unsigned int ir
 
 	OFP_DEBUG("start\n");
 
-	if ((!oplus_ofp_optical_new_solution_is_enabled() && !oplus_ofp_ultrasonic_is_enabled())) {
+	if (!oplus_ofp_optical_new_solution_is_enabled() && !oplus_ofp_ultrasonic_is_enabled() && !oplus_ofp_local_hbm_is_enabled()) {
 		OFP_DEBUG("no need to update pressed icon status\n");
 		return 0;
 	}
@@ -1503,10 +1952,132 @@ int oplus_ofp_notify_uiready(void *sde_encoder_phys)
 	return 0;
 }
 
+/*
+ due to the fact that the brightness of lhbm pressed icon may change with the backlight,
+ it is necessary to readjust the lhbm pressed icon grayscale to meet the requirements of fingerprint unlocking
+*/
+static int oplus_ofp_lhbm_pressed_icon_grayscale_update(void *dsi_panel, unsigned int bl_level)
+{
+	bool pwm_is_changing = false;
+	bool need_to_update_grayscale = false;
+	static bool last_pwm_state = false;
+	unsigned char *tx_buf = NULL;
+	unsigned char tx_buf_0[7] = {0xC2, 0xFE, 0xFE, 0xDD, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_1[7] = {0xC2, 0xF9, 0xF9, 0xDA, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_2[7] = {0xC2, 0xF5, 0xF5, 0xD6, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_3[7] = {0xC2, 0xEF, 0xEF, 0xDA, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_4[7] = {0xC2, 0xE9, 0xE9, 0xD4, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_5[7] = {0xC2, 0xFA, 0xFA, 0xD9, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_6[7] = {0xC2, 0xF4, 0xF4, 0xD2, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_7[7] = {0xC2, 0xF0, 0xF0, 0xD6, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_8[7] = {0xC2, 0xEA, 0xEA, 0xD2, 0x61, 0x00, 0x62};
+	unsigned char tx_buf_9[7] = {0xC2, 0xE5, 0xE5, 0xCE, 0x61, 0x00, 0x62};
+	int rc = 0;
+	unsigned int lcm_cmd_count = 0;
+	struct dsi_panel *panel = dsi_panel;
+	struct dsi_cmd_desc *cmds = NULL;
+	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
+
+	OFP_DEBUG("start\n");
+
+	if (!oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is not enabled, no need to update lhbm pressed icon grayscale\n");
+		return 0;
+	}
+
+	if (!panel || !panel->cur_mode || !panel->cur_mode->priv_info || !p_oplus_ofp_params) {
+		OFP_ERR("Invalid params\n");
+		return -EINVAL;
+	}
+
+	if (!p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma) {
+		OFP_DEBUG("need_to_update_lhbm_pressed_icon_gamma is not config, no need to update lhbm pressed icon grayscale\n");
+		return 0;
+	}
+
+	if (!dsi_panel_initialized(panel)) {
+		OFP_ERR("should not update lhbm pressed icon grayscale if panel is not initialized\n");
+		return -EFAULT;
+	}
+
+	OPLUS_OFP_TRACE_BEGIN("oplus_ofp_lhbm_pressed_icon_grayscale_update");
+
+	pwm_is_changing = (last_pwm_state != oplus_panel_pwm_onepulse_is_enabled(panel));
+	cmds = panel->cur_mode->priv_info->cmd_sets[DSI_CMD_LHBM_PRESSED_ICON_GRAYSCALE].cmds;
+	lcm_cmd_count = panel->cur_mode->priv_info->cmd_sets[DSI_CMD_LHBM_PRESSED_ICON_GRAYSCALE].count;
+
+	if ((lcm_cmd_count != 3) || (cmds[1].msg.tx_len != 7)) {
+		OFP_ERR("Invalid DSI_CMD_LHBM_PRESSED_ICON_GRAYSCALE cmd sets\n");
+		rc = -EINVAL;
+	} else if (!oplus_panel_pwm_onepulse_is_enabled(panel)) {
+		if (((oplus_last_backlight == 0x0000) || (oplus_last_backlight > 0x0700) || pwm_is_changing)
+				&& ((bl_level > 0x0000) && (bl_level <= 0x0700))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_0;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0700) || (oplus_last_backlight > 0x08F0) || pwm_is_changing)
+						&& ((bl_level > 0x0700) && (bl_level <= 0x08F0))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_1;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x08F0) || (oplus_last_backlight > 0x0A88) || pwm_is_changing)
+						&& ((bl_level > 0x08F0) && (bl_level <= 0x0A88))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_2;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0A88) || (oplus_last_backlight > 0x0C00) || pwm_is_changing)
+						&& ((bl_level > 0x0A88) && (bl_level <= 0x0C00))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_3;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0C00) || (oplus_last_backlight > 0x0DBB) || pwm_is_changing)
+						&& ((bl_level > 0x0C00) && (bl_level <= 0x0DBB))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_4;
+			need_to_update_grayscale = true;
+		}
+	} else {
+		if (((oplus_last_backlight == 0x0000) || (oplus_last_backlight > 0x0700) || pwm_is_changing)
+				&& ((bl_level > 0x0000) && (bl_level <= 0x0700))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_5;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0700) || (oplus_last_backlight > 0x08F0) || pwm_is_changing)
+						&& ((bl_level > 0x0700) && (bl_level <= 0x08F0))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_6;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x08F0) || (oplus_last_backlight > 0x0A88) || pwm_is_changing)
+						&& ((bl_level > 0x08F0) && (bl_level <= 0x0A88))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_7;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0A88) || (oplus_last_backlight > 0x0C00) || pwm_is_changing)
+						&& ((bl_level > 0x0A88) && (bl_level <= 0x0C00))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_8;
+			need_to_update_grayscale = true;
+		} else if (((oplus_last_backlight <= 0x0C00) || (oplus_last_backlight > 0x0DBB) || pwm_is_changing)
+						&& ((bl_level > 0x0C00) && (bl_level <= 0x0DBB))) {
+			cmds[1].msg.tx_buf = (const void *)tx_buf_9;
+			need_to_update_grayscale = true;
+		}
+	}
+
+	if (need_to_update_grayscale) {
+		tx_buf = (unsigned char *)cmds[1].msg.tx_buf;
+		OFP_INFO("lhbm pressed icon grayscale:0x%02X, 0x%02X, 0x%02X\n", tx_buf[1],  tx_buf[2],  tx_buf[3]);
+		rc = oplus_ofp_panel_cmd_set_nolock(dsi_panel, DSI_CMD_LHBM_PRESSED_ICON_GRAYSCALE);
+		if (rc) {
+			OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_GRAYSCALE cmds, rc=%d\n", panel->name, rc);
+		}
+	}
+
+	last_pwm_state = oplus_panel_pwm_onepulse_is_enabled(panel);
+
+	OPLUS_OFP_TRACE_END("oplus_ofp_lhbm_pressed_icon_grayscale_update");
+
+	OFP_DEBUG("end\n");
+
+	return rc;
+}
+
 /* need filter backlight in hbm mode, hbm state and aod unlocking process */
 bool oplus_ofp_backlight_filter(void *dsi_panel, unsigned int bl_level)
 {
 	bool need_filter_backlight = false;
+	int rc = 0;
 	uint64_t hbm_enable = 0;
 	struct dsi_panel *panel = dsi_panel;
 	struct dsi_display *display = NULL;
@@ -1546,6 +2117,14 @@ bool oplus_ofp_backlight_filter(void *dsi_panel, unsigned int bl_level)
 			p_oplus_ofp_params->hbm_mode = 0;
 			OFP_INFO("oplus_ofp_hbm_mode:%u\n", p_oplus_ofp_params->hbm_mode);
 			OPLUS_OFP_TRACE_INT("oplus_ofp_hbm_mode", p_oplus_ofp_params->hbm_mode);
+			if (oplus_ofp_local_hbm_is_enabled()) {
+				if (oplus_ofp_get_hbm_state()) {
+					rc = oplus_ofp_panel_cmd_set_nolock(dsi_panel, DSI_CMD_LHBM_PRESSED_ICON_OFF);
+					if (rc) {
+						OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_OFF cmds, rc=%d\n", panel->name, rc);
+					}
+				}
+			}
 			oplus_ofp_set_hbm_state(false);
 			OFP_DEBUG("backlight is 0, set hbm mode and hbm state to false\n");
 
@@ -1557,8 +2136,13 @@ bool oplus_ofp_backlight_filter(void *dsi_panel, unsigned int bl_level)
 
 			need_filter_backlight = false;
 		} else {
-			OFP_INFO("hbm state is true, filter backlight %u setting\n", bl_level);
-			need_filter_backlight = true;
+			if (!oplus_ofp_local_hbm_is_enabled()) {
+				OFP_INFO("hbm state is true, filter backlight %u setting\n", bl_level);
+				need_filter_backlight = true;
+			} else if (p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma && (bl_level > OPLUS_OFP_900NIT_DBV_LEVEL)) {
+				OFP_INFO("hbm state is true and backlight lvl is greater than OPLUS_OFP_900NIT_DBV_LEVEL, filter backlight %u setting\n", bl_level);
+				need_filter_backlight = true;
+			}
 		}
 	} else if (p_oplus_ofp_params->aod_unlocking && p_oplus_ofp_params->fp_press && bl_level) {
 		OFP_INFO("aod unlocking is true, filter backlight %u setting\n", bl_level);
@@ -1588,6 +2172,10 @@ bool oplus_ofp_backlight_filter(void *dsi_panel, unsigned int bl_level)
 		panel->pwm_hbm_state = need_filter_backlight;
 	}
 
+	if (!need_filter_backlight) {
+		oplus_ofp_lhbm_pressed_icon_grayscale_update(panel, bl_level);
+	}
+
 	OPLUS_OFP_TRACE_END("oplus_ofp_backlight_filter");
 
 	OFP_DEBUG("end\n");
@@ -1607,6 +2195,11 @@ static bool oplus_ofp_need_to_bypass_pq(void *s_crtc)
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
 	OFP_DEBUG("start\n");
+
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is enabled, no need to bypass pq\n");
+		return false;
+	}
 
 	if (!sde_crtc || !p_oplus_ofp_params) {
 		OFP_ERR("Invalid sde_crtc params\n");
@@ -1671,6 +2264,11 @@ bool oplus_ofp_need_pcc_change(void *s_crtc)
 
 	OFP_DEBUG("start\n");
 
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is enabled, no need pcc change\n");
+		return false;
+	}
+
 	if (!sde_crtc || !p_oplus_ofp_params) {
 		OFP_ERR("Invalid params\n");
 		return false;
@@ -1707,6 +2305,11 @@ int oplus_ofp_set_dspp_pcc_feature(void *sde_hw_cp_cfg, void *s_crtc, bool befor
 
 	OFP_DEBUG("start\n");
 
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is enabled, no need to set dspp pcc feature\n");
+		return 0;
+	}
+
 	if (!hw_cfg || !sde_crtc || !p_oplus_ofp_params) {
 		OFP_ERR("Invalid params\n");
 		return -EINVAL;
@@ -1739,6 +2342,11 @@ int oplus_ofp_bypass_dspp_gamut(void *sde_hw_cp_cfg, void *s_crtc)
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
 
 	OFP_DEBUG("start\n");
+
+	if (oplus_ofp_local_hbm_is_enabled()) {
+		OFP_DEBUG("local hbm is enabled, no need to bypass dspp gamut\n");
+		return 0;
+	}
 
 	if (!hw_cfg || !sde_crtc ||!p_oplus_ofp_params) {
 		OFP_ERR("Invalid params\n");
@@ -1946,9 +2554,16 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 			if (!oplus_ofp_oled_capacitive_is_enabled() && !oplus_ofp_ultrasonic_is_enabled()) {
 				/* hbm mode -> normal mode -> aod mode */
 				if (oplus_ofp_get_hbm_state()) {
-					rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_OFF);
-					if (rc) {
-						OFP_ERR("[%s] failed to send DSI_CMD_HBM_OFF cmds, rc=%d\n", display->name, rc);
+					if (oplus_ofp_local_hbm_is_enabled()) {
+						rc = oplus_ofp_display_cmd_set(display, DSI_CMD_LHBM_PRESSED_ICON_OFF);
+						if (rc) {
+							OFP_ERR("[%s] failed to send DSI_CMD_LHBM_PRESSED_ICON_OFF cmds, rc=%d\n", display->name, rc);
+						}
+					} else {
+						rc = oplus_ofp_display_cmd_set(display, DSI_CMD_HBM_OFF);
+						if (rc) {
+							OFP_ERR("[%s] failed to send DSI_CMD_HBM_OFF cmds, rc=%d\n", display->name, rc);
+						}
 					}
 				}
 			}
@@ -2048,6 +2663,11 @@ void oplus_ofp_aod_off_set_work_handler(struct work_struct *work_item)
 
 	if (!display) {
 		OFP_ERR("Invalid params\n");
+		return;
+	}
+
+	if (display->panel->power_mode == SDE_MODE_DPMS_OFF) {
+		OFP_INFO("Break aod off handle when panel already power off");
 		return;
 	}
 
@@ -2805,7 +3425,7 @@ int oplus_ofp_notify_fp_press(void *buf)
 
 	OFP_DEBUG("start\n");
 
-	if (!oplus_ofp_is_supported() || oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_local_hbm_is_enabled()) {
+	if (!oplus_ofp_is_supported() || oplus_ofp_oled_capacitive_is_enabled()) {
 		OFP_DEBUG("no need to set fp press\n");
 		return 0;
 	}
@@ -2848,7 +3468,7 @@ ssize_t oplus_ofp_notify_fp_press_attr(struct kobject *obj,
 
 	OFP_DEBUG("start\n");
 
-	if (!oplus_ofp_is_supported() || oplus_ofp_oled_capacitive_is_enabled() || oplus_ofp_local_hbm_is_enabled()) {
+	if (!oplus_ofp_is_supported() || oplus_ofp_oled_capacitive_is_enabled()) {
 		OFP_DEBUG("no need to set fp press\n");
 		return count;
 	}

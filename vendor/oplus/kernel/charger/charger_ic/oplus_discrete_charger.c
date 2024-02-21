@@ -51,7 +51,10 @@
 #include "oplus_battery_sm6375.h"
 #include "oplus_discrete_charger.h"
 #include <linux/nvmem-consumer.h>
-
+#if (LINUX_VERSION_CODE == KERNEL_VERSION(5, 1, 5))
+#include "../../../../../kernel_platform/msm-kernel/drivers/usb/typec/pd/inc/tcpci.h"
+#include "../../../../../kernel_platform/msm-kernel/drivers/usb/typec/pd/inc/tcpm.h"
+#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
 int op10_subsys_init(void);
 void op10_subsys_exit(void);
@@ -856,7 +859,7 @@ static __maybe_unused bool oplus_chg_get_shortc_hw_gpio_status(void)
 	return shortc_hw_status;
 }
 #else
-static bool oplus_chg_get_shortc_hw_gpio_status(void)
+static __maybe_unused bool oplus_chg_get_shortc_hw_gpio_status(void)
 {
 	bool shortc_hw_status = 1;
 

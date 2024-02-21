@@ -144,7 +144,7 @@
 0xa305d3cc	fwnode_find_reference	vmlinux	EXPORT_SYMBOL_GPL	
 0x2ecd2b99	transport_class_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0x77a14894	debugfs_attr_write_signed	vmlinux	EXPORT_SYMBOL_GPL	
-0xd929a3d0	jbd2_journal_try_to_free_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x89c3b7b0	jbd2_journal_try_to_free_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xefa2c27d	register_tracepoint_module_notifier	vmlinux	EXPORT_SYMBOL_GPL	
 0xced2405e	down_write_killable	vmlinux	EXPORT_SYMBOL	
 0xaad8c7d6	default_wake_function	vmlinux	EXPORT_SYMBOL	
@@ -222,6 +222,7 @@
 0x5a9f1d63	memmove	vmlinux	EXPORT_SYMBOL	
 0x67073bee	tc_setup_cb_add	vmlinux	EXPORT_SYMBOL	
 0x21ce3ed1	dev_fetch_sw_netstats	vmlinux	EXPORT_SYMBOL_GPL	
+0x354c7581	iio_device_release_buffer_mode	vmlinux	EXPORT_SYMBOL_GPL	
 0xde006d67	devm_thermal_zone_of_sensor_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0xe39d0794	usb_phy_roothub_exit	vmlinux	EXPORT_SYMBOL_GPL	
 0xc93ee1e7	usb_phy_roothub_init	vmlinux	EXPORT_SYMBOL_GPL	
@@ -229,7 +230,7 @@
 0xe1537255	__list_del_entry_valid	vmlinux	EXPORT_SYMBOL	
 0xbc15b643	bdev_check_media_change	vmlinux	EXPORT_SYMBOL	
 0x5305bc4e	crypto_cipher_decrypt_one	vmlinux	EXPORT_SYMBOL_GPL	CRYPTO_INTERNAL
-0xd5a00fbb	jbd2_journal_start_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x357f4ba1	jbd2_journal_start_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x76d3cd60	laptop_mode	vmlinux	EXPORT_SYMBOL	
 0xc280a2aa	generic_file_direct_write	vmlinux	EXPORT_SYMBOL	
 0x135dadbe	end_page_writeback	vmlinux	EXPORT_SYMBOL	
@@ -313,7 +314,7 @@
 0x72f8eefb	spmi_command_shutdown	vmlinux	EXPORT_SYMBOL_GPL	
 0x1c5ff742	clk_get_phase	vmlinux	EXPORT_SYMBOL_GPL	
 0xb7329c06	clk_set_phase	vmlinux	EXPORT_SYMBOL_GPL	
-0x4f252235	synth_event_trace_end	vmlinux	EXPORT_SYMBOL_GPL	
+0x267371a4	synth_event_trace_end	vmlinux	EXPORT_SYMBOL_GPL	
 0x946dd74c	__traceiter_android_vh_account_task_time	vmlinux	EXPORT_SYMBOL_GPL	
 0x9dcd95dd	__traceiter_sched_update_nr_running_tp	vmlinux	EXPORT_SYMBOL_GPL	
 0x46013233	net_dec_ingress_queue	vmlinux	EXPORT_SYMBOL_GPL	
@@ -420,7 +421,7 @@
 0x679af526	serial8250_request_dma	vmlinux	EXPORT_SYMBOL_GPL	
 0xe344e88d	virtqueue_get_vring	vmlinux	EXPORT_SYMBOL_GPL	
 0x0bea4774	blk_ksm_intersect_modes	vmlinux	EXPORT_SYMBOL_GPL	
-0x9286e3c5	jbd2_journal_load	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xa544152c	jbd2_journal_load	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x4e6f182c	vmf_insert_mixed_prot	vmlinux	EXPORT_SYMBOL	
 0x34a7b142	__SCK__tp_func_rpm_suspend	vmlinux	EXPORT_SYMBOL_GPL	
 0xebdf1650	vsock_enqueue_accept	vmlinux	EXPORT_SYMBOL_GPL	
@@ -481,7 +482,7 @@
 0x9c1ff423	drm_kms_helper_hotplug_event	vmlinux	EXPORT_SYMBOL	
 0x54a25da2	qcom_smem_state_put	vmlinux	EXPORT_SYMBOL_GPL	
 0x800f6f36	invalidate_bdev	vmlinux	EXPORT_SYMBOL	
-0xfd43a7de	jbd2_journal_flush	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x46c2fb00	jbd2_journal_flush	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x54805e87	qtree_release_dquot	vmlinux	EXPORT_SYMBOL	
 0x944375db	_totalram_pages	vmlinux	EXPORT_SYMBOL	
 0x9aeacb87	ring_buffer_iter_empty	vmlinux	EXPORT_SYMBOL_GPL	
@@ -692,6 +693,7 @@
 0x3db59fba	ieee802154_unregister_hw	vmlinux	EXPORT_SYMBOL	
 0x709aebb3	__skb_flow_get_ports	vmlinux	EXPORT_SYMBOL	
 0x816488eb	sk_stream_wait_connect	vmlinux	EXPORT_SYMBOL	
+0xe3460ecc	__traceiter_android_vh_alloc_pages_entry	vmlinux	EXPORT_SYMBOL_GPL	
 0xd04aedfd	__SCK__tp_func_arm_event	vmlinux	EXPORT_SYMBOL_GPL	
 0x42a734fb	devfreq_event_reset_event	vmlinux	EXPORT_SYMBOL_GPL	
 0xc2534172	vb2_ioctl_dqbuf	vmlinux	EXPORT_SYMBOL_GPL	
@@ -712,7 +714,7 @@
 0x5fe97682	drm_hdcp_update_content_protection	vmlinux	EXPORT_SYMBOL	
 0x650bef6a	drm_atomic_helper_commit_duplicated_state	vmlinux	EXPORT_SYMBOL	
 0xb8f11603	idr_alloc	vmlinux	EXPORT_SYMBOL_GPL	
-0xd53eff75	jbd2_journal_update_sb_errno	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x422ca446	jbd2_journal_update_sb_errno	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xec1b366c	vfs_unlink	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x3ba01b47	get_compat_sigset	vmlinux	EXPORT_SYMBOL_GPL	
 0x04f9d6f2	xfrm_input_unregister_afinfo	vmlinux	EXPORT_SYMBOL	
@@ -723,6 +725,7 @@
 0x21db744d	snd_soc_card_add_dai_link	vmlinux	EXPORT_SYMBOL_GPL	
 0x32424cc4	snd_dmaengine_pcm_open_request_chan	vmlinux	EXPORT_SYMBOL_GPL	
 0x2d6bcdcb	iio_trigger_generic_data_rdy_poll	vmlinux	EXPORT_SYMBOL	
+0x2d98c185	iio_device_get_current_mode	vmlinux	EXPORT_SYMBOL_GPL	
 0xc343c521	of_get_child_by_name	vmlinux	EXPORT_SYMBOL	
 0x42e9bd9a	dt_init_idle_driver	vmlinux	EXPORT_SYMBOL_GPL	
 0xe75bb15d	cpufreq_frequency_table_get_index	vmlinux	EXPORT_SYMBOL_GPL	
@@ -1156,7 +1159,7 @@
 0x47a0d656	devm_gpiod_get_index	vmlinux	EXPORT_SYMBOL_GPL	
 0xe521e0da	fat_sync_inode	vmlinux	EXPORT_SYMBOL_GPL	
 0xea318b02	clear_bdi_congested	vmlinux	EXPORT_SYMBOL	
-0xc4376aaa	synth_event_trace_start	vmlinux	EXPORT_SYMBOL_GPL	
+0xd74e107b	synth_event_trace_start	vmlinux	EXPORT_SYMBOL_GPL	
 0xac247b5e	walk_iomem_res_desc	vmlinux	EXPORT_SYMBOL_GPL	
 0x9688de8b	memstart_addr	vmlinux	EXPORT_SYMBOL	
 0x4390b3ef	__SCK__tp_func_android_vh_timer_calc_index	vmlinux	EXPORT_SYMBOL_GPL	
@@ -1259,6 +1262,7 @@
 0x091eb9b4	round_jiffies	vmlinux	EXPORT_SYMBOL_GPL	
 0x99b20e6f	__task_rq_lock	vmlinux	EXPORT_SYMBOL_GPL	
 0x94008310	inet_proto_csum_replace16	vmlinux	EXPORT_SYMBOL	
+0xef70fe3d	__SCK__tp_func_android_vh_alloc_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0xa6b16e20	__traceiter_android_vh_mmc_attach_sd	vmlinux	EXPORT_SYMBOL_GPL	
 0x9d30ebd4	dm_exception_store_create	vmlinux	EXPORT_SYMBOL	
 0x7f2a2646	usb_gadget_wakeup	vmlinux	EXPORT_SYMBOL_GPL	
@@ -1541,6 +1545,7 @@
 0x60f43054	__tracepoint_android_vh_em_dev_register_pd	vmlinux	EXPORT_SYMBOL_GPL	
 0xa628f9d2	nf_br_ops	vmlinux	EXPORT_SYMBOL_GPL	
 0x39c32aca	__SCK__tp_func_neigh_event_send_done	vmlinux	EXPORT_SYMBOL_GPL	
+0x8ed2634d	__SCK__tp_func_android_vh_free_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0x646f6033	__traceiter_android_vh_ra_tuning_max_page	vmlinux	EXPORT_SYMBOL_GPL	
 0x10092ff7	sdio_unregister_driver	vmlinux	EXPORT_SYMBOL_GPL	
 0x0fe1cbc5	dm_exception_store_type_unregister	vmlinux	EXPORT_SYMBOL	
@@ -1714,6 +1719,7 @@
 0x13d928f5	__SCK__tp_func_kmem_cache_alloc	vmlinux	EXPORT_SYMBOL	
 0x9a4f1f25	hci_free_dev	vmlinux	EXPORT_SYMBOL	
 0x905653a6	devlink_dpipe_action_put	vmlinux	EXPORT_SYMBOL_GPL	
+0x599914a2	__SCK__tp_func_android_vh_binder_free_buf	vmlinux	EXPORT_SYMBOL_GPL	
 0xb88d27b3	__traceiter_android_rvh_ctl_dirty_rate	vmlinux	EXPORT_SYMBOL_GPL	
 0x483f3668	iio_validate_scan_mask_onehot	vmlinux	EXPORT_SYMBOL_GPL	
 0xc89bcfcf	devfreq_add_device	vmlinux	EXPORT_SYMBOL	
@@ -1835,6 +1841,7 @@
 0x609e7ba8	netdev_bonding_info_change	vmlinux	EXPORT_SYMBOL	
 0x5d17825d	snd_soc_component_read	vmlinux	EXPORT_SYMBOL_GPL	
 0xabab0f2b	devm_nvmem_unregister	vmlinux	EXPORT_SYMBOL	
+0xc924dc00	__tracepoint_android_vh_free_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0x773fcf66	of_console_check	vmlinux	EXPORT_SYMBOL_GPL	
 0x7858ff8c	sdhci_get_property	vmlinux	EXPORT_SYMBOL_GPL	
 0xe98b49f5	v4l2_ctrl_cluster	vmlinux	EXPORT_SYMBOL	
@@ -2072,7 +2079,7 @@
 0x4d6d0bbc	iommu_group_ref_get	vmlinux	EXPORT_SYMBOL_GPL	
 0x77e07298	pci_add_resource	vmlinux	EXPORT_SYMBOL	
 0x34cbd6e0	skcipher_walk_async	vmlinux	EXPORT_SYMBOL_GPL	
-0x4b3ea5e0	jbd2_fc_end_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xe7a811bc	jbd2_fc_end_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x18f71953	do_splice_direct	vmlinux	EXPORT_SYMBOL	
 0xe1e8bd89	inode_congested	vmlinux	EXPORT_SYMBOL_GPL	
 0xa843805a	get_unused_fd_flags	vmlinux	EXPORT_SYMBOL	
@@ -2123,13 +2130,14 @@
 0x553f762c	pci_epc_put	vmlinux	EXPORT_SYMBOL_GPL	
 0xf82ec573	rb_prev	vmlinux	EXPORT_SYMBOL	
 0x19c86831	bd_unlink_disk_holder	vmlinux	EXPORT_SYMBOL_GPL	
-0xe0b5346a	jbd2_journal_init_dev	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x3a23c224	jbd2_journal_init_dev	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x1d5c81bc	forget_cached_acl	vmlinux	EXPORT_SYMBOL	
 0xa9e18049	task_handoff_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0x36b6ebbf	down_killable	vmlinux	EXPORT_SYMBOL	
 0xfbbd3c06	virtio_transport_seqpacket_has_data	vmlinux	EXPORT_SYMBOL_GPL	
 0xa06e33de	netdev_master_upper_dev_get_rcu	vmlinux	EXPORT_SYMBOL	
 0x70dc95a8	napi_gro_receive	vmlinux	EXPORT_SYMBOL	
+0x45eb8a70	iio_device_claim_buffer_mode	vmlinux	EXPORT_SYMBOL_GPL	
 0x6f68ea36	usb_get_phy	vmlinux	EXPORT_SYMBOL_GPL	
 0xb18b0a9d	is_dma_buf_file	vmlinux	EXPORT_SYMBOL_GPL	MINIDUMP
 0xa53c8a7b	drm_master_internal_release	vmlinux	EXPORT_SYMBOL	
@@ -2395,6 +2403,8 @@
 0x6892e3c3	kvm_set_pfn_accessed	vmlinux	EXPORT_SYMBOL_GPL	
 0xe3664f88	tcf_get_next_proto	vmlinux	EXPORT_SYMBOL	
 0xcf66be21	snd_soc_dapm_enable_pin_unlocked	vmlinux	EXPORT_SYMBOL_GPL	
+0x46cb2346	__tracepoint_android_vh_binder_special_task	vmlinux	EXPORT_SYMBOL_GPL	
+0xee9da1a2	__SCK__tp_func_android_vh_alloc_pages_entry	vmlinux	EXPORT_SYMBOL_GPL	
 0xdffb744b	frame_vector_to_pfns	vmlinux	EXPORT_SYMBOL	
 0xbb65f144	ufshcd_query_attr	vmlinux	EXPORT_SYMBOL_GPL	
 0x726544ce	dma_resv_test_signaled	vmlinux	EXPORT_SYMBOL_GPL	
@@ -2494,7 +2504,7 @@
 0x2b593aa8	gen_pool_alloc_algo_owner	vmlinux	EXPORT_SYMBOL	
 0x3b644591	__bitmap_shift_left	vmlinux	EXPORT_SYMBOL	
 0x537252cf	__SCK__tp_func_rpm_return_int	vmlinux	EXPORT_SYMBOL_GPL	
-0xcae7d0fc	synth_event_add_val	vmlinux	EXPORT_SYMBOL_GPL	
+0xf737b548	synth_event_add_val	vmlinux	EXPORT_SYMBOL_GPL	
 0x81b939ec	log_buf_addr_get	vmlinux	EXPORT_SYMBOL_GPL	
 0x6a5e2bde	__cookie_v6_init_sequence	vmlinux	EXPORT_SYMBOL_GPL	
 0x9d918d70	nat_rtp_rtcp_hook	vmlinux	EXPORT_SYMBOL_GPL	
@@ -2620,7 +2630,7 @@
 0x1a5faa3a	vli_mod_inv	vmlinux	EXPORT_SYMBOL	
 0xc93f3e08	kmem_cache_free_bulk	vmlinux	EXPORT_SYMBOL	
 0x9f6fd137	jump_label_rate_limit	vmlinux	EXPORT_SYMBOL_GPL	
-0x1c06733f	synth_event_add_next_val	vmlinux	EXPORT_SYMBOL_GPL	
+0xe0e7f2ee	synth_event_add_next_val	vmlinux	EXPORT_SYMBOL_GPL	
 0x543da67f	percpu_down_write	vmlinux	EXPORT_SYMBOL_GPL	
 0x77bb97d9	__SCK__tp_func_android_rvh_update_cpu_capacity	vmlinux	EXPORT_SYMBOL_GPL	
 0x1403ad09	cpufreq_add_update_util_hook	vmlinux	EXPORT_SYMBOL_GPL	
@@ -2718,8 +2728,8 @@
 0x521ad6d0	drm_puts	vmlinux	EXPORT_SYMBOL	
 0xdc49c198	reciprocal_value_adv	vmlinux	EXPORT_SYMBOL	
 0xcf1a33eb	akcipher_register_instance	vmlinux	EXPORT_SYMBOL_GPL	
-0x534ab340	jbd2_journal_destroy	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
-0x7bfe4cbc	jbd2_journal_restart	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x0c87de81	jbd2_journal_destroy	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x18f2c9db	jbd2_journal_restart	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xde7ece30	__cpu_possible_mask	vmlinux	EXPORT_SYMBOL	
 0x9c995c69	xt_percpu_counter_alloc	vmlinux	EXPORT_SYMBOL_GPL	
 0x05a46f25	of_get_mac_address	vmlinux	EXPORT_SYMBOL	
@@ -2889,7 +2899,7 @@
 0x67e4a5f4	drm_of_crtc_port_mask	vmlinux	EXPORT_SYMBOL	
 0xc7880c1a	of_regulator_match	vmlinux	EXPORT_SYMBOL_GPL	
 0xace54acc	rdev_get_name	vmlinux	EXPORT_SYMBOL_GPL	
-0x2653c1bf	jbd2_journal_inode_ranged_write	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xd36a14f1	jbd2_journal_inode_ranged_write	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xb8e3135e	pin_user_pages_fast	vmlinux	EXPORT_SYMBOL_GPL	
 0x7ea75c24	__wake_up_locked_key_bookmark	vmlinux	EXPORT_SYMBOL_GPL	
 0xb5b117d8	__traceiter_sched_stat_iowait	vmlinux	EXPORT_SYMBOL_GPL	
@@ -2979,7 +2989,7 @@
 0x99f56a3b	thermal_zone_of_sensor_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0xb572c518	virtqueue_enable_cb	vmlinux	EXPORT_SYMBOL_GPL	
 0xd1f5ea4e	amba_bustype	vmlinux	EXPORT_SYMBOL_GPL	
-0x8b01e297	jbd2_journal_get_undo_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x4265f227	jbd2_journal_get_undo_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x06445c38	__set_page_owner	vmlinux	EXPORT_SYMBOL_GPL	
 0xdfc04014	stop_machine	vmlinux	EXPORT_SYMBOL_GPL	
 0xb6261484	register_die_notifier	vmlinux	EXPORT_SYMBOL_GPL	
@@ -3221,6 +3231,7 @@
 0xb61e444f	can_sock_destruct	vmlinux	EXPORT_SYMBOL	
 0x4d70fe00	nf_l4proto_log_invalid	vmlinux	EXPORT_SYMBOL_GPL	
 0x7f99c9e6	net_ns_get_ownership	vmlinux	EXPORT_SYMBOL_GPL	
+0xfc69e036	__traceiter_android_vh_free_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0x61004dd9	__tracepoint_android_vh_free_user	vmlinux	EXPORT_SYMBOL_GPL	
 0x0719d2db	__SCK__tp_func_android_vh_exit_mm	vmlinux	EXPORT_SYMBOL_GPL	
 0x288b14b4	__traceiter_android_vh_mutex_opt_spin_finish	vmlinux	EXPORT_SYMBOL_GPL	
@@ -3320,6 +3331,7 @@
 0xcc5ebf2e	crypto_shash_tfm_digest	vmlinux	EXPORT_SYMBOL_GPL	
 0xf675c7d9	flow_rule_match_basic	vmlinux	EXPORT_SYMBOL	
 0xa2b5e3ab	call_fib_notifiers	vmlinux	EXPORT_SYMBOL	
+0xb5dab338	snd_soc_dai_is_dummy	vmlinux	EXPORT_SYMBOL_GPL	
 0xcb3a10e4	__drm_atomic_helper_connector_destroy_state	vmlinux	EXPORT_SYMBOL	
 0xd80c5d08	devm_reset_controller_register	vmlinux	EXPORT_SYMBOL_GPL	
 0x280d931a	regulator_bulk_force_disable	vmlinux	EXPORT_SYMBOL_GPL	
@@ -3522,6 +3534,7 @@
 0x9e652f2a	xfrm6_protocol_deregister	vmlinux	EXPORT_SYMBOL	
 0x1d96bd84	xfrm4_protocol_deregister	vmlinux	EXPORT_SYMBOL	
 0x37f80e12	icc_node_add	vmlinux	EXPORT_SYMBOL_GPL	
+0x33bf005a	__traceiter_android_vh_binder_transaction_received	vmlinux	EXPORT_SYMBOL_GPL	
 0xb3c9584f	led_set_brightness_sync	vmlinux	EXPORT_SYMBOL_GPL	
 0xa94bc9f2	edac_mc_find	vmlinux	EXPORT_SYMBOL	
 0x730f2eae	v4l2_m2m_init	vmlinux	EXPORT_SYMBOL_GPL	
@@ -3546,7 +3559,7 @@
 0x55f23c16	sg_miter_stop	vmlinux	EXPORT_SYMBOL	
 0x0da10ec3	security_sock_graft	vmlinux	EXPORT_SYMBOL	
 0xa2f3dd5f	key_reject_and_link	vmlinux	EXPORT_SYMBOL	
-0x5c18c0ed	jbd2_journal_init_jbd_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x1c8bee43	jbd2_journal_init_jbd_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xe46021ca	_raw_spin_unlock_bh	vmlinux	EXPORT_SYMBOL	
 0xe0ba077c	__traceiter_android_rvh_set_task_cpu	vmlinux	EXPORT_SYMBOL_GPL	
 0x8a848b2d	xt_proto_init	vmlinux	EXPORT_SYMBOL_GPL	
@@ -3773,6 +3786,7 @@
 0xb502c291	gfn_to_hva	vmlinux	EXPORT_SYMBOL_GPL	
 0xf19fce59	flush_dcache_page	vmlinux	EXPORT_SYMBOL	
 0xd3465bef	snd_soc_suspend	vmlinux	EXPORT_SYMBOL_GPL	
+0x797ef52f	__traceiter_android_vh_isolate_freepages	vmlinux	EXPORT_SYMBOL_GPL	
 0x1df9f0d1	v4l2_querymenu	vmlinux	EXPORT_SYMBOL	
 0x8b4b87b8	renesas_xhci_check_request_fw	vmlinux	EXPORT_SYMBOL_GPL	
 0x52ca2b99	scsi_is_host_device	vmlinux	EXPORT_SYMBOL	
@@ -3974,7 +3988,7 @@
 0xc2ef1ffe	pci_reset_bus	vmlinux	EXPORT_SYMBOL_GPL	
 0xf2f53617	memregion_free	vmlinux	EXPORT_SYMBOL	
 0x878469bd	ZSTD_decompressStream	vmlinux	EXPORT_SYMBOL	
-0xe7b254d6	jbd2_log_start_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xca7c79e2	jbd2_log_start_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xd9b4eb75	remove_proc_subtree	vmlinux	EXPORT_SYMBOL	
 0xce6db656	rcu_is_watching	vmlinux	EXPORT_SYMBOL_GPL	
 0xc9bca714	xp_alloc	vmlinux	EXPORT_SYMBOL	
@@ -3987,7 +4001,7 @@
 0x0207a6c6	reset_control_bulk_acquire	vmlinux	EXPORT_SYMBOL_GPL	
 0x29e1e204	hdmi_audio_infoframe_pack	vmlinux	EXPORT_SYMBOL	
 0x44e9a829	match_token	vmlinux	EXPORT_SYMBOL	
-0xc53129f4	jbd2_journal_abort	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xae66d948	jbd2_journal_abort	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x31019477	__ftrace_vbprintk	vmlinux	EXPORT_SYMBOL_GPL	
 0x28ed2847	down_write	vmlinux	EXPORT_SYMBOL	
 0x819bebd4	mutex_is_locked	vmlinux	EXPORT_SYMBOL	
@@ -4124,7 +4138,7 @@
 0xa6aa9857	des_decrypt	vmlinux	EXPORT_SYMBOL_GPL	
 0x9ac515fd	crypto_aes_set_key	vmlinux	EXPORT_SYMBOL_GPL	
 0x3bdb5d28	alg_test	vmlinux	EXPORT_SYMBOL_GPL	
-0x26bbc06d	jbd2__journal_restart	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x103c4a74	jbd2__journal_restart	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x7ce18c9f	from_kqid	vmlinux	EXPORT_SYMBOL	
 0xdbed7073	iomap_writepages	vmlinux	EXPORT_SYMBOL_GPL	
 0xbef43296	console_conditional_schedule	vmlinux	EXPORT_SYMBOL	
@@ -4200,6 +4214,7 @@
 0xcc2dbfd8	irq_domain_check_msi_remap	vmlinux	EXPORT_SYMBOL_GPL	
 0xf1522f52	__traceiter_android_vh_build_sched_domains	vmlinux	EXPORT_SYMBOL_GPL	
 0x7644869f	dst_release_immediate	vmlinux	EXPORT_SYMBOL	
+0xf8d28f05	__tracepoint_android_vh_alloc_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0x10ec6d2d	tcpm_sink_frs	vmlinux	EXPORT_SYMBOL_GPL	
 0x98536ab4	dma_resv_wait_timeout	vmlinux	EXPORT_SYMBOL_GPL	
 0x234767af	class_compat_remove_link	vmlinux	EXPORT_SYMBOL_GPL	
@@ -4243,7 +4258,7 @@
 0xca9beaa4	__xa_store	vmlinux	EXPORT_SYMBOL	
 0x50d035c2	vsscanf	vmlinux	EXPORT_SYMBOL	
 0x3621a862	devm_blk_ksm_init	vmlinux	EXPORT_SYMBOL_GPL	
-0x97b49517	jbd2_journal_unlock_updates	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xafb5e168	jbd2_journal_unlock_updates	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x82d79b51	sysctl_vfs_cache_pressure	vmlinux	EXPORT_SYMBOL_GPL	
 0x9a5a222c	__SCK__tp_func_mm_vmscan_direct_reclaim_end	vmlinux	EXPORT_SYMBOL_GPL	
 0xc9787376	dma_sync_single_for_cpu	vmlinux	EXPORT_SYMBOL	
@@ -4439,7 +4454,7 @@
 0x12796f88	drm_writeback_cleanup_job	vmlinux	EXPORT_SYMBOL	
 0xd689910c	drm_plane_force_disable	vmlinux	EXPORT_SYMBOL	
 0xb74ff1d3	blk_mq_run_hw_queue	vmlinux	EXPORT_SYMBOL	
-0x72c98a33	jbd2_journal_start_reserved	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x7d71ae59	jbd2_journal_start_reserved	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xec81bb10	insert_inode_locked4	vmlinux	EXPORT_SYMBOL	
 0x41482d8b	strndup_user	vmlinux	EXPORT_SYMBOL	
 0x6fcef6ab	ring_buffer_reset	vmlinux	EXPORT_SYMBOL_GPL	
@@ -4504,7 +4519,7 @@
 0x8ca2d9e4	drm_dp_calc_pbn_mode	vmlinux	EXPORT_SYMBOL	
 0x1ce9ca87	backlight_device_get_by_type	vmlinux	EXPORT_SYMBOL	
 0x6312796c	pinctrl_lookup_state	vmlinux	EXPORT_SYMBOL_GPL	
-0x3280b1cf	jbd2_fc_end_commit_fallback	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xc7b429f6	jbd2_fc_end_commit_fallback	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xf9a054b5	__round_jiffies	vmlinux	EXPORT_SYMBOL_GPL	
 0xf0bdce21	kthread_create_worker	vmlinux	EXPORT_SYMBOL	
 0xb307c909	devlink_fmsg_u64_pair_put	vmlinux	EXPORT_SYMBOL_GPL	
@@ -4539,7 +4554,7 @@
 0x7e9fdf73	dev_pm_qos_read_value	vmlinux	EXPORT_SYMBOL_GPL	
 0xff7515ba	device_add_properties	vmlinux	EXPORT_SYMBOL_GPL	
 0xcd47fcc4	arc4_crypt	vmlinux	EXPORT_SYMBOL	
-0x3bf18229	jbd2__journal_start	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x1b28e2a5	jbd2__journal_start	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x4e344915	vfs_copy_file_range	vmlinux	EXPORT_SYMBOL	
 0x0f09cc34	schedule_timeout_killable	vmlinux	EXPORT_SYMBOL	
 0x959ec5f5	call_rcu_tasks	vmlinux	EXPORT_SYMBOL_GPL	
@@ -4594,6 +4609,7 @@
 0xb69931e9	mnt_set_expiry	vmlinux	EXPORT_SYMBOL	
 0x2d41e6f5	__trace_puts	vmlinux	EXPORT_SYMBOL_GPL	
 0x12ef9798	param_get_invbool	vmlinux	EXPORT_SYMBOL	
+0x94160518	__put_task_struct_rcu_cb	vmlinux	EXPORT_SYMBOL_GPL	
 0xb9241512	ip_tunnel_newlink	vmlinux	EXPORT_SYMBOL_GPL	
 0x94490e6c	genl_notify	vmlinux	EXPORT_SYMBOL	
 0xa0dad88e	netdev_adjacent_get_private	vmlinux	EXPORT_SYMBOL	
@@ -4704,7 +4720,7 @@
 0xf4d555ce	typec_get_drvdata	vmlinux	EXPORT_SYMBOL_GPL	
 0x4a815618	devm_regulator_register_supply_alias	vmlinux	EXPORT_SYMBOL_GPL	
 0x239c4a55	devm_clk_bulk_get_all	vmlinux	EXPORT_SYMBOL_GPL	
-0x949a88dc	jbd2_journal_wipe	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xbcee7f7c	jbd2_journal_wipe	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x444f1735	cpu_pm_register_notifier	vmlinux	EXPORT_SYMBOL_GPL	
 0xdfe78032	netdev_lower_get_next_private_rcu	vmlinux	EXPORT_SYMBOL	
 0x3c27a1cf	__skb_pad	vmlinux	EXPORT_SYMBOL	
@@ -4957,7 +4973,6 @@
 0x5ae1154b	__traceiter_kfree	vmlinux	EXPORT_SYMBOL	
 0xc02780c0	xfrm_init_state	vmlinux	EXPORT_SYMBOL	
 0x522546c2	__SCK__tp_func_net_dev_xmit	vmlinux	EXPORT_SYMBOL_GPL	
-0x84c03e9a	rtnl_nla_parse_ifla	vmlinux	EXPORT_SYMBOL	
 0x26674c8f	alloc_skb_with_frags	vmlinux	EXPORT_SYMBOL	
 0x72ac2026	__tracepoint_android_vh_modify_thermal_cpu_get_power	vmlinux	EXPORT_SYMBOL_GPL	
 0x80c321bc	__traceiter_android_vh_mem_cgroup_id_remove	vmlinux	EXPORT_SYMBOL_GPL	
@@ -5437,7 +5452,7 @@
 0xa0713087	drm_ht_find_item	vmlinux	EXPORT_SYMBOL	
 0x948c81eb	blk_update_request	vmlinux	EXPORT_SYMBOL_GPL	
 0x02649054	security_sock_rcv_skb	vmlinux	EXPORT_SYMBOL	
-0x2b346361	jbd2_journal_put_journal_head	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xb48bc9e5	jbd2_journal_put_journal_head	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xfc336d2e	__wake_up_bit	vmlinux	EXPORT_SYMBOL	
 0xb4d5f34f	get_task_cred	vmlinux	EXPORT_SYMBOL	
 0x5228b05b	sock_release	vmlinux	EXPORT_SYMBOL	
@@ -5721,6 +5736,7 @@
 0x133292f4	devlink_param_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0x1c5a16ba	snd_soc_of_parse_tdm_slot	vmlinux	EXPORT_SYMBOL_GPL	
 0x178b5c01	_snd_ctl_add_follower	vmlinux	EXPORT_SYMBOL	
+0xf64d3ead	__tracepoint_android_vh_binder_free_buf	vmlinux	EXPORT_SYMBOL_GPL	
 0xd8da26c5	input_ff_create	vmlinux	EXPORT_SYMBOL_GPL	
 0x8f4ed48b	regmap_add_irq_chip_fwnode	vmlinux	EXPORT_SYMBOL_GPL	
 0x40af62cf	device_destroy	vmlinux	EXPORT_SYMBOL_GPL	
@@ -5808,6 +5824,7 @@
 0x86ab091d	work_busy	vmlinux	EXPORT_SYMBOL_GPL	
 0x6763bfc5	__sk_mem_reclaim	vmlinux	EXPORT_SYMBOL	
 0xe2c0e10f	snd_soc_get_dai_name	vmlinux	EXPORT_SYMBOL_GPL	
+0xc1feb257	__traceiter_android_vh_alloc_oem_binder_struct	vmlinux	EXPORT_SYMBOL_GPL	
 0xe9fd66c8	find_mci_by_dev	vmlinux	EXPORT_SYMBOL_GPL	
 0x504c09ec	gspca_dev_probe2	vmlinux	EXPORT_SYMBOL	
 0xb2495a11	drm_dp_stop_crc	vmlinux	EXPORT_SYMBOL	
@@ -5999,7 +6016,7 @@
 0xa63842c8	devm_kstrdup_const	vmlinux	EXPORT_SYMBOL_GPL	
 0x83c76c7f	of_reset_control_array_get	vmlinux	EXPORT_SYMBOL_GPL	
 0x4a833012	poly1305_final_generic	vmlinux	EXPORT_SYMBOL_GPL	
-0x712d2df7	jbd2_journal_set_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xa5d3243e	jbd2_journal_set_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xe7d6d2d4	filter_match_preds	vmlinux	EXPORT_SYMBOL_GPL	
 0x0a09776e	virtio_transport_notify_poll_in	vmlinux	EXPORT_SYMBOL_GPL	
 0xf10c3644	gnss_register_device	vmlinux	EXPORT_SYMBOL_GPL	
@@ -6047,6 +6064,7 @@
 0xbed60b77	sock_no_sendpage_locked	vmlinux	EXPORT_SYMBOL	
 0xa254de98	typec_find_orientation	vmlinux	EXPORT_SYMBOL_GPL	
 0x42a12f4c	spmi_controller_alloc	vmlinux	EXPORT_SYMBOL_GPL	
+0xa441ba62	dev_pm_set_dedicated_wake_irq_reverse	vmlinux	EXPORT_SYMBOL_GPL	
 0x9b285573	drm_match_cea_mode	vmlinux	EXPORT_SYMBOL	
 0x2a84a332	drm_atomic_helper_disable_all	vmlinux	EXPORT_SYMBOL	
 0x2eea912c	get_random_bytes_arch	vmlinux	EXPORT_SYMBOL	
@@ -6108,7 +6126,7 @@
 0x8339df73	klist_add_behind	vmlinux	EXPORT_SYMBOL_GPL	
 0x574c2e74	bitmap_release_region	vmlinux	EXPORT_SYMBOL	
 0x767fd264	__blk_mq_debugfs_rq_show	vmlinux	EXPORT_SYMBOL_GPL	
-0x237a7bb8	jbd2_transaction_committed	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x9ea25034	jbd2_transaction_committed	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xed5376c5	__printk_wait_on_cpu_lock	vmlinux	EXPORT_SYMBOL	
 0xb58aeaab	kernel_cpustat	vmlinux	EXPORT_SYMBOL	
 0x6da467cb	pfn_is_map_memory	vmlinux	EXPORT_SYMBOL	
@@ -6596,7 +6614,7 @@
 0x6ef473fe	nla_append	vmlinux	EXPORT_SYMBOL	
 0x59204124	pcim_iomap_regions	vmlinux	EXPORT_SYMBOL	
 0xe1c63523	blk_ksm_get_slot_idx	vmlinux	EXPORT_SYMBOL_GPL	
-0xcdbe9cac	jbd2_journal_lock_updates	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x213bf178	jbd2_journal_lock_updates	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x12e25174	vfs_llseek	vmlinux	EXPORT_SYMBOL	
 0xf060968f	__page_file_index	vmlinux	EXPORT_SYMBOL_GPL	
 0x55cde3ef	__irq_set_handler	vmlinux	EXPORT_SYMBOL_GPL	
@@ -6656,7 +6674,7 @@
 0x30af45a1	ZSTD_initCStream	vmlinux	EXPORT_SYMBOL	
 0xc904c5b0	aead_init_geniv	vmlinux	EXPORT_SYMBOL_GPL	
 0xb4868711	securityfs_remove	vmlinux	EXPORT_SYMBOL_GPL	
-0xe9ad0da0	jbd2_journal_grab_journal_head	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x92c5d3a8	jbd2_journal_grab_journal_head	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x96ce9f85	noop_fsync	vmlinux	EXPORT_SYMBOL	
 0x7c626556	list_lru_destroy	vmlinux	EXPORT_SYMBOL_GPL	
 0xdc528096	cpu_latency_qos_update_request	vmlinux	EXPORT_SYMBOL_GPL	
@@ -6863,6 +6881,7 @@
 0x1fbc52f9	fib6_info_hw_flags_set	vmlinux	EXPORT_SYMBOL	
 0x9eed5912	xfrm_sad_getinfo	vmlinux	EXPORT_SYMBOL	
 0xd1f2eee2	nf_logger_find_get	vmlinux	EXPORT_SYMBOL_GPL	
+0xcc7c644e	__traceiter_android_vh_binder_free_buf	vmlinux	EXPORT_SYMBOL_GPL	
 0xe233762a	input_event_from_user	vmlinux	EXPORT_SYMBOL_GPL	
 0x3c4a1d07	typec_mux_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0x4484a5a4	wait_for_device_probe	vmlinux	EXPORT_SYMBOL_GPL	
@@ -6876,6 +6895,7 @@
 0x21e0e39d	__page_file_mapping	vmlinux	EXPORT_SYMBOL_GPL	
 0x4a3ea5c0	snd_request_card	vmlinux	EXPORT_SYMBOL	
 0x15a7a191	__SCK__tp_func_android_vh_page_referenced_check_bypass	vmlinux	EXPORT_SYMBOL_GPL	
+0xf1ec764f	iio_buffer_enabled	vmlinux	EXPORT_SYMBOL_GPL	
 0x8f0dcd93	of_graph_get_port_parent	vmlinux	EXPORT_SYMBOL	
 0x9c8f6dc2	of_get_next_parent	vmlinux	EXPORT_SYMBOL	
 0xfe2f4a7a	drm_helper_disable_unused_functions	vmlinux	EXPORT_SYMBOL	
@@ -7025,7 +7045,7 @@
 0x6bcdedc0	mpi_point_init	vmlinux	EXPORT_SYMBOL_GPL	
 0xa683f1f8	blk_rq_map_user	vmlinux	EXPORT_SYMBOL	
 0x88060a36	crypto_sha512_update	vmlinux	EXPORT_SYMBOL	
-0x47205f13	jbd2_journal_clear_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xc9aefae7	jbd2_journal_clear_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x99c27fd4	generic_pipe_buf_release	vmlinux	EXPORT_SYMBOL	
 0xbd7aaaee	add_memory	vmlinux	EXPORT_SYMBOL_GPL	
 0x98d04949	blocking_notifier_call_chain_robust	vmlinux	EXPORT_SYMBOL_GPL	
@@ -7087,6 +7107,7 @@
 0x28eff409	nf_conntrack_hash	vmlinux	EXPORT_SYMBOL_GPL	
 0x8333ce7b	stp_proto_register	vmlinux	EXPORT_SYMBOL_GPL	
 0x935ccaaa	sk_msg_clone	vmlinux	EXPORT_SYMBOL_GPL	
+0xfa1fd797	__SCK__tp_func_android_vh_binder_transaction_received	vmlinux	EXPORT_SYMBOL_GPL	
 0x7ae4711b	__tracepoint_android_vh_drm_atomic_check_modeset	vmlinux	EXPORT_SYMBOL_GPL	
 0x3e7cbeb9	dm_internal_resume_fast	vmlinux	EXPORT_SYMBOL_GPL	
 0x625a5e91	of_get_i2c_adapter_by_node	vmlinux	EXPORT_SYMBOL	
@@ -7384,7 +7405,7 @@
 0x84065b2c	crypto_register_aead	vmlinux	EXPORT_SYMBOL_GPL	
 0xf055000f	crypto_register_algs	vmlinux	EXPORT_SYMBOL_GPL	
 0xfbe38ebb	fat_free_clusters	vmlinux	EXPORT_SYMBOL_GPL	
-0x553d6d6a	jbd2_complete_transaction	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xbbcfead6	jbd2_complete_transaction	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x99138a1e	__set_page_dirty_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xa68da11d	unlock_two_nondirectories	vmlinux	EXPORT_SYMBOL	
 0x2773c485	__wake_up_locked	vmlinux	EXPORT_SYMBOL_GPL	
@@ -7411,6 +7432,7 @@
 0xd2f4281f	tcf_register_action	vmlinux	EXPORT_SYMBOL	
 0xd583318e	mini_qdisc_pair_swap	vmlinux	EXPORT_SYMBOL	
 0x4048046a	netdev_reset_tc	vmlinux	EXPORT_SYMBOL	
+0xf78179e0	__tracepoint_android_vh_alloc_pages_entry	vmlinux	EXPORT_SYMBOL_GPL	
 0xbac548dc	__tracepoint_android_vh_binder_wait_for_work	vmlinux	EXPORT_SYMBOL_GPL	
 0xb97233e8	of_property_read_string_helper	vmlinux	EXPORT_SYMBOL_GPL	
 0xff42c374	usb_role_switch_get_role	vmlinux	EXPORT_SYMBOL_GPL	
@@ -7479,7 +7501,7 @@
 0xb95cb1a9	tty_port_alloc_xmit_buf	vmlinux	EXPORT_SYMBOL	
 0xccef37e4	ZSTD_DStreamOutSize	vmlinux	EXPORT_SYMBOL	
 0x88822d38	unregister_blocking_lsm_notifier	vmlinux	EXPORT_SYMBOL	
-0x0d233a5d	jbd2_journal_get_create_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xb8b84182	jbd2_journal_get_create_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x528c8b55	no_llseek	vmlinux	EXPORT_SYMBOL	
 0x1ecdf7e8	irq_domain_create_simple	vmlinux	EXPORT_SYMBOL_GPL	
 0xa58af0a6	_raw_read_unlock_irq	vmlinux	EXPORT_SYMBOL	
@@ -7594,7 +7616,7 @@
 0x38faba2c	drm_gem_shmem_put_pages	vmlinux	EXPORT_SYMBOL	
 0x18d845de	drm_dp_read_sink_count_cap	vmlinux	EXPORT_SYMBOL	
 0xe397caf5	seq_buf_printf	vmlinux	EXPORT_SYMBOL_GPL	
-0x493df044	jbd2_journal_init_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xc05cb05b	jbd2_journal_init_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xe0a35256	take_dentry_name_snapshot	vmlinux	EXPORT_SYMBOL	
 0x8291df2c	deactivate_locked_super	vmlinux	EXPORT_SYMBOL	
 0xfad3ba3a	em_dev_register_perf_domain	vmlinux	EXPORT_SYMBOL_GPL	
@@ -7603,6 +7625,7 @@
 0x557a3bd8	xfrm_audit_policy_delete	vmlinux	EXPORT_SYMBOL_GPL	
 0x035ce92a	inet_twsk_hashdance	vmlinux	EXPORT_SYMBOL_GPL	
 0x4f816e9b	snd_pcm_format_big_endian	vmlinux	EXPORT_SYMBOL	
+0x73e426b8	__tracepoint_android_vh_binder_transaction_received	vmlinux	EXPORT_SYMBOL_GPL	
 0xef507458	iio_read_channel_average_raw	vmlinux	EXPORT_SYMBOL_GPL	
 0xfeef9fa1	rproc_resource_cleanup	vmlinux	EXPORT_SYMBOL	
 0xc1cd6d9e	clkdev_create	vmlinux	EXPORT_SYMBOL_GPL	
@@ -7650,8 +7673,8 @@
 0x35e11f2d	vhost_enqueue_msg	vmlinux	EXPORT_SYMBOL_GPL	
 0xc65bd369	led_put	vmlinux	EXPORT_SYMBOL_GPL	
 0x9bc1b8be	ttm_tt_destroy_common	vmlinux	EXPORT_SYMBOL	
-0xe4329092	__ctzdi2	vmlinux	EXPORT_SYMBOL	
-0x6fd9c35a	__clzdi2	vmlinux	EXPORT_SYMBOL	
+0x54cfacd5	__ctzdi2	vmlinux	EXPORT_SYMBOL	
+0x776ca93a	__clzdi2	vmlinux	EXPORT_SYMBOL	
 0x2f5d2129	blk_pre_runtime_suspend	vmlinux	EXPORT_SYMBOL	
 0xe4bbc1dd	kimage_voffset	vmlinux	EXPORT_SYMBOL	
 0x01041c62	__traceiter_android_vh_check_page_look_around_ref	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8020,6 +8043,7 @@
 0x2b538956	flow_block_cb_setup_simple	vmlinux	EXPORT_SYMBOL	
 0x1fa88629	flow_rule_match_enc_ip	vmlinux	EXPORT_SYMBOL	
 0x8c09d657	rtnl_af_register	vmlinux	EXPORT_SYMBOL_GPL	
+0x807eaa2f	__SCK__tp_func_android_vh_binder_special_task	vmlinux	EXPORT_SYMBOL_GPL	
 0xf2a353ac	v4l2_i2c_tuner_addrs	vmlinux	EXPORT_SYMBOL_GPL	
 0x116729e2	typec_altmode_get_plug	vmlinux	EXPORT_SYMBOL_GPL	
 0x443e5ce5	__SCK__tp_func_dwc3_event	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8230,6 +8254,7 @@
 0xa05179b6	pinctrl_generic_remove_group	vmlinux	EXPORT_SYMBOL_GPL	
 0xd75b20aa	rsa_parse_priv_key	vmlinux	EXPORT_SYMBOL_GPL	
 0x722d590e	__traceiter_android_fs_datawrite_start	vmlinux	EXPORT_SYMBOL	
+0x3bbb53b9	__tracepoint_mm_page_alloc	vmlinux	EXPORT_SYMBOL_GPL	
 0x5c0c784d	km_state_expired	vmlinux	EXPORT_SYMBOL	
 0x51271b9f	ip_tunnel_get_iflink	vmlinux	EXPORT_SYMBOL	
 0xfb3a55c2	__SCK__tp_func_android_vh_vmpressure	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8338,7 +8363,7 @@
 0x59f32720	mpi_subm	vmlinux	EXPORT_SYMBOL_GPL	
 0xd227047e	fault_in_iov_iter_writeable	vmlinux	EXPORT_SYMBOL	
 0xc575c737	debug_locks_off	vmlinux	EXPORT_SYMBOL_GPL	
-0x32c2a3e4	jbd2_journal_forget	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x4ca2f350	jbd2_journal_forget	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x3318e664	__SCK__tp_func_clock_set_rate	vmlinux	EXPORT_SYMBOL_GPL	
 0x2c2067df	mutex_lock_interruptible	vmlinux	EXPORT_SYMBOL	
 0x7ce74918	__tracepoint_android_vh_em_cpu_energy	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8381,7 +8406,7 @@
 0xeaf6beca	pci_disable_link_state	vmlinux	EXPORT_SYMBOL	
 0xc7a625f0	crypto_unregister_akcipher	vmlinux	EXPORT_SYMBOL_GPL	
 0x557eb2ad	crypto_unregister_skcipher	vmlinux	EXPORT_SYMBOL_GPL	
-0x80819308	jbd2_journal_start	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x3b85ad23	jbd2_journal_start	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xa35ff31e	dquot_quota_on	vmlinux	EXPORT_SYMBOL	
 0xd67364f7	eventfd_ctx_fdget	vmlinux	EXPORT_SYMBOL_GPL	
 0x739fd00f	__SCK__tp_func_module_get	vmlinux	EXPORT_SYMBOL	
@@ -8416,7 +8441,7 @@
 0xd06d947a	scsi_alloc_sgtables	vmlinux	EXPORT_SYMBOL	
 0xe619f8d2	fwnode_graph_parse_endpoint	vmlinux	EXPORT_SYMBOL	
 0xb30a5650	regulator_map_voltage_pickable_linear_range	vmlinux	EXPORT_SYMBOL_GPL	
-0x92d64e48	jbd2_journal_force_commit_nested	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x48dbc3db	jbd2_journal_force_commit_nested	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xfeb47e90	seq_pad	vmlinux	EXPORT_SYMBOL	
 0x274ebba1	seq_release_private	vmlinux	EXPORT_SYMBOL	
 0xa614f0a4	ww_mutex_lock	vmlinux	EXPORT_SYMBOL	
@@ -8452,7 +8477,7 @@
 0x2a9c230a	drm_connector_attach_content_type_property	vmlinux	EXPORT_SYMBOL	
 0xcef8ad89	drm_i2c_encoder_mode_set	vmlinux	EXPORT_SYMBOL	
 0xcc59a67d	pcix_get_mmrbc	vmlinux	EXPORT_SYMBOL	
-0xe0521a4d	jbd2_journal_check_used_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x285c95ae	jbd2_journal_check_used_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xcd91b127	system_highpri_wq	vmlinux	EXPORT_SYMBOL_GPL	
 0xae316c11	icmpv6_err_convert	vmlinux	EXPORT_SYMBOL	
 0xc2671530	xfrm_audit_state_delete	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8796,6 +8821,7 @@
 0xd4db7aa5	esp_input_done2	vmlinux	EXPORT_SYMBOL_GPL	
 0xdd5529fd	tcp_unregister_ulp	vmlinux	EXPORT_SYMBOL_GPL	
 0xde59eacf	__traceiter_neigh_cleanup_and_release	vmlinux	EXPORT_SYMBOL_GPL	
+0x96683b50	rtnl_nla_parse_ifinfomsg	vmlinux	EXPORT_SYMBOL	
 0xfdc82d06	neigh_connected_output	vmlinux	EXPORT_SYMBOL	
 0xd8b04e84	drm_plane_init	vmlinux	EXPORT_SYMBOL	
 0x2421097b	mpi_const	vmlinux	EXPORT_SYMBOL_GPL	
@@ -8891,6 +8917,7 @@
 0xd9d75cd6	register_user_break_hook	vmlinux	EXPORT_SYMBOL_GPL	
 0xaf3ade88	virtio_transport_inc_tx_pkt	vmlinux	EXPORT_SYMBOL_GPL	
 0x54db6bb4	reuseport_attach_prog	vmlinux	EXPORT_SYMBOL	
+0xdbd10c82	__tracepoint_android_vh_isolate_freepages	vmlinux	EXPORT_SYMBOL_GPL	
 0x392bdae9	edac_mc_del_mc	vmlinux	EXPORT_SYMBOL_GPL	
 0xfd9b514f	usb_del_gadget	vmlinux	EXPORT_SYMBOL_GPL	
 0x6652df4b	usbnet_cdc_update_filter	vmlinux	EXPORT_SYMBOL_GPL	
@@ -9056,6 +9083,7 @@
 0x0958448b	v4l2_set_edid_phys_addr	vmlinux	EXPORT_SYMBOL_GPL	
 0x8be7387e	media_create_intf_link	vmlinux	EXPORT_SYMBOL_GPL	
 0x3d6fd724	__SCK__tp_func_xhci_urb_enqueue	vmlinux	EXPORT_SYMBOL_GPL	
+0x1b5cc9d8	dma_fence_array_first	vmlinux	EXPORT_SYMBOL	
 0x8bf6c746	dev_pm_qos_remove_request	vmlinux	EXPORT_SYMBOL_GPL	
 0x798f23ad	fwnode_connection_find_match	vmlinux	EXPORT_SYMBOL_GPL	
 0x2b664b0e	drm_connector_set_path_property	vmlinux	EXPORT_SYMBOL	
@@ -9498,6 +9526,7 @@
 0xc319717f	cpuidle_governor_latency_req	vmlinux	EXPORT_SYMBOL_GPL	
 0x22631168	typec_unregister_altmode	vmlinux	EXPORT_SYMBOL_GPL	
 0x8030f247	usb_stor_Bulk_reset	vmlinux	EXPORT_SYMBOL_GPL	USB_STORAGE
+0xf969e188	dma_fence_array_next	vmlinux	EXPORT_SYMBOL	
 0x564ff572	attribute_container_unregister	vmlinux	EXPORT_SYMBOL_GPL	
 0x96e7a945	driver_for_each_device	vmlinux	EXPORT_SYMBOL_GPL	
 0xfcd1819a	hdmi_spd_infoframe_check	vmlinux	EXPORT_SYMBOL	
@@ -9576,7 +9605,7 @@
 0x3096b65a	drm_gem_create_mmap_offset	vmlinux	EXPORT_SYMBOL	
 0x5b8679d3	drm_helper_force_disable_all	vmlinux	EXPORT_SYMBOL	
 0x91f4d6a1	security_locked_down	vmlinux	EXPORT_SYMBOL	
-0x07ad1905	jbd2_journal_free_reserved	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x776e4c14	jbd2_journal_free_reserved	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xfbffd601	net_prio_cgrp_subsys_on_dfl_key	vmlinux	EXPORT_SYMBOL_GPL	
 0x2aee73b0	irq_domain_free_irqs_parent	vmlinux	EXPORT_SYMBOL_GPL	
 0x8363715e	__tracepoint_android_vh_sched_pelt_multiplier	vmlinux	EXPORT_SYMBOL_GPL	
@@ -9709,7 +9738,7 @@
 0x561afe77	drm_dp_mst_allocate_vcpi	vmlinux	EXPORT_SYMBOL	
 0x13d0adf7	__kfifo_out	vmlinux	EXPORT_SYMBOL	
 0xe06141e9	security_sk_clone	vmlinux	EXPORT_SYMBOL	
-0x2b4eba55	jbd2_wait_inode_data	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x8092c76a	jbd2_wait_inode_data	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xaa04709b	proc_mkdir	vmlinux	EXPORT_SYMBOL	
 0x1e6b8bbf	lookup_positive_unlocked	vmlinux	EXPORT_SYMBOL	
 0xba76b545	dummy_irq_chip	vmlinux	EXPORT_SYMBOL_GPL	
@@ -10189,6 +10218,7 @@
 0x6fb391ae	rt_dst_clone	vmlinux	EXPORT_SYMBOL	
 0x097af021	neigh_proc_dointvec_jiffies	vmlinux	EXPORT_SYMBOL	
 0x3a3eae0b	skb_copy_header	vmlinux	EXPORT_SYMBOL	
+0xc34acf3f	__traceiter_android_vh_binder_special_task	vmlinux	EXPORT_SYMBOL_GPL	
 0x50b25f1d	__SCK__tp_func_android_rvh_dma_buf_stats_teardown	vmlinux	EXPORT_SYMBOL_GPL	
 0x049ee420	__SCK__tp_func_android_vh_cgroup_set_task	vmlinux	EXPORT_SYMBOL_GPL	
 0xf60685b8	rpmsg_poll	vmlinux	EXPORT_SYMBOL	
@@ -10696,7 +10726,7 @@
 0xa15d2592	device_property_read_u32_array	vmlinux	EXPORT_SYMBOL_GPL	
 0xb2fa45de	device_property_read_u16_array	vmlinux	EXPORT_SYMBOL_GPL	
 0xf4cd9f8f	reset_control_bulk_release	vmlinux	EXPORT_SYMBOL_GPL	
-0x8172f93c	jbd2_fc_wait_bufs	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x183d1584	jbd2_fc_wait_bufs	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xbaf5621e	config_item_set_name	vmlinux	EXPORT_SYMBOL	
 0x2f17c746	dquot_release	vmlinux	EXPORT_SYMBOL	
 0x75e51945	__SCK__tp_func_error_report_end	vmlinux	EXPORT_SYMBOL_GPL	
@@ -10768,7 +10798,7 @@
 0x2fec1623	blk_mq_stop_hw_queue	vmlinux	EXPORT_SYMBOL	
 0x76652808	crypto_alg_mod_lookup	vmlinux	EXPORT_SYMBOL_GPL	
 0xefeeb62f	debugfs_create_ulong	vmlinux	EXPORT_SYMBOL_GPL	
-0x3a79d4e2	jbd2_journal_inode_ranged_wait	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x46bc5410	jbd2_journal_inode_ranged_wait	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x41a067fd	__SCK__tp_func_android_fs_dataread_end	vmlinux	EXPORT_SYMBOL	
 0x354b5ef7	freeze_super	vmlinux	EXPORT_SYMBOL	
 0xdd7669ba	__devm_request_region	vmlinux	EXPORT_SYMBOL	
@@ -10790,7 +10820,7 @@
 0x5fe2f484	dma_async_device_unregister	vmlinux	EXPORT_SYMBOL	
 0xd90b8324	pci_rebar_get_possible_sizes	vmlinux	EXPORT_SYMBOL	
 0xca21ebd3	bitmap_free	vmlinux	EXPORT_SYMBOL	
-0x59167bdd	jbd2_journal_submit_inode_data_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x54ed634b	jbd2_journal_submit_inode_data_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x4ca74f5e	find_inode_nowait	vmlinux	EXPORT_SYMBOL	
 0x0bbdc9b2	remove_memory	vmlinux	EXPORT_SYMBOL_GPL	
 0x7eb8f971	devm_snd_soc_register_dai	vmlinux	EXPORT_SYMBOL_GPL	
@@ -10864,7 +10894,7 @@
 0xedf4eeae	pinctrl_enable	vmlinux	EXPORT_SYMBOL_GPL	
 0xed61f6b3	security_release_secctx	vmlinux	EXPORT_SYMBOL	
 0x2d994605	security_inode_copy_up_xattr	vmlinux	EXPORT_SYMBOL	
-0x00395d6c	jbd2_journal_check_available_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xd1573295	jbd2_journal_check_available_features	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x1cc11154	__SCK__tp_func_mmap_lock_start_locking	vmlinux	EXPORT_SYMBOL	
 0x862258db	timecounter_init	vmlinux	EXPORT_SYMBOL_GPL	
 0xc0b30a2e	dma_free_attrs	vmlinux	EXPORT_SYMBOL	
@@ -10922,7 +10952,7 @@
 0xb8eaf34c	__drm_atomic_helper_plane_duplicate_state	vmlinux	EXPORT_SYMBOL	
 0x8785f18c	gpiod_get_index_optional	vmlinux	EXPORT_SYMBOL_GPL	
 0x25bbfa9a	security_kernel_load_data	vmlinux	EXPORT_SYMBOL_GPL	
-0xb4cec6e1	jbd2_journal_stop	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xa2eb897d	jbd2_journal_stop	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xb11335fb	wq_worker_comm	vmlinux	EXPORT_SYMBOL_GPL	
 0x5fe670ac	devlink_is_reload_failed	vmlinux	EXPORT_SYMBOL_GPL	
 0x33798eda	neigh_ifdown	vmlinux	EXPORT_SYMBOL	
@@ -10940,7 +10970,7 @@
 0x3ff83052	pci_scan_bridge	vmlinux	EXPORT_SYMBOL	
 0x27f8df78	pci_generic_config_read	vmlinux	EXPORT_SYMBOL_GPL	
 0xb9a11acd	blk_mq_delay_kick_requeue_list	vmlinux	EXPORT_SYMBOL	
-0xd5924f0b	jbd2_journal_extend	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xa344f63b	jbd2_journal_extend	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x3dabf271	memcg_sockets_enabled_key	vmlinux	EXPORT_SYMBOL	
 0x2943498b	tick_nohz_get_idle_calls_cpu	vmlinux	EXPORT_SYMBOL_GPL	
 0xb2c1732e	rcu_gp_set_torture_wait	vmlinux	EXPORT_SYMBOL_GPL	
@@ -11117,7 +11147,7 @@
 0x83bce697	devm_regulator_unregister_notifier	vmlinux	EXPORT_SYMBOL_GPL	
 0xe0975d87	regulator_bulk_disable	vmlinux	EXPORT_SYMBOL_GPL	
 0x3fe2ccbe	memweight	vmlinux	EXPORT_SYMBOL	
-0x2cadc137	jbd2_journal_ack_err	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xf899740b	jbd2_journal_ack_err	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x2399cc34	__SCK__tp_func_android_rvh_find_busiest_group	vmlinux	EXPORT_SYMBOL_GPL	
 0x1dc47982	__traceiter_android_rvh_rtmutex_prepare_setprio	vmlinux	EXPORT_SYMBOL_GPL	
 0xb7bfd49b	__SCK__tp_func_sched_stat_blocked	vmlinux	EXPORT_SYMBOL_GPL	
@@ -11225,7 +11255,7 @@
 0x0394506a	pinctrl_generic_add_group	vmlinux	EXPORT_SYMBOL_GPL	
 0x7c0fbb00	vli_mod_mult_slow	vmlinux	EXPORT_SYMBOL	
 0x7da9e8ce	security_inet_conn_established	vmlinux	EXPORT_SYMBOL	
-0x1a3f784a	jbd2_journal_finish_inode_data_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xe3c2d537	jbd2_journal_finish_inode_data_buffers	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x3dfc897c	seq_hlist_start_head	vmlinux	EXPORT_SYMBOL	
 0xeb32055e	clocksource_change_rating	vmlinux	EXPORT_SYMBOL	
 0x985e2420	ip6_tnl_rcv_ctl	vmlinux	EXPORT_SYMBOL_GPL	
@@ -11305,8 +11335,8 @@
 0x6d15479b	regmap_get_val_bytes	vmlinux	EXPORT_SYMBOL_GPL	
 0xcd5b6860	drm_atomic_nonblocking_commit	vmlinux	EXPORT_SYMBOL	
 0xdef55c66	blk_mq_complete_request_remote	vmlinux	EXPORT_SYMBOL_GPL	
-0x94f37bd8	jbd2_trans_will_send_data_barrier	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
-0xae070c34	jbd2_journal_begin_ordered_truncate	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x0cdcc7a5	jbd2_trans_will_send_data_barrier	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xab40f422	jbd2_journal_begin_ordered_truncate	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xba0676e2	vm_zone_stat	vmlinux	EXPORT_SYMBOL	
 0x801d1339	file_fdatawait_range	vmlinux	EXPORT_SYMBOL	
 0x055e77e8	jiffies_64	vmlinux	EXPORT_SYMBOL	
@@ -11554,7 +11584,7 @@
 0x0b388ded	pci_user_write_config_byte	vmlinux	EXPORT_SYMBOL_GPL	
 0xc76f8048	__sbitmap_queue_get	vmlinux	EXPORT_SYMBOL_GPL	
 0x4bf7c76d	crypto_grab_spawn	vmlinux	EXPORT_SYMBOL_GPL	
-0x4bb288fd	jbd2_journal_errno	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x1d96f1db	jbd2_journal_errno	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x089c101c	dquot_transfer	vmlinux	EXPORT_SYMBOL	
 0x26ed2186	register_vmap_purge_notifier	vmlinux	EXPORT_SYMBOL_GPL	
 0xaa2a8de6	kvm_clear_guest	vmlinux	EXPORT_SYMBOL_GPL	
@@ -11734,6 +11764,7 @@
 0x6d20fc95	log_abnormal_wakeup_reason	vmlinux	EXPORT_SYMBOL_GPL	
 0xf6a28554	region_intersects	vmlinux	EXPORT_SYMBOL_GPL	
 0x3a829981	netif_rx	vmlinux	EXPORT_SYMBOL	
+0x6d51faa4	netdev_name_in_use	vmlinux	EXPORT_SYMBOL	
 0x2d64d8c5	snd_pcm_hw_refine	vmlinux	EXPORT_SYMBOL	
 0x22b163bb	dev_pm_opp_set_regulators	vmlinux	EXPORT_SYMBOL_GPL	
 0x0a9821b0	cec_transmit_attempt_done_ts	vmlinux	EXPORT_SYMBOL_GPL	
@@ -11877,7 +11908,6 @@
 0x2c91e17c	vm_get_page_prot	vmlinux	EXPORT_SYMBOL	
 0x1f563160	bpf_offload_dev_priv	vmlinux	EXPORT_SYMBOL_GPL	
 0x305cde90	inet6_cleanup_sock	vmlinux	EXPORT_SYMBOL_GPL	
-0x38af49dd	tcp_enter_quickack_mode	vmlinux	EXPORT_SYMBOL	
 0xcb592cdd	ethtool_notify	vmlinux	EXPORT_SYMBOL	
 0x165cc7bd	unregister_snap_client	vmlinux	EXPORT_SYMBOL	
 0xb86e259e	snd_ctl_unregister_ioctl_compat	vmlinux	EXPORT_SYMBOL	
@@ -12006,6 +12036,7 @@
 0xbe62adeb	vb2_streamoff	vmlinux	EXPORT_SYMBOL_GPL	
 0x7f2e4452	__blkdev_issue_zeroout	vmlinux	EXPORT_SYMBOL	
 0x5b309126	kblockd_mod_delayed_work_on	vmlinux	EXPORT_SYMBOL	
+0x195ab442	__SCK__tp_func_mm_page_alloc	vmlinux	EXPORT_SYMBOL_GPL	
 0x6cfe3b6f	irq_get_percpu_devid_partition	vmlinux	EXPORT_SYMBOL_GPL	
 0x43d22fb9	groups_alloc	vmlinux	EXPORT_SYMBOL	
 0xdf54a8f7	netlink_unregister_notifier	vmlinux	EXPORT_SYMBOL	
@@ -12454,6 +12485,7 @@
 0xd3e2a7cc	__traceiter_block_bio_remap	vmlinux	EXPORT_SYMBOL_GPL	
 0x33957f02	crypto_nhpoly1305_update_helper	vmlinux	EXPORT_SYMBOL	
 0xaa9f9643	d_hash_and_lookup	vmlinux	EXPORT_SYMBOL	
+0xd1b3ee3d	__traceiter_mm_page_alloc	vmlinux	EXPORT_SYMBOL_GPL	
 0x13f42152	system_entering_hibernation	vmlinux	EXPORT_SYMBOL	
 0xadab1f32	__tracepoint_irq_handler_exit	vmlinux	EXPORT_SYMBOL_GPL	
 0x4c4a7ef8	snd_rawmidi_drain_input	vmlinux	EXPORT_SYMBOL	
@@ -12693,7 +12725,7 @@
 0xc57c48a3	idr_get_next	vmlinux	EXPORT_SYMBOL	
 0x881c4413	gen_pool_first_fit	vmlinux	EXPORT_SYMBOL	
 0x14652c82	bio_alloc_kiocb	vmlinux	EXPORT_SYMBOL_GPL	
-0x5a13a0c0	jbd2_fc_get_buf	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x6fb72d98	jbd2_fc_get_buf	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x0cdd7128	dquot_initialize_needed	vmlinux	EXPORT_SYMBOL	
 0xf67e130c	do_xdp_generic	vmlinux	EXPORT_SYMBOL_GPL	
 0xa7df61a7	register_netdevice_notifier_net	vmlinux	EXPORT_SYMBOL	
@@ -12705,7 +12737,7 @@
 0x4d65cbd5	csum_ipv6_magic	vmlinux	EXPORT_SYMBOL	
 0xfe1a7a7b	mpi_point_release	vmlinux	EXPORT_SYMBOL_GPL	
 0xc3204a50	__SCK__tp_func_android_rvh_selinux_is_initialized	vmlinux	EXPORT_SYMBOL_GPL	
-0x09bece28	jbd2_fc_release_bufs	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x3f7490f7	jbd2_fc_release_bufs	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xe3b09712	kprobe_event_delete	vmlinux	EXPORT_SYMBOL_GPL	
 0xe9491ecd	__tracepoint_android_vh_build_sched_domains	vmlinux	EXPORT_SYMBOL_GPL	
 0x59059a2c	param_get_ullong	vmlinux	EXPORT_SYMBOL	
@@ -13164,7 +13196,7 @@
 0x8769b592	pci_request_regions_exclusive	vmlinux	EXPORT_SYMBOL	
 0x21a381ef	bio_add_zone_append_page	vmlinux	EXPORT_SYMBOL_GPL	
 0xbcd99dc8	pkcs7_validate_trust	vmlinux	EXPORT_SYMBOL_GPL	
-0x7fdbe4dd	jbd2_log_wait_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x6c40d4ec	jbd2_log_wait_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x0ad7b96e	hrtimer_init_sleeper	vmlinux	EXPORT_SYMBOL_GPL	
 0xad8332f3	activate_task	vmlinux	EXPORT_SYMBOL_GPL	
 0x0283dfe3	_snd_pcm_hw_params_any	vmlinux	EXPORT_SYMBOL	
@@ -13221,7 +13253,7 @@
 0xf3e25a93	drm_gem_prime_handle_to_fd	vmlinux	EXPORT_SYMBOL	
 0xc5a5c678	uart_parse_earlycon	vmlinux	EXPORT_SYMBOL_GPL	
 0x7b2faf5b	pinctrl_add_gpio_range	vmlinux	EXPORT_SYMBOL_GPL	
-0x019bb62b	jbd2_fc_begin_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x48c1e91e	jbd2_fc_begin_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x7959ff5b	eventfd_ctx_fileget	vmlinux	EXPORT_SYMBOL_GPL	
 0x01139ffc	max_mapnr	vmlinux	EXPORT_SYMBOL	
 0xda0ee32f	verify_pkcs7_signature	vmlinux	EXPORT_SYMBOL_GPL	
@@ -13366,7 +13398,7 @@
 0x1f38a4f6	mpi_set_highbit	vmlinux	EXPORT_SYMBOL_GPL	
 0x65dccf13	xz_dec_end	vmlinux	EXPORT_SYMBOL	
 0x6e5b8651	xz_dec_run	vmlinux	EXPORT_SYMBOL	
-0xfcae1d6d	jbd2_journal_clear_err	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x1e354dd7	jbd2_journal_clear_err	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xa8ac9ba6	dma_unmap_page_attrs	vmlinux	EXPORT_SYMBOL	
 0x925c9ca7	__SCK__tp_func_android_rvh_is_cpu_allowed	vmlinux	EXPORT_SYMBOL_GPL	
 0x8bb69f5e	genl_unregister_family	vmlinux	EXPORT_SYMBOL	
@@ -13411,7 +13443,7 @@
 0xc4d97a37	drm_atomic_bridge_chain_disable	vmlinux	EXPORT_SYMBOL	
 0x438d8df2	iova_cache_get	vmlinux	EXPORT_SYMBOL_GPL	
 0x34fc4ad3	__tracepoint_block_split	vmlinux	EXPORT_SYMBOL_GPL	
-0x0989e63c	jbd2_journal_release_jbd_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x0d3a87c8	jbd2_journal_release_jbd_inode	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xdf3dda37	wbc_account_cgroup_owner	vmlinux	EXPORT_SYMBOL_GPL	
 0x6bd1aa56	stack_trace_save	vmlinux	EXPORT_SYMBOL_GPL	
 0xd3559ef4	__memset	vmlinux	EXPORT_SYMBOL	
@@ -13496,8 +13528,9 @@
 0x24e336ed	pci_dev_put	vmlinux	EXPORT_SYMBOL	
 0x7bded13e	pci_dev_get	vmlinux	EXPORT_SYMBOL	
 0x74725e69	ZSTD_compressContinue	vmlinux	EXPORT_SYMBOL	
-0x5bdf7a56	jbd2_journal_revoke	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xa9d37a37	jbd2_journal_revoke	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x964a71e0	config_group_find_item	vmlinux	EXPORT_SYMBOL	
+0xe314d6ae	setattr_should_drop_sgid	vmlinux	EXPORT_SYMBOL	
 0x9c86b9ab	fileattr_fill_flags	vmlinux	EXPORT_SYMBOL	
 0xbb7195a5	xdp_warn	vmlinux	EXPORT_SYMBOL_GPL	
 0x4812537e	__SCK__tp_func_android_vh_binder_proc_transaction	vmlinux	EXPORT_SYMBOL_GPL	
@@ -13535,8 +13568,8 @@
 0x51abb3d7	dma_buf_vunmap	vmlinux	EXPORT_SYMBOL_GPL	
 0x3f491f49	reset_control_bulk_reset	vmlinux	EXPORT_SYMBOL_GPL	
 0x55bdf3a0	crypto_register_shash	vmlinux	EXPORT_SYMBOL_GPL	
-0x08b61d4b	jbd2_journal_invalidatepage	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
-0x88d47273	jbd2_journal_get_write_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xbbae378b	jbd2_journal_invalidatepage	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xed7c966a	jbd2_journal_get_write_access	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xdcc6b456	inet6_unregister_protosw	vmlinux	EXPORT_SYMBOL	
 0x1008f642	xfrm_register_type_offload	vmlinux	EXPORT_SYMBOL	
 0x555468c2	gre_add_protocol	vmlinux	EXPORT_SYMBOL_GPL	
@@ -14473,7 +14506,7 @@
 0xb502f40b	tty_port_close_end	vmlinux	EXPORT_SYMBOL	
 0x24109e9f	pcie_bandwidth_available	vmlinux	EXPORT_SYMBOL	
 0x702946da	ucs2_strlen	vmlinux	EXPORT_SYMBOL	
-0xfdfd2f50	jbd2_journal_dirty_metadata	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0xfef1ad78	jbd2_journal_dirty_metadata	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0xb7122be8	account_locked_vm	vmlinux	EXPORT_SYMBOL_GPL	
 0x04bf0092	io_cgrp_subsys_enabled_key	vmlinux	EXPORT_SYMBOL_GPL	
 0x0569f7b5	handle_fasteoi_irq	vmlinux	EXPORT_SYMBOL_GPL	
@@ -14570,7 +14603,7 @@
 0x8200cfb3	devm_gen_pool_create	vmlinux	EXPORT_SYMBOL	
 0xff87cd18	lockref_get_not_dead	vmlinux	EXPORT_SYMBOL	
 0xcc56086d	blk_queue_flag_set	vmlinux	EXPORT_SYMBOL	
-0x8dea486a	jbd2_submit_inode_data	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x03a45231	jbd2_submit_inode_data	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x949fc6c4	perf_aux_output_skip	vmlinux	EXPORT_SYMBOL_GPL	
 0xdf79b5d5	task_cgroup_path	vmlinux	EXPORT_SYMBOL_GPL	
 0xa9451f66	km_query	vmlinux	EXPORT_SYMBOL	
@@ -14584,7 +14617,7 @@
 0x08213956	phylink_ethtool_get_wol	vmlinux	EXPORT_SYMBOL_GPL	
 0xcefab871	dmabuf_page_pool_create	vmlinux	EXPORT_SYMBOL_GPL	
 0xefe4f679	ZSTD_CCtxWorkspaceBound	vmlinux	EXPORT_SYMBOL	
-0xc3e608c4	jbd2_journal_force_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
+0x010a3366	jbd2_journal_force_commit	vmlinux	EXPORT_SYMBOL	VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver
 0x2ce60db5	__traceiter_android_rvh_sched_getaffinity	vmlinux	EXPORT_SYMBOL_GPL	
 0x9f56c4b9	__SCK__tp_func_devlink_hwmsg	vmlinux	EXPORT_SYMBOL_GPL	
 0x6fe2c862	snd_soc_dapm_force_bias_level	vmlinux	EXPORT_SYMBOL_GPL	
@@ -14923,6 +14956,7 @@
 0x82e6f660	arpt_unregister_table	vmlinux	EXPORT_SYMBOL	
 0x742ffdd1	tcp_ca_openreq_child	vmlinux	EXPORT_SYMBOL_GPL	
 0x926dfbfd	bpf_prog_destroy	vmlinux	EXPORT_SYMBOL_GPL	
+0xaa119641	__SCK__tp_func_android_vh_isolate_freepages	vmlinux	EXPORT_SYMBOL_GPL	
 0x5f71ddfa	__tracepoint_android_vh_cpufreq_resolve_freq	vmlinux	EXPORT_SYMBOL_GPL	
 0x15f53cff	gether_setup_name_default	vmlinux	EXPORT_SYMBOL_GPL	
 0xacdf7439	spi_mem_exec_op	vmlinux	EXPORT_SYMBOL_GPL	

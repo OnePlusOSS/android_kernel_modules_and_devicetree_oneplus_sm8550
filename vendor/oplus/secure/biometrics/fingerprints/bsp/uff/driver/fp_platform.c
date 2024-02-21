@@ -335,6 +335,36 @@ exit:
     return ret;
 }
 
+void fp_clean_optical_irq_disable_flag(struct fp_dev *fp_dev)
+{
+    fp_dev->optical_irq_disable_flag = 0;
+    pr_err("%s cleanup", __func__);
+}
+
+int fp_parse_optical_irq_disable_flag(struct fp_dev *fp_dev)
+{
+    int                ret                      = 0;
+    struct device *    dev                      = &fp_dev->pdev->dev;
+    struct device_node *np                      = dev->of_node;
+    uint32_t           optical_irq_disable_flag = 0;
+
+    fp_clean_optical_irq_disable_flag(fp_dev);
+
+    ret = of_property_read_u32(np, FP_OPTICAL_IRQ_DISABLE_FLAG, &optical_irq_disable_flag);
+    if (ret) {
+        pr_err("failed to request %s, ret = %d\n", FP_OPTICAL_IRQ_DISABLE_FLAG, ret);
+        goto exit;
+    }
+    fp_dev->optical_irq_disable_flag = optical_irq_disable_flag;
+    pr_err("fp_dev->optical_irq_disable_flag = %d\n", fp_dev->optical_irq_disable_flag);
+
+exit:
+    if (ret) {
+        fp_clean_optical_irq_disable_flag(fp_dev);
+    }
+    return ret;
+}
+
 int fp_parse_dts(struct fp_dev *fp_dev) {
     int                 rc  = 0;
     int                 rc_intr3  = -1;
@@ -430,6 +460,7 @@ int fp_parse_dts(struct fp_dev *fp_dev) {
     pr_err("end fp_parse_dts !\n");
 
     fp_parse_notify_tpinfo_flag(fp_dev);
+    fp_parse_optical_irq_disable_flag(fp_dev);
 
     pr_err("end fp_parse_dts !\n");
 

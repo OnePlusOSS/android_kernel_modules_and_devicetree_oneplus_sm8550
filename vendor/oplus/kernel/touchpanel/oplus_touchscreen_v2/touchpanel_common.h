@@ -418,6 +418,7 @@ struct panel_info {
 #ifndef CONFIG_REMOVE_OPLUS_FUNCTION
 	struct manufacture_info manufacture_info;       /*touchpanel device info*/
 #endif
+	void *touch_custom_data;
 };
 
 struct hw_resource {

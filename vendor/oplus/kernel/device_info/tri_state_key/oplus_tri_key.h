@@ -189,6 +189,7 @@ struct extcon_dev_data {
 	struct dhall_data_xyz	pre_hall_value;
 	const char *d_name;
 	const char *m_name;
+	int 	tolen[3];
 	int		position;
 	int		last_position;
 	int		project_info;
@@ -210,6 +211,8 @@ struct extcon_dev_data {
 	int         threeaxis_calib_data[9];
 	bool        threeaxis_hall_support;
 	bool        enable_esd_check;
+	bool        new_threshold_support; /*add for vip mode for new threshold*/
+	bool        updown_to_mid_support; /*add up to (mid of down and mid) support*/
 	int         trigger_id;
 	int         interf_stable_xlimit;
 	int         interf_stable_ylimit;
