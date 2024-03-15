@@ -398,6 +398,23 @@ bool is_multi_link_roam(struct roam_offload_synch_ind *sync_ind)
 	return false;
 }
 
+uint32_t
+mlo_roam_get_link_freq(uint8_t vdev_id,
+		       struct roam_offload_synch_ind *sync_ind)
+{
+	uint8_t i;
+
+	if (!sync_ind || !sync_ind->num_setup_links)
+		return 0;
+
+	for (i = 0; i < sync_ind->num_setup_links; i++) {
+		if (sync_ind->ml_link[i].vdev_id != vdev_id)
+			return sync_ind->ml_link[i].channel.mhz;
+	}
+
+	return 0;
+}
+
 QDF_STATUS mlo_enable_rso(struct wlan_objmgr_pdev *pdev,
 			  struct wlan_objmgr_vdev *vdev,
 			  struct wlan_cm_connect_resp *rsp)
@@ -442,7 +459,7 @@ mlo_roam_copy_partner_info(struct wlan_cm_connect_resp *connect_rsp,
 	for (i = 0; i < sync_ind->num_setup_links; i++) {
 		partner_info->partner_link_info[i].link_id =
 			sync_ind->ml_link[i].link_id;
-	       partner_info->partner_link_info[i].vdev_id =
+		partner_info->partner_link_info[i].vdev_id =
 			sync_ind->ml_link[i].vdev_id;
 
 		qdf_copy_macaddr(

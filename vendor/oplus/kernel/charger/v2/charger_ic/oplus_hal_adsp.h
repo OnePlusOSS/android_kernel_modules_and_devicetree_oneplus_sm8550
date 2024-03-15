@@ -85,6 +85,7 @@
 #define BC_UFCS_TEST_MODE_FALSE		0X69
 #define BC_UFCS_POWER_READY		0X70
 #define BC_UFCS_HANDSHAKE_OK		0X71
+#define BC_VOOC_GAN_MOS_ERROR	   0X72
 #endif
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
@@ -192,6 +193,7 @@ enum battery_property_id {
 	BATT_AFI_UPDATE_DONE,
 	BATT_UI_SOC,
 	BATT_AP_FASTCHG_ALLOW,
+	BATT_SET_VOOC_CURVE_NUM,
 #endif
 	BATT_PROP_MAX,
 };
@@ -496,6 +498,8 @@ struct battery_chg_dev {
 	int				last_charger_type;
 	int				adsp_crash;
 	atomic_t			state;
+	int				g_icl_ma;
+	int				rerun_max;
 	struct work_struct		subsys_up_work;
 	struct work_struct		usb_type_work;
 #ifdef OPLUS_FEATURE_CHG_BASIC
@@ -529,6 +533,7 @@ struct battery_chg_dev {
 	unsigned long long 	hvdcp_detach_time;
 	bool 				hvdcp_detect_ok;
 	bool					hvdcp_disable;
+	bool				bc12_completed;
 	bool				ufcs_test_mode;
 	bool				ufcs_power_ready;
 	bool				ufcs_handshake_ok;
@@ -539,6 +544,7 @@ struct battery_chg_dev {
 #ifdef OPLUS_FEATURE_CHG_BASIC
 	int vchg_trig_irq;
 	struct delayed_work vchg_trig_work;
+	struct delayed_work vbus_collapse_rerun_icl_work;
 	struct delayed_work wait_wired_charge_on;
 	struct delayed_work wait_wired_charge_off;
 	bool wls_fw_update;
@@ -631,5 +637,6 @@ int oplus_adsp_voocphy_set_cool_down(int cool_down);
 int oplus_adsp_voocphy_get_bcc_max_current(void);
 int oplus_adsp_voocphy_get_bcc_min_current(void);
 int oplus_adsp_voocphy_get_atl_last_geat_current(void);
+int oplus_adsp_voocphy_set_curve_num(int number);
 #endif
 #endif /*__SM8350_CHARGER_H*/

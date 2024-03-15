@@ -66,12 +66,14 @@ struct oplus_ofp_params {
 													 bit(6):ultrasonic fingerprint
 													 bit(7):ultra low power aod
 													*/
+	bool fp_type_compatible_mode;					/* indicates whether fp type compatible mode is set or not */
 	bool need_to_bypass_gamut;						/* indicates whether gamut needs to be bypassed in aod/fod scenarios or not */
 	/* fod */
 	unsigned int hbm_mode;							/* a node value used for fingerprint calibration */
 	unsigned int aor_mode;							/* a node value used for aor change setting */
 	unsigned int dimlayer_hbm;						/* indicates whether the dimlayer and hbm should enable or not(reserved) */
 	uint64_t hbm_enable;							/* HBM_ENABLE property value */
+	bool need_to_update_lhbm_pressed_icon_gamma;	/* indicates whether lhbm pressed icon gamma needs to be read and updated or not */
 	bool hbm_state;									/* indicates whether panel is hbm state or not */
 	bool panel_hbm_status;							/* indicates whether hbm cmds are taking effect in panel module or not */
 	bool fp_press;									/* indicates whether pressed icon layer is ready or not */
@@ -167,6 +169,8 @@ int oplus_ofp_property_update(void *sde_connector, void *sde_connector_state, in
 
 /* -------------------- fod -------------------- */
 int oplus_ofp_parse_dtsi_config(void *dsi_display_mode, void *dsi_parser_utils);
+int oplus_ofp_lhbm_pressed_icon_gamma_update(void *dsi_display);
+int oplus_ofp_lhbm_backlight_update(void *sde_encoder_virt, void *dsi_panel, unsigned int *bl_level);
 int oplus_ofp_send_hbm_state_event(unsigned int hbm_state);
 int oplus_ofp_hbm_handle(void *sde_encoder_virt);
 int oplus_ofp_cmd_post_wait(void *dsi_display_mode, void *dsi_cmd_desc, enum dsi_cmd_set_type type);

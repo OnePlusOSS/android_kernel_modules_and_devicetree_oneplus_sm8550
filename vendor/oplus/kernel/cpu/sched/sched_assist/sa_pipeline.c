@@ -16,7 +16,7 @@ static int pipeline_cpus[MAX_PIPELINE_TASK_NUM] = {-1, -1, -1, -1, -1};
 
 #define PIPELINE_TASK_UX_STATE (UX_PRIORITY_PIPELINE | SA_TYPE_HEAVY)
 
-#define ENABLE_REJECT_MIGRATE_PIPELINE_TASK 1
+#define ENABLE_REJECT_MIGRATE_PIPELINE_TASK 0
 #define MAX_REJECT_MIGRATE_TIME 200000 /* 200us */
 
 static DEFINE_MUTEX(p_mutex);
@@ -51,9 +51,16 @@ static struct syscore_ops ux_syscore_ops = {
 };
 #endif
 
+static inline bool is_valid_pipeline_task(int pipeline_cpu, int ux_state)
+{
+	return (pipeline_cpu > 0) && (pipeline_cpu < nr_cpu_ids) &&
+		((ux_state & PIPELINE_TASK_UX_STATE) == PIPELINE_TASK_UX_STATE);
+}
+
 inline int oplus_get_task_pipeline_cpu(struct task_struct *task)
 {
 	struct oplus_task_struct *ots;
+	int pipeline_cpu;
 
 	if (unlikely(!global_sched_assist_enabled))
 		return -1;
@@ -62,10 +69,11 @@ inline int oplus_get_task_pipeline_cpu(struct task_struct *task)
 	if (IS_ERR_OR_NULL(ots))
 		return -1;
 
-	if ((ots->ux_state == 0) || (ots->pipeline_cpu <= 0))
-		return -1;
+	pipeline_cpu = ots->pipeline_cpu;
+	if (is_valid_pipeline_task(pipeline_cpu, ots->ux_state))
+		return pipeline_cpu;
 
-	return ots->pipeline_cpu;
+	return -1;
 }
 EXPORT_SYMBOL_GPL(oplus_get_task_pipeline_cpu);
 
@@ -77,13 +85,13 @@ inline bool oplus_is_pipeline_task(struct task_struct *task)
 	if (IS_ERR_OR_NULL(ots))
 		return false;
 
-	return ots->pipeline_cpu > 0;
+	return is_valid_pipeline_task(ots->pipeline_cpu, ots->ux_state);
 }
 
 inline bool pipeline_task_skip_ux_change(struct oplus_task_struct *ots, int *ux_state)
 {
 	/* no pipeline task, simply return */
-	if (likely(ots->pipeline_cpu <= 0))
+	if (!is_valid_pipeline_task(ots->pipeline_cpu, ots->ux_state))
 		return false;
 
 	/* pipeline task, not allowed to set ux_state 0 */
@@ -107,7 +115,7 @@ inline bool pipeline_task_skip_cpu(struct task_struct *task, unsigned int dst_cp
 	s64 wait_time;
 	bool skip = false;
 
-	if (IS_ERR_OR_NULL(ots) || likely(ots->pipeline_cpu <= 0))
+	if (IS_ERR_OR_NULL(ots) || !is_valid_pipeline_task(ots->pipeline_cpu, ots->ux_state))
 		return false;
 
 	rq = task_rq(task);
@@ -134,7 +142,7 @@ inline bool pipeline_task_skip_cpu(struct task_struct *task, unsigned int dst_cp
 inline void pipeline_task_enqueue(struct oplus_task_struct *ots)
 {
 #if ENABLE_REJECT_MIGRATE_PIPELINE_TASK
-	if (likely(ots->pipeline_cpu <= 0))
+	if (!is_valid_pipeline_task(ots->pipeline_cpu, ots->ux_state))
 		return;
 
 	ots->pipeline_enqueue_ts = ux_ktime_get_ns();
@@ -146,7 +154,7 @@ inline void pipeline_task_switch_out(struct task_struct *prev)
 #if ENABLE_REJECT_MIGRATE_PIPELINE_TASK
 	struct oplus_task_struct *ots = get_oplus_task_struct(prev);
 
-	if (IS_ERR_OR_NULL(ots) || likely(ots->pipeline_cpu <= 0))
+	if (IS_ERR_OR_NULL(ots) || !is_valid_pipeline_task(ots->pipeline_cpu, ots->ux_state))
 		return;
 
 	/* recrod pipeline task be preempted timestatmp, probably rt task preempts pipeline task */
@@ -221,7 +229,7 @@ static ssize_t pipeline_pids_proc_write(struct file *file,
 		return -EINVAL;
 
 	for (i = 0; i < MAX_PIPELINE_TASK_NUM; i++) {
-		if ((cpus[i] < -1) || (cpus[i] > 7))
+		if (!((cpus[i] == -1) || ((cpus[i] > 0) && (cpus[i] < nr_cpu_ids))))
 			return -EINVAL;
 	}
 

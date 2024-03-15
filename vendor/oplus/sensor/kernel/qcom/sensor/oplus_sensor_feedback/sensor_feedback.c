@@ -120,6 +120,7 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{PS_ENABLE_FAIL_ID, "device_ps_enable_fail", SENSOR_DEBUG_DEVICE_TYPE},
 	{PS_ABNORMAL_OFFSET_CALI_ID, "device_ps_abnormal_offset_cali", SENSOR_DEBUG_DEVICE_TYPE},
 	{PS_SET_OFFSET_RETRY_ID, "device_ps_set_offset_retry", SENSOR_DEBUG_DEVICE_TYPE},
+	{PS_RECOVER_DEVICE_ID, "device_ps_recover_device", SENSOR_DEBUG_DEVICE_TYPE},
 
 
 	{ALS_INIT_FAIL_ID, "device_als_init_fail", SENSOR_DEVICE_TYPE},
@@ -131,6 +132,8 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{ALS_ORIGIN_DATA_TO_ZERO_ID, "device_als_to_zero", SENSOR_DEBUG_DEVICE_TYPE},
 	{ALS_CALI_DATA_ID, "device_als_cali_data", SENSOR_DEBUG_DEVICE_TYPE},
 	{ALS_CG_RPT_INFO_ID, "device_als_cg_rpt_info", SENSOR_DEBUG_DEVICE_TYPE},
+	{ALS_RECOVER_DEVICE_ID, "device_als_recover_device", SENSOR_DEBUG_DEVICE_TYPE},
+	{ALS_FIFO_RECOVER_DEVICE_ID, "device_als_fifo_recover_device", SENSOR_DEBUG_DEVICE_TYPE},
 
 
 	{ACCEL_INIT_FAIL_ID, "device_acc_init_fail", SENSOR_DEVICE_TYPE},
@@ -185,6 +188,7 @@ struct sensor_fb_conf g_fb_conf[] = {
 	{HALL_I2C_ERR_ID, "device_hall_i2c_err", SENSOR_DEVICE_TYPE},
 
 	{FOLD_DEVICE_FOLDE_COUNT_ID, "device_fold_count", SENSOR_DEVICE_TYPE},
+	{FOLD_DEVICE_USE_HALL_ANGLE_COUNT_ID, "device_use_hall_angle_count", SENSOR_DEVICE_TYPE},
 
 	{FREE_FALL_TRIGGER_ID, "device_free_fall", SENSOR_DEVICE_TYPE},
 

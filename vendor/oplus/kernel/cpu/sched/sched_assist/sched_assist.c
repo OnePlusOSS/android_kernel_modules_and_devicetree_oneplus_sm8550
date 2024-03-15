@@ -96,6 +96,30 @@ static int register_scheduler_vendor_hooks(void)
 	BUILD_BUG_ON(sizeof(ostruct) > (sizeof(u64) *		\
 		ARRAY_SIZE(((kstruct *)0)->android_oem_data1)))
 
+typedef unsigned long (*profile_event_register_t)(enum profile_type type,
+		struct notifier_block *n);
+profile_event_register_t  _profile_event_register;
+
+int __nocfi detect_symbol(void)
+{
+	int ret;
+	static struct kprobe kp = {
+		.symbol_name = "profile_event_register"
+	};
+
+	ret = register_kprobe(&kp);
+	if (ret < 0) {
+		pr_warn("register  failed\n");
+		return ret;
+	}
+	_profile_event_register = (profile_event_register_t)kp.addr;
+	pr_info("_profile_event_register:%ps\n", _profile_event_register);
+	unregister_kprobe(&kp);
+
+	return 0;
+}
+
+
 static int __init oplus_sched_assist_init(void)
 {
 	int ret;
@@ -122,7 +146,10 @@ static int __init oplus_sched_assist_init(void)
 	ret = oplus_sched_assist_proc_init();
 	if (ret != 0)
 		return ret;
-
+	detect_symbol();
+	if (_profile_event_register)
+		/* register a notifier to monitor task exit */
+		(*_profile_event_register)(PROFILE_TASK_EXIT, &process_exit_notifier_block);
 	ux_debug("sched assist init succeed!\n");
 	return 0;
 }

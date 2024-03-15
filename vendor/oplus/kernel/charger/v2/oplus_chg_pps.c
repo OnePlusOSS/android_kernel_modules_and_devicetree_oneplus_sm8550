@@ -1018,9 +1018,9 @@ static bool oplus_pps_charge_allow_check(struct oplus_pps *chip)
 	}
 
 	if (chg_temp < chip->limits.pps_batt_over_low_temp ||
-	    chg_temp > chip->limits.pps_batt_over_high_temp) {
+	    chg_temp >= (chip->limits.pps_batt_over_high_temp - PPS_TEMP_WARM_RANGE_THD)) {
 		vote(chip->pps_not_allow_votable, BATT_TEMP_VOTER, true, 1, false);
-	} else if (chg_temp > chip->limits.pps_normal_high_temp) {
+	} else if (chg_temp > (chip->limits.pps_normal_high_temp - PPS_TEMP_WARM_RANGE_THD)) {
 		if (chip->ui_soc > chip->limits.pps_warm_allow_soc ||
 		    vbat_mv > chip->limits.pps_warm_allow_vol)
 			vote(chip->pps_not_allow_votable, BATT_TEMP_VOTER, true, 1, false);

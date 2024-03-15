@@ -49,6 +49,7 @@ static struct proc_dir_entry *procdir;
 static bool boost_pool_enable = true;
 
 atomic64_t boost_pool_pages = ATOMIC64_INIT(0);
+EXPORT_SYMBOL_GPL(boost_pool_pages);
 
 #if PAGE_SHIFT < 20
 #define P2M(pages)	((pages) >> (20 - PAGE_SHIFT))

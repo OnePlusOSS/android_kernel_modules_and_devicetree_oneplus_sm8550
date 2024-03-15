@@ -62,6 +62,11 @@ void oplus_init_sensor_state(struct SensorState *mSensorState)
 	mSensorState[SENSOR_TYPE_BACK_TAP_DETECT].rate = SENSOR_RATE_ONCHANGE;
 	#endif /*CONFIG_OPLUS_FEATURE_BACK_TAP_DETECT*/
 
+	#ifdef CONFIG_OPLUS_FEATURE_LAY_DETECT
+	mSensorState[SENSOR_TYPE_LAY_DETECT].sensorType = SENSOR_TYPE_LAY_DETECT;
+	mSensorState[SENSOR_TYPE_LAY_DETECT].rate = SENSOR_RATE_ONCHANGE;
+	#endif
+
 	#ifndef _OPLUS_SENSOR_HUB_VI
 	/*mtk 2.0 need to add gain info*/
 	p = &mSensorState[SENSOR_TYPE_CAMERA_PROTECT];
@@ -128,6 +133,13 @@ void oplus_init_sensor_state(struct SensorState *mSensorState)
 	strlcpy(p->vendor, "oplus", sizeof(p->vendor));
 	#endif /*CONFIG_OPLUS_FEATURE_BACK_TAP_DETECT*/
 
+	#ifdef CONFIG_OPLUS_FEATURE_LAY_DETECT
+	p = &mSensorState[SENSOR_TYPE_LAY_DETECT];
+	p->gain = 1;
+	strlcpy(p->name, "lay_detect", sizeof(p->name));
+	strlcpy(p->vendor, "oplus", sizeof(p->vendor));
+	#endif
+
 	pr_err("set gain = 1----\n");
 	#endif
 }
@@ -179,6 +191,11 @@ static int handle_to_index(int handle)
 	case ID_PEDO_MINUTE:
 		index = pedo_minute;
 		break;
+	#ifdef CONFIG_OPLUS_FEATURE_LAY_DETECT
+	case ID_LAY_DETECT:
+		index = lay_detect;
+		break;
+	#endif
 	#ifdef CONFIG_OPLUS_FEATURE_TP_GESTURE
 	case ID_TP_GESTURE:
 		index = tp_gesture;

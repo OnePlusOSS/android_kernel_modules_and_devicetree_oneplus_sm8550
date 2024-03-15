@@ -15,6 +15,7 @@
 #include <linux/soc/qcom/panel_event_notifier.h>
 #include "oplus_display_private_api.h"
 #include "oplus_display_interface.h"
+#include "oplus_bl.h"
 
 #if defined(CONFIG_PXLW_IRIS)
 #include "../msm/iris/common/dsi_iris_loop_back.h"
@@ -56,6 +57,8 @@ bool oplus_enhance_mipi_strength = false;
 EXPORT_SYMBOL(oplus_enhance_mipi_strength);
 EXPORT_SYMBOL(oplus_debug_max_brightness);
 EXPORT_SYMBOL(oplus_dither_enable);
+extern const char *cmd_set_prop_map[];
+extern bool is_gamma_panel;
 
 extern int dsi_display_read_panel_reg(struct dsi_display *display, u8 cmd,
 		void *data, size_t len);
@@ -480,6 +483,207 @@ unlock:
 end:
 	LCD_ERR("[%s] ccd_check = %d\n",  display->panel->oplus_priv.vendor_name,
 			(*ccd_check));
+	return 0;
+}
+
+int oplus_display_panel_gamma_update(void)
+{
+	int rc = 0;
+	unsigned char gamma93_120[5] = {0};
+	unsigned char gamma94_120[5] = {0};
+	unsigned char gamma93_90[5] = {0};
+	unsigned char gamma94_90[5] = {0};
+	unsigned int rgb_data_0[3] = {0};
+	unsigned int rgb_data_1[3] = {0};
+	unsigned int rgb_data_2[3] = {0};
+	unsigned int val = 0;
+	static unsigned char gamma95_w_120[5] = {0};
+	static unsigned char gamma96_w_120[5] = {0};
+	static unsigned char gamma97_w_120[5] = {0};
+	static unsigned char gamma95_w_90[5] = {0};
+	static unsigned char gamma96_w_90[5] = {0};
+	static unsigned char gamma97_w_90[5] = {0};
+	static bool read_once_gamma = false;
+	int i = 0;
+	char *tx_buf;
+	struct dsi_panel_cmd_set custom_cmd_set;
+	struct dsi_display_ctrl *m_ctrl = NULL;
+	struct dsi_display *display = get_main_display();
+
+	if (false == is_gamma_panel)
+		return -1;
+	if (!display || !display->panel) {
+		LCD_ERR("display is null\n");
+		return -1;
+	}
+
+	if (false == read_once_gamma) {
+		m_ctrl = &display->ctrl[display->cmd_master_idx];
+		rc = dsi_panel_tx_cmd_set(display->panel, DSI_CMD_GAMMA_PRE_READ_120HZ);
+		if (rc) {
+			DSI_ERR("[%s] failed to send DSI_CMD_GAMMA_PRE_READ_120HZ cmds, rc=%d\n", display->panel->name, rc);
+		}
+		rc = dsi_panel_read_panel_gamma_reg_unlock(m_ctrl, display->panel, 0x93, gamma93_120, 5);
+		rc = dsi_panel_read_panel_gamma_reg_unlock(m_ctrl, display->panel, 0x94, gamma94_120, 5);
+
+		rc = dsi_panel_tx_cmd_set(display->panel, DSI_CMD_GAMMA_PRE_READ_90HZ);
+		if (rc) {
+			DSI_ERR("[%s] failed to send DSI_CMD_GAMMA_PRE_READ_90HZ cmds, rc=%d\n", display->panel->name, rc);
+		}
+		rc = dsi_panel_read_panel_gamma_reg_unlock(m_ctrl, display->panel, 0x93, gamma93_90, 5);
+		rc = dsi_panel_read_panel_gamma_reg_unlock(m_ctrl, display->panel, 0x94, gamma94_90, 5);
+		rc = dsi_panel_tx_cmd_set(display->panel, DSI_CMD_GAMMA_PRE_READ_OFF);
+
+		for(i = 0; i < 5; i++)
+			LCD_DEBUG("ReadGamma: 120-%d: 0x93=0x%02x, 0x94=0x%02x +++\n", i, gamma93_120[i], gamma94_120[i]);
+		for(i = 0; i < 5; i++)
+			LCD_DEBUG("ReadGamma: 90-%d: 0x93=0x%02x, 0x94=0x%02x +++\n", i, gamma93_90[i], gamma94_90[i]);
+
+		rgb_data_0[0] = ((gamma93_120[0] & 0x0F) << 8) | gamma93_120[2];
+		rgb_data_0[1] = ((gamma93_120[1] & 0xF0) << 4) | gamma93_120[3];
+		rgb_data_0[2] = ((gamma93_120[1] & 0x0F) << 8) | gamma93_120[4];
+
+		rgb_data_1[0] = ((gamma94_120[0] & 0x0F) << 8) | gamma94_120[2];
+		rgb_data_1[1] = ((gamma94_120[1] & 0xF0) << 4) | gamma94_120[3];
+		rgb_data_1[2] = ((gamma94_120[1] & 0x0F) << 8) | gamma94_120[4];
+
+
+		for(i = 0; i < 3; i++) {
+			LCD_INFO("rgb_data[%d]: rgb_data_93=0x%04x, rgb_data_94=0x%04x +++\n", i, rgb_data_0[i], rgb_data_1[i]);
+		}
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 21U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma95_w_120[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma95_w_120[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma95_w_120[2] = rgb_data_2[0] & 0xFF;
+		gamma95_w_120[3] = rgb_data_2[1] & 0xFF;
+		gamma95_w_120[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 42U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma96_w_120[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma96_w_120[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma96_w_120[2] = rgb_data_2[0] & 0xFF;
+		gamma96_w_120[3] = rgb_data_2[1] & 0xFF;
+		gamma96_w_120[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 50U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma97_w_120[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma97_w_120[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma97_w_120[2] = rgb_data_2[0] & 0xFF;
+		gamma97_w_120[3] = rgb_data_2[1] & 0xFF;
+		gamma97_w_120[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 5; i++)
+			LCD_DEBUG("NewGamma: 120-%d: 0x95=0x%02x, 0x96=0x%02x, 0x97=0x%02x +++\n", i, gamma95_w_120[i], gamma96_w_120[i], gamma97_w_120[i]);
+
+		rgb_data_0[0] = ((gamma93_90[0] & 0x0F) << 8) | gamma93_90[2];
+		rgb_data_0[1] = ((gamma93_90[1] & 0xF0) << 4) | gamma93_90[3];
+		rgb_data_0[2] = ((gamma93_90[1] & 0x0F) << 8) | gamma93_90[4];
+
+		rgb_data_1[0] = ((gamma94_90[0] & 0x0F) << 8) | gamma94_90[2];
+		rgb_data_1[1] = ((gamma94_90[1] & 0xF0) << 4) | gamma94_90[3];
+		rgb_data_1[2] = ((gamma94_90[1] & 0x0F) << 8) | gamma94_90[4];
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 21U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma95_w_90[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma95_w_90[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma95_w_90[2] = rgb_data_2[0] & 0xFF;
+		gamma95_w_90[3] = rgb_data_2[1] & 0xFF;
+		gamma95_w_90[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 42U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma96_w_90[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma96_w_90[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma96_w_90[2] = rgb_data_2[0] & 0xFF;
+		gamma96_w_90[3] = rgb_data_2[1] & 0xFF;
+		gamma96_w_90[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 3; i++) {
+			val = rgb_data_1[i] - rgb_data_0[i];
+			rgb_data_2[i] = (val * 1024U * 50U / 32U + rgb_data_1[i] * 1024U + 512U) / 1024U;
+		}
+		gamma97_w_90[0] = (rgb_data_2[0] >> 8) & 0xFF;
+		gamma97_w_90[1] = ((rgb_data_2[1] & 0xF00) >> 4) | ((rgb_data_2[2] & 0xF00) >> 8);
+		gamma97_w_90[2] = rgb_data_2[0] & 0xFF;
+		gamma97_w_90[3] = rgb_data_2[1] & 0xFF;
+		gamma97_w_90[4] = rgb_data_2[2] & 0xFF;
+
+		for(i = 0; i < 5; i++)
+			LCD_DEBUG("NewGamma: 90-%d: 0x95=0x%02x, 0x96=0x%02x, 0x97=0x%02x +++\n", i, gamma95_w_90[i], gamma96_w_90[i], gamma97_w_90[i]);
+
+		read_once_gamma = true;
+	}
+	custom_cmd_set = display->panel->cur_mode->priv_info->cmd_sets[DSI_CMD_SET_ON_GAMMA];
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 11].msg.tx_buf;
+
+	LCD_INFO("tx_buf-1=0x%x tx_buf-2=0x%x +++\n", tx_buf[0], tx_buf[1]);
+
+	/* 120HZ gamma re-mapping */
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 10].msg.tx_buf;
+	if (tx_buf[0] == 0x95) {
+		for(i = 1; i < 6; i++) {
+			tx_buf[i] = gamma95_w_120[i-1];
+			LCD_DEBUG("tx_buf[%d]=0x%x gamma95_w_120[%d=0x%x] +++\n", i, tx_buf[i], i-1, gamma95_w_120[i-1]);
+		}
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
+
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 9].msg.tx_buf;
+	if (tx_buf[0] == 0x96) {
+		for(i = 1; i < 6; i++)
+			tx_buf[i] = gamma96_w_120[i-1];
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
+
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 8].msg.tx_buf;
+	if (tx_buf[0] == 0x97) {
+		for(i = 1; i < 6; i++)
+			tx_buf[i] = gamma97_w_120[i-1];
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
+
+	/* 90HZ gamma re-mapping */
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 6].msg.tx_buf;
+	if (tx_buf[0] == 0x95) {
+		for(i = 1; i < 6; i++)
+			tx_buf[i] = gamma95_w_90[i-1];
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
+
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 5].msg.tx_buf;
+	if (tx_buf[0] == 0x96) {
+		for(i = 1; i < 6; i++)
+			tx_buf[i] = gamma96_w_90[i-1];
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
+
+	tx_buf = (char*)custom_cmd_set.cmds[custom_cmd_set.count - 4].msg.tx_buf;
+	if (tx_buf[0] == 0x97) {
+		for(i = 1; i < 6; i++)
+			tx_buf[i] = gamma97_w_90[i-1];
+	} else {
+		LCD_INFO("invaild format of cmd %s\n", cmd_set_prop_map[DSI_CMD_SET_ON_GAMMA]);
+	}
 	return 0;
 }
 
@@ -1619,7 +1823,7 @@ inline bool oplus_panel_pwm_turbo_switch_state(struct dsi_panel *panel)
 		return false;
 	}
 
-	return (bool)(panel->oplus_priv.pwm_turbo_support &&
+	return (bool)((panel->oplus_priv.pwm_turbo_support || panel->oplus_priv.pwm_switch_support) &&
 			panel->oplus_pwm_switch_state);
 }
 
@@ -1744,7 +1948,10 @@ int oplus_panel_update_pwm_pulse_lock(struct dsi_panel *panel, bool enabled)
 	mutex_lock(&panel->panel_lock);
 
 	panel->oplus_priv.pwm_onepulse_enabled = enabled;
-	panel->oplus_pwm_switch_state = !panel->oplus_pwm_switch_state;
+
+	if (!panel->oplus_priv.directional_onepulse_switch) {
+		panel->oplus_pwm_switch_state = !panel->oplus_pwm_switch_state;
+	}
 
 	mutex_unlock(&panel->panel_lock);
 
@@ -2495,6 +2702,108 @@ int oplus_wait_for_vsync(struct dsi_panel *panel)
 }
 EXPORT_SYMBOL(oplus_wait_for_vsync);
 
+void oplus_save_last_mode(struct dsi_display *display)
+{
+	if (!display || !display->panel)
+		return;
+
+	if (display->panel->power_mode != SDE_MODE_DPMS_ON || !display->panel->panel_initialized) {
+		LCD_WARN("display panel in off status\n");
+		return;
+	}
+
+	if (!strcmp(display->panel->name, "AA551 P 3 A0004 dsc cmd mode panel")) {
+		display->panel->last_us_per_frame = display->panel->cur_mode->priv_info->vsync_period;
+		display->panel->last_vsync_width = display->panel->cur_mode->priv_info->vsync_width;
+		display->panel->last_refresh_rate = display->panel->cur_mode->timing.refresh_rate;
+	}
+}
+
+void oplus_panel_switch_to_sync_te(struct dsi_panel *panel)
+{
+	s64 us_per_frame;
+	s64 duration;
+	u32 vsync_width;
+	ktime_t last_te_timestamp;
+	int delay = 0;
+	u32 vsync_cost = 0;
+	u32 debounce_time = 500;
+	u32 frame_end = 0;
+	struct dsi_display *display = NULL;
+	struct sde_encoder_virt *sde_enc;
+
+
+	if (panel->power_mode != SDE_MODE_DPMS_ON || !panel->panel_initialized) {
+		LCD_WARN("display panel in off status\n");
+		return;
+	}
+
+#if defined(CONFIG_PXLW_IRIS)
+	if (iris_is_chip_supported() && (!strcmp(panel->type, "secondary"))) {
+		LCD_INFO("iris secondary panel no need config\n");
+		return;
+	}
+#endif
+
+	us_per_frame = panel->last_us_per_frame;
+	vsync_width = panel->last_vsync_width;
+	last_te_timestamp = panel->te_timestamp;
+
+	if(!strcmp(panel->type, "primary")) {
+		display = get_main_display();
+	} else if (!strcmp(panel->type, "secondary")) {
+		display = get_sec_display();
+	} else {
+		LCD_ERR("[DISP][ERR][%s:%d]dsi_display error\n", __func__, __LINE__);
+		return;
+	}
+
+	sde_enc = to_sde_encoder_virt(display->bridge->base.encoder);
+	if (!sde_enc) {
+		DSI_ERR("invalid encoder params\n");
+		return;
+	}
+
+	duration = ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp));
+	if(duration > 3 * us_per_frame || sde_enc->rc_state == 4) {
+		SDE_ATRACE_BEGIN("timing_delay_prepare");
+		oplus_sde_early_wakeup(panel);
+		if (duration > 12 * us_per_frame) {
+			oplus_wait_for_vsync(panel);
+		}
+		SDE_ATRACE_END("timing_delay_prepare");
+	}
+
+	last_te_timestamp = panel->te_timestamp;
+	vsync_cost = ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % us_per_frame;
+	delay = vsync_width - vsync_cost;
+
+	SDE_ATRACE_BEGIN("oplus_panel_switch_to_sync_te");
+	if (delay >= 0) {
+		if (panel->last_refresh_rate == 120) {
+			if (vsync_cost < 1000)
+				usleep_range(1 * 1000, (1 * 1000) + 100);
+		} else if (panel->last_refresh_rate == 60) {
+			usleep_range(delay + 200, delay + 300);
+		} else if (panel->last_refresh_rate == 90) {
+			if((2100 < vsync_cost) && (vsync_cost < 3100))
+				usleep_range(2 * 1000, (2 * 1000) + 100);
+		}
+	} else if (vsync_cost > vsync_width) {
+		frame_end = us_per_frame - vsync_cost;
+		if ((0 <= frame_end) && (frame_end < debounce_time)) {
+			if (panel->last_refresh_rate == 60) {
+				usleep_range(9 * 1000, (9 * 1000) + 100);
+			} else if (panel->last_refresh_rate == 120) {
+				usleep_range(2 * 1000, (2 * 1000) + 100);
+			}
+		}
+	}
+	SDE_ATRACE_END("oplus_panel_switch_to_sync_te");
+
+	return;
+}
+
 void oplus_save_te_timestamp(struct sde_connector *c_conn, ktime_t timestamp)
 {
 	struct dsi_display *display = c_conn->display;
@@ -2502,6 +2811,19 @@ void oplus_save_te_timestamp(struct sde_connector *c_conn, ktime_t timestamp)
 		return;
 	display->panel->te_timestamp = timestamp;
 }
+
+void oplus_set_pwm_switch_cmd_te_flag(struct sde_connector *c_conn)
+{
+	struct dsi_display *display = c_conn->display;
+
+	if (!display || !display->panel || !display->panel->oplus_priv.directional_onepulse_switch)
+		return;
+
+	if (display->panel->oplus_priv.pwm_sw_cmd_te_cnt > 0) {
+		display->panel->oplus_priv.pwm_sw_cmd_te_cnt--;
+	}
+}
+
 void oplus_need_to_sync_te(struct dsi_panel *panel)
 {
 	s64 us_per_frame;
@@ -2561,10 +2883,12 @@ int oplus_display_panel_set_demua()
 		return rc;
 	}
 
+#if defined(CONFIG_PXLW_IRIS)
 	/* if the mode is iris PT mode ,not allowed to set panel demua */
 	if (iris_is_pt_mode(panel)) {
 		return rc;
 	}
+#endif
 
 	bl_lvl = panel->bl_config.bl_level;
 	current_hbm_status = oplus_ofp_get_hbm_state();
@@ -2751,6 +3075,12 @@ int oplus_display_panel_set_hbm_max(void *data)
 	}
 
 	LCD_INFO("Set hbm max state=%d\n", hbm_max_state);
+
+	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+		LCD_WARN("panel onepulse is enable, can't set hbm max\n");
+		rc = -EFAULT;
+		return rc;
+	}
 
 	mutex_lock(&display->display_lock);
 

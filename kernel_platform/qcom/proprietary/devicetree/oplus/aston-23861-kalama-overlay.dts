@@ -35,7 +35,7 @@
 
   //#ifdef OPLUS_FEATRUE_ESIM
   esim_en_gpio: esim_en_gpio  {
-      pins = "gpio4";
+      pins = "gpio59";
       function = "normal";
       bias-disable; /* NO pull */
       qcom,drive-strength = <2>; /* 2 MA */

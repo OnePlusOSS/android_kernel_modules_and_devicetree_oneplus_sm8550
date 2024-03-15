@@ -70,7 +70,9 @@ enum virtual_sensor_handle {
         #ifdef CONFIG_OPLUS_FEATURE_BACK_TAP_DETECT
         back_tap_detect,
         #endif
-
+	#ifdef CONFIG_OPLUS_FEATURE_LAY_DETECT
+        lay_detect,
+	#endif
     max_virtual_sensor_support,
 };
 

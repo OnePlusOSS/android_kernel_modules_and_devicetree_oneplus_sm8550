@@ -301,4 +301,21 @@ QDF_STATUS scm_scan_update_mlme_by_bssinfo(struct wlan_objmgr_pdev *pdev,
 
 uint32_t scm_get_last_scan_time_per_channel(struct wlan_objmgr_vdev *vdev,
 					    uint32_t freq);
+
+/**
+ * scm_scan_get_entry_by_mac_addr() - Get bcn/probe rsp from scan db
+ * @pdev: pdev info
+ * @bssid: BSSID of the bcn/probe response to be fetched from scan db
+ * @frame: Frame from scan db with given bssid.
+ *
+ * This API allocates the memory for bcn/probe rsp frame and returns
+ * to caller through @frame->ptr. It's caller responsibility to free
+ * the memory once it's done with the usage.
+ *
+ * Return: QDF_STATUS_SUCCESS if scan entry is present in db
+ */
+QDF_STATUS
+scm_scan_get_entry_by_mac_addr(struct wlan_objmgr_pdev *pdev,
+			       struct qdf_mac_addr *bssid,
+			       struct element_info *frame);
 #endif

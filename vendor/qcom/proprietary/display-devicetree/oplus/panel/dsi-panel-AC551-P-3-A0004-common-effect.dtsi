@@ -1,0 +1,41 @@
+/***************************************************************
+** Copyright (C), 2022, OPLUS Mobile Comm Corp., Ltd
+**
+** Description : Display effect common config
+** Version : 1.0
+** Date : 2023/10/17
+******************************************************************/
+				qcom,mdss-dsi-loading-effect-1-command = [
+					/* Laoding On 100% */
+					39 00 00 40 00 00 04 FF 08 38 63
+					15 00 00 40 00 00 02 90 00
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-loading-effect-2-command = [
+					/* Laoding On 110% */
+					39 00 00 40 00 00 04 FF 08 38 63
+					39 00 00 40 00 00 11 95 FC FC EA D8 C6 B5 A3 91 7F 6D 5C 4A 38 26 14 01
+					39 00 00 40 00 00 15 96 FF 88 8B 8F 92 FF 96 99 9D A0 FF A4 A7 AB AE FF B2 B5 B9 BC
+					39 00 00 40 00 00 11 97 FF ED DB C9 B7 A5 93 81 6F 5D 4B 39 27 15 01 00
+					15 00 00 40 00 00 02 90 01
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				qcom,mdss-dsi-loading-effect-3-command = [
+				];
+				qcom,mdss-dsi-loading-effect-4-command = [
+				];
+				qcom,mdss-dsi-loading-effect-off-command = [
+					39 00 00 40 00 00 04 FF 08 38 63
+					39 00 00 40 00 00 11 95 FC FC EB DA C9 B9 A8 97 86 75 64 54 43 32 21 10
+					39 00 00 40 00 00 15 96 FF 88 90 98 A0 FF A8 B0 B8 C0 FF C7 CF D7 DF FF E7 EF F7 FF
+					39 00 00 40 00 00 11 97 FF EE DD CC BB AA 99 88 77 66 55 44 33 22 11 00
+					15 00 00 40 00 00 02 90 01
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+
+				qcom,mdss-dsi-loading-effect-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-3-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-4-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-loading-effect-off-command-state = "dsi_hs_mode";
+

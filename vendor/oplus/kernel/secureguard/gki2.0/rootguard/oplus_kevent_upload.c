@@ -34,8 +34,6 @@ static int oplus_security_keventupload_flag = 0;
 static volatile unsigned int kevent_pid;
 
 #define OPLUS_KEVENT_MAX_UP_PALOAD_LEN			2048
-#define OPLUS_KEVENT_TEST_TAG				"test_event"
-#define OPLUS_KEVENT_TEST_ID				"test_check"
 
 static void oplus_kevent_send_to_user(void *data, struct kernel_packet_info *userinfo, int *p_retval);
 
@@ -57,68 +55,12 @@ static int security_keventupload_sendpid_cmd(struct sk_buff *skb, struct genl_in
 	return 0;
 }
 
-static int security_keventupload_test_upload(struct sk_buff *skb, struct genl_info *info)
-{
-        int ret = 0;
-	struct nlattr *na = NULL;
-	struct msg_test_upload *p_test_upload = NULL;
-	struct kernel_packet_info *p_dcs_event = NULL;
-	size_t data_len = 0;
-
-	pr_info("[ROOTCHECK-KEVENTLD-INFO]:security_keventupload_test_upload \n");
-	if (info->attrs[SECURE_GUARD_CMD_ATTR_OPT]){
-		na = info->attrs[SECURE_GUARD_CMD_ATTR_OPT];
-		PRINT_FORMAT(nla_data(na),  nla_len(na));
-		pr_info("[ROOTCHECK-KEVENTLD-INFO]:nla_len(na) is %d  \n", nla_len(na));
-		p_test_upload = (struct msg_test_upload *)nla_data(na);
-		kevent_pid = p_test_upload->pro_pid;
-		pr_info("[ROOTCHECK-KEVENTLD-INFO]:p_test_upload->pro_pid is %u, p_test_upload->val is %u, \n", p_test_upload->pro_pid, p_test_upload->val);
-
-		if ((p_test_upload->val) > OPLUS_KEVENT_MAX_UP_PALOAD_LEN){
-			pr_err("[ROOTCHECK-KEVENTLD-ERROR]:p_test_upload->val too long \n", p_test_upload->val);
-			return -1;
-		}
-        data_len = p_test_upload->val + sizeof(struct kernel_packet_info);
-        /*pr_info("[ROOTCHECK-KEVENTLD-INFO]:data_len is %u\n", data_len);*/
-		p_dcs_event = (struct kernel_packet_info *)kmalloc(data_len, GFP_ATOMIC);
-		if (NULL == p_dcs_event){
-			pr_err("[ROOTCHECK-KEVENTLD-ERROR]:kmalloc for p_dcs_event err\n");
-			return -1;
-		}
-                /*pr_info("[ROOTCHECK-KEVENTLD-INFO]:p_dcs_event kmalloc ok .\n");*/
-
-        memset((unsigned char *)p_dcs_event, 0x00, data_len);
-		p_dcs_event->type = 1;
-		strncpy(p_dcs_event->log_tag, OPLUS_KEVENT_TEST_TAG, sizeof(p_dcs_event->log_tag));
-		strncpy(p_dcs_event->event_id, OPLUS_KEVENT_TEST_ID, sizeof(p_dcs_event->event_id));
-		p_dcs_event->payload_length = p_test_upload->val;
-                memset(p_dcs_event->payload, 0xFF, p_test_upload->val);
-
-		oplus_kevent_send_to_user(NULL, p_dcs_event, &ret);
-		if (ret){
-		    pr_err("[ROOTCHECK-KEVENTLD-ERROR]:kevent_send_to_user err, ret is %d \n", ret);
-		}
-
-		kfree(p_dcs_event);
-    }
-
-	return 0;
-
-}
-
-
 static const struct genl_ops oplus_security_ops[] = {
 	{
 		.cmd		= SECURE_GUARD_CMD_GENL_SENDPID,
 		.doit		= security_keventupload_sendpid_cmd,
 		//.policy		= taskstats_cmd_get_policy,
 		//.flags		= GENL_ADMIN_PERM,
-	},
-	{
-		.cmd		= SECURE_GUARD_CMD_GENL_TEST_UPLOAD,
-		.doit		= security_keventupload_test_upload,
-		//.dumpit		= taskstats2_foreach,
-		//.policy		= taskstats_cmd_get_policy,
 	},
 };
 
@@ -164,6 +106,13 @@ static inline int genl_msg_mk_usr_msg(struct sk_buff *skb, int type, void *data,
 
 static void oplus_kevent_send_to_user(void *data, struct kernel_packet_info *userinfo, int *p_retval)
 {
+#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+	(void)data;
+	(void)userinfo;
+	(void)p_retval;
+	pr_info("userdebug mode & CONFIG_DEBUG_ATOMIC_SLEEP == y, no report.\n");
+	return;
+#else
 	int ret = 0;
 
 	struct sk_buff *skbuff = NULL;
@@ -210,6 +159,7 @@ static void oplus_kevent_send_to_user(void *data, struct kernel_packet_info *use
 
 	*p_retval = 0;
         return ;
+#endif
 }
 
 int kevent_send_to_user(struct kernel_packet_info *userinfo)

@@ -220,8 +220,10 @@ struct wls_match_q_type {
 struct oplus_chg_wls_static_config {
 	bool fastchg_fod_enable;
 	bool fastchg_12v_fod_enable;
-	u8 fastchg_fod_parm[WLS_FOD_PARM_LENGTH];
-	u8 fastchg_fod_parm_12v[WLS_FOD_PARM_LENGTH];
+	u8 fod_parm_len;
+	u8 disable_fod_parm[WLS_FOD_PARM_LEN_MAX];
+	u8 fastchg_fod_parm[WLS_FOD_PARM_LEN_MAX];
+	u8 fastchg_fod_parm_12v[WLS_FOD_PARM_LEN_MAX];
 	struct wls_match_q_type fastchg_match_q[WLS_BASE_NUM_MAX];
 };
 
@@ -392,7 +394,6 @@ struct oplus_chg_wls_status {
 	bool normal_chg_disabled;
 	bool ffc_check;
 	bool wait_cep_stable;
-	bool fastchg_restart;
 	bool ffc_done;
 	bool online_keep;
 	bool boot_online_keep; /*The driver loading phase of the shutdown charging is set to true*/
@@ -658,9 +659,10 @@ static const char * const wls_err_reason_text[] = {
 	[WLS_ERR_OTHER] = "other",
 };
 
-static u8 oplus_chg_wls_disable_fod_parm[WLS_FOD_PARM_LENGTH] = {
+static u8 oplus_chg_wls_disable_fod_parm[] = {
 	0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f,
 	0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f,
+	0xff, 0x7f,
 };
 
 static struct oplus_chg_wls_dynamic_config default_config = {
@@ -1745,13 +1747,13 @@ static void oplus_chg_wls_standard_msg_handler(struct oplus_chg_wls *wls_dev,
 			if (wls_dev->static_config.fastchg_fod_enable) {
 				if (wls_status->fod_parm_for_fastchg)
 					(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-						wls_dev->static_config.fastchg_fod_parm, WLS_FOD_PARM_LENGTH);
+						wls_dev->static_config.fastchg_fod_parm, wls_dev->static_config.fod_parm_len);
 				else if (wls_dev->static_config.fastchg_12v_fod_enable)
 					(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-						wls_dev->static_config.fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+						wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
 			} else {
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 			}
 			if (!wls_status->verity_started)
 				vote(wls_dev->fcc_votable, VERITY_VOTER, true, dynamic_cfg->verity_curr_max_ma, false);
@@ -2860,7 +2862,6 @@ static void oplus_chg_wls_reset_variables(struct oplus_chg_wls *wls_dev) {
 	wls_status->fastchg_curr_need_dec = false;
 	wls_status->ffc_check = false;
 	wls_status->wait_cep_stable = false;
-	wls_status->fastchg_restart = false;
 	wls_status->rx_adc_test_enable = false;
 	wls_status->rx_adc_test_pass = false;
 	wls_status->boot_online_keep = false;
@@ -3287,26 +3288,6 @@ static int oplus_chg_wls_path_ctrl(struct oplus_chg_wls *wls_dev,
 }
 #endif /* OPLUS_CHG_DEBUG */
 #endif /*MAYBE_DELETE*/
-
-static void oplus_chg_wls_set_bcc_current_iout(struct oplus_chg_wls *wls_dev)
-{
-	struct oplus_chg_wls_status *wls_status = &wls_dev->wls_status;
-	int bcc_icl = 0;
-
-	if (!wls_dev->support_wls_chg_bcc)
-		return;
-
-	bcc_icl = wls_status->bcc_current / wls_dev->wls_bcc_fcc_to_icl_factor;
-
-	if (bcc_icl > 0 &&
-	    (wls_status->wls_type == OPLUS_CHG_WLS_SVOOC ||
-	    wls_status->wls_type == OPLUS_CHG_WLS_PD_65W)) {
-		vote(wls_dev->nor_icl_votable, BCC_CURRENT_VOTER, true, bcc_icl, false);
-		vote(wls_dev->fcc_votable, BCC_CURRENT_VOTER, true, bcc_icl, false);
-	}
-
-	chg_info("set bcc_icl=%d, wls_status->bcc_current=%d\n", bcc_icl, wls_status->bcc_current);
-}
 
 static void oplus_chg_wls_set_cool_down_iout(struct oplus_chg_wls *wls_dev)
 {
@@ -3766,8 +3747,7 @@ static void oplus_chg_wls_config(struct oplus_chg_wls *wls_dev)
 		return;
 	}
 	oplus_chg_wls_set_cool_down_iout(wls_dev);
-	if (wls_dev->support_wls_chg_bcc)
-		oplus_chg_wls_set_bcc_current_iout(wls_dev);
+
 	vote(wls_dev->nor_icl_votable, MAX_VOTER, true, icl_max_ma, true);
 	vote(wls_dev->nor_fcc_votable, MAX_VOTER, true, fcc_max_ma, false);
 	chg_info("chg_type=%d, temp_region=%d, fcc=%d, icl_max=%d\n",
@@ -4314,9 +4294,6 @@ static int oplus_chg_wls_get_prop(struct oplus_chg_mod *ocm,
 	case OPLUS_CHG_PROP_BCC_SUPPORT:
 		pval->intval = oplus_wls_check_bcc_support(wls_dev);
 		break;
-	case OPLUS_CHG_PROP_BCC_CURRENT:
-		pval->intval = wls_status->bcc_current / BCC_TO_ICL;
-		break;
 	case OPLUS_CHG_PROP_RX_VOUT_UVP:
 		pval->intval = 0;
 		break;
@@ -4451,13 +4428,6 @@ static int oplus_chg_wls_set_prop(struct oplus_chg_mod *ocm,
 		}
 		break;
 	case OPLUS_CHG_PROP_FW_UPGRADING:
-		break;
-	case OPLUS_CHG_PROP_BCC_CURRENT:
-		if (wls_dev->support_wls_chg_bcc && pval->intval > 0) {
-			wls_status->bcc_current = pval->intval * BCC_TO_ICL;
-			chg_info("set bcc current to %d\n", wls_status->bcc_current);
-			oplus_chg_wls_config(wls_dev);
-		}
 		break;
 	default:
 		chg_err("set prop %d is not supported\n", prop);
@@ -5769,7 +5739,7 @@ static int oplus_chg_wls_get_third_adapter_v_id(struct oplus_chg_wls *wls_dev)
 	return rc;
 }
 
-#define WAIT_FOR_2CEP_INTERVAL_MS	300
+#define WAIT_FOR_2CEP_INTERVAL_MS	500
 static int oplus_chg_wls_rx_handle_state_default(struct oplus_chg_wls *wls_dev)
 {
 	struct oplus_chg_wls_status *wls_status = &wls_dev->wls_status;
@@ -6762,6 +6732,18 @@ static int oplus_chg_wls_rx_enter_state_fast(struct oplus_chg_wls *wls_dev)
 	case OPLUS_CHG_WLS_FAST_SUB_STATE_WAIT_FAST:
 		if (wls_status->charge_type != WLS_CHARGE_TYPE_FAST)
 			return 500;
+		/* Offset exit fast charge and restore, packet F2 is not returned due to the encrypted packet */
+		if (wls_dev->static_config.fastchg_fod_enable) {
+			if (wls_status->fod_parm_for_fastchg)
+				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+					wls_dev->static_config.fastchg_fod_parm, wls_dev->static_config.fod_parm_len);
+			else if (wls_dev->static_config.fastchg_12v_fod_enable)
+				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+					wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
+		} else {
+			(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
+				wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
+		}
 		(void)oplus_chg_wls_rx_set_vout(wls_dev->wls_rx, WLS_VOUT_FASTCHG_INIT_MV, -1);
 		oplus_chg_wls_nor_set_vindpm(wls_dev->wls_nor->nor_ic, WLS_VINDPM_AIRSVOOC);
 		vote(wls_dev->nor_icl_votable, USER_VOTER, true, WLS_CURR_WAIT_FAST_MA, false);
@@ -6883,21 +6865,15 @@ static int oplus_chg_wls_rx_enter_state_fast(struct oplus_chg_wls *wls_dev)
 
 		oplus_chg_wls_wake_bcc_update_work(wls_dev);
 
-		if (!wls_status->fastchg_restart) {
-			for (i = 0; i < fcc_chg->max_step; i++) {
-				if ((batt_temp < fcc_chg->fcc_step[i].high_threshold) &&
-				    (vbat_mv < fcc_chg->fcc_step[i].vol_max_mv))
-					break;
-			}
-			wls_status->fastchg_level = i;
-			vote(wls_dev->fcc_votable, FCC_VOTER, true,
-				fcc_chg->fcc_step[wls_status->fastchg_level].curr_ma, false);
-			oplus_chg_wls_fast_fcc_param_init(wls_dev);
-			wls_status->fastchg_restart = true;
-		} else {
-			vote(wls_dev->fcc_votable, FCC_VOTER, true,
-				fcc_chg->fcc_step[wls_status->fastchg_level].curr_ma, false);
+		for (i = 0; i < fcc_chg->max_step; i++) {
+			if ((batt_temp < fcc_chg->fcc_step[i].high_threshold) &&
+				(vbat_mv < fcc_chg->fcc_step[i].vol_max_mv))
+				break;
 		}
+		wls_status->fastchg_level = i;
+		vote(wls_dev->fcc_votable, FCC_VOTER, true,
+			fcc_chg->fcc_step[wls_status->fastchg_level].curr_ma, false);
+		oplus_chg_wls_fast_fcc_param_init(wls_dev);
 		wls_status->current_rx_state = OPLUS_CHG_WLS_RX_STATE_FAST;
 		if (is_nor_fv_votable_available(wls_dev))
 			vote(wls_dev->nor_fv_votable, USER_VOTER, true,
@@ -7024,8 +7000,10 @@ static int oplus_chg_wls_rx_exit_state_fast(struct oplus_chg_wls *wls_dev)
 	/*if (is_comm_ocm_available(wls_dev))
 		oplus_chg_comm_update_config(wls_dev->comm_ocm);*/
 
+	oplus_chg_wls_config(wls_dev);
+
 	(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-		oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+		wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 
 	switch (wls_status->target_rx_state) {
 	case OPLUS_CHG_WLS_RX_STATE_DONE:
@@ -7104,10 +7082,10 @@ static int oplus_chg_wls_rx_enter_state_ffc(struct oplus_chg_wls *wls_dev)
 
 		if (wls_dev->static_config.fastchg_12v_fod_enable)
 			(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-				wls_dev->static_config.fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+				wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
 		else
 			(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-				oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+				wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 
 		oplus_chg_wls_get_verity_data(wls_dev);
 		wls_status->state_sub_step = 1;
@@ -7258,10 +7236,10 @@ static int oplus_chg_wls_rx_enter_state_done(struct oplus_chg_wls *wls_dev)
 
 			if (wls_dev->static_config.fastchg_12v_fod_enable)
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					wls_dev->static_config.fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
 			else
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		}
 		(void)oplus_chg_wls_rx_set_vout(wls_dev->wls_rx, WLS_VOUT_FASTCHG_INIT_MV, -1);
 		wls_status->state_sub_step = 2;
@@ -7344,7 +7322,7 @@ static int oplus_chg_wls_rx_exit_state_done(struct oplus_chg_wls *wls_dev)
 		wls_status->next_rx_state = OPLUS_CHG_WLS_RX_STATE_FAST;
 		vote(wls_dev->nor_icl_votable, USER_VOTER, true, 500, true);
 		(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-			oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+			wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		break;
 	default:
 		chg_err("unsupported target status(=%s)\n", oplus_chg_wls_rx_state_text[wls_status->target_rx_state]);
@@ -7391,10 +7369,10 @@ static int oplus_chg_wls_rx_enter_state_quiet(struct oplus_chg_wls *wls_dev)
 
 			if (wls_dev->static_config.fastchg_12v_fod_enable)
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					wls_dev->static_config.fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
 			else
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		}
 
 		(void)oplus_chg_wls_rx_set_vout(wls_dev->wls_rx, WLS_VOUT_FASTCHG_INIT_MV, -1);
@@ -7481,7 +7459,7 @@ static int oplus_chg_wls_rx_exit_state_quiet(struct oplus_chg_wls *wls_dev)
 		wls_status->next_rx_state = OPLUS_CHG_WLS_RX_STATE_FAST;
 		vote(wls_dev->nor_icl_votable, USER_VOTER, true, 500, true);
 		(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-			oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+			wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		break;
 	case OPLUS_CHG_WLS_RX_STATE_STOP:
 		wls_status->next_rx_state = OPLUS_CHG_WLS_RX_STATE_STOP;
@@ -7522,10 +7500,10 @@ static int oplus_chg_wls_rx_enter_state_stop(struct oplus_chg_wls *wls_dev)
 		} else {
 			if (wls_dev->static_config.fastchg_12v_fod_enable)
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					wls_dev->static_config.fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.fastchg_fod_parm_12v, wls_dev->static_config.fod_parm_len);
 			else
 				(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-					oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+					wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		}
 
 		(void)oplus_chg_wls_rx_set_vout(wls_dev->wls_rx, WLS_VOUT_FASTCHG_INIT_MV, -1);
@@ -7575,7 +7553,7 @@ static int oplus_chg_wls_rx_exit_state_stop(struct oplus_chg_wls *wls_dev)
 		wls_status->next_rx_state = OPLUS_CHG_WLS_RX_STATE_FAST;
 		vote(wls_dev->nor_icl_votable, USER_VOTER, true, 500, true);
 		(void)oplus_chg_wls_rx_set_fod_parm(wls_dev->wls_rx->rx_ic,
-			oplus_chg_wls_disable_fod_parm, WLS_FOD_PARM_LENGTH);
+			wls_dev->static_config.disable_fod_parm, wls_dev->static_config.fod_parm_len);
 		break;
 	case OPLUS_CHG_WLS_RX_STATE_QUIET:
 		wls_status->next_rx_state = OPLUS_CHG_WLS_RX_STATE_QUIET;
@@ -8410,8 +8388,15 @@ static void oplus_chg_wls_online_keep_remove_work(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);
 	struct oplus_chg_wls *wls_dev = container_of(dwork, struct oplus_chg_wls, online_keep_remove_work);
+	union mms_msg_data pre_present = { 0 };
+	union mms_msg_data cur_present = { 0 };
 
+	oplus_mms_get_item_data(wls_dev->wls_topic, WLS_ITEM_PRESENT, &pre_present, true);
 	wls_dev->wls_status.online_keep = false;
+	oplus_mms_get_item_data(wls_dev->wls_topic, WLS_ITEM_PRESENT, &cur_present, true);
+	if (pre_present.intval != cur_present.intval)
+		schedule_work(&wls_dev->wls_present_handler_work);
+
 	if (!wls_dev->wls_status.rx_online) {
 		if (wls_dev->rx_wake_lock_on) {
 			chg_info("release rx_wake_lock\n");
@@ -8730,16 +8715,40 @@ static int oplus_chg_wls_parse_dt(struct oplus_chg_wls *wls_dev)
 				static_cfg->fastchg_match_q[j].q_value);
 	}
 
+	rc = of_property_count_elems_of_size(node, "oplus,disable-fod-parm", sizeof(u8));
+	if (rc < 0) {
+		static_cfg->fod_parm_len = sizeof(oplus_chg_wls_disable_fod_parm);
+		chg_err("Read oplus,disable-fod-parm len failed, rc=%d\n", rc);
+	} else {
+		static_cfg->fod_parm_len = rc;
+		chg_info("oplus,disable-fod-parm length:%d\n", static_cfg->fod_parm_len);
+	}
+	rc = of_property_read_u8_array(node, "oplus,disable-fod-parm",
+			(u8 *)&static_cfg->disable_fod_parm, static_cfg->fod_parm_len);
+	if (rc < 0) {
+		chg_err("Read oplus,disable-fod-parm failed, rc=%d, use default parm.\n", rc);
+		memcpy(&static_cfg->disable_fod_parm, oplus_chg_wls_disable_fod_parm,
+			static_cfg->fod_parm_len * sizeof(u8));
+	}
+
 	static_cfg->fastchg_fod_enable = of_property_read_bool(node, "oplus,fastchg-fod-enable");
 	if (static_cfg->fastchg_fod_enable) {
+		rc = of_property_count_elems_of_size(node, "oplus,fastchg-fod-parm", sizeof(u8));
+		if (rc < 0) {
+			static_cfg->fod_parm_len = sizeof(oplus_chg_wls_disable_fod_parm);
+			chg_err("Read oplus,fastchg-fod-parm len failed, rc=%d\n", rc);
+		} else {
+			static_cfg->fod_parm_len = rc;
+			chg_info("oplus,fastchg-fod-parm length:%d\n", static_cfg->fod_parm_len);
+		}
 		rc = of_property_read_u8_array(node, "oplus,fastchg-fod-parm",
-			(u8 *)&static_cfg->fastchg_fod_parm, WLS_FOD_PARM_LENGTH);
+			(u8 *)&static_cfg->fastchg_fod_parm, static_cfg->fod_parm_len);
 		if (rc < 0) {
 			static_cfg->fastchg_fod_enable = false;
 			chg_err("Read oplus,fastchg-fod-parm failed, rc=%d\n", rc);
 		}
 		rc = of_property_read_u8_array(node, "oplus,fastchg-fod-parm-12V",
-			(u8 *)&static_cfg->fastchg_fod_parm_12v, WLS_FOD_PARM_LENGTH);
+			(u8 *)&static_cfg->fastchg_fod_parm_12v, sizeof(oplus_chg_wls_disable_fod_parm));
 		static_cfg->fastchg_12v_fod_enable = true;
 		if (rc < 0) {
 			static_cfg->fastchg_12v_fod_enable = false;
@@ -9645,21 +9654,42 @@ static ssize_t oplus_chg_wls_proc_user_sleep_mode_write(struct file *file,
 	if (rc != 0)
 		return -EINVAL;
 	if (pmw_pulse == WLS_FASTCHG_MODE) {
-		/*pval.intval = 0;
-		rc = oplus_chg_mod_set_property(wls_dev->wls_ocm,
-				OPLUS_CHG_PROP_QUIET_MODE, &pval);
-		if (rc == 0)*/
+		if (!wls_dev->wls_status.rx_present ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_USB ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_NORMAL ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_UNKNOWN) {
+			chg_err("wls not present or isn't op_tx, can't enter quiet mode!\n");
+		} else {
+			wls_dev->wls_status.switch_quiet_mode = false;
+			if (wls_dev->wls_status.switch_quiet_mode != wls_dev->wls_status.quiet_mode
+				|| wls_dev->wls_status.quiet_mode_init == false) {
+				cancel_delayed_work(&wls_dev->wls_rx_sm_work);
+				queue_delayed_work(wls_dev->wls_wq, &wls_dev->wls_rx_sm_work, 0);
+			}
 			wls_dev->wls_status.quiet_mode_need = WLS_FASTCHG_MODE;
-		chg_info("set user mode: %d, fastchg mode, rc: %d\n", pmw_pulse,
-		       rc);
+		}
+
+		chg_info("set user mode: %d, switch_quiet_mode: %d fastchg mode, rc: %d\n", pmw_pulse,
+		       wls_dev->wls_status.switch_quiet_mode, rc);
 	} else if (pmw_pulse == WLS_SILENT_MODE) {
-		/*pval.intval = 1;
-		rc = oplus_chg_mod_set_property(wls_dev->wls_ocm,
-				OPLUS_CHG_PROP_QUIET_MODE, &pval);
-		if (rc == 0)*/
+		if (!wls_dev->wls_status.rx_present ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_USB ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_NORMAL ||
+		    wls_dev->wls_status.adapter_type == WLS_ADAPTER_TYPE_UNKNOWN) {
+			rc = -EINVAL;
+			chg_err("wls not present or isn't op_tx, can't enter quiet mode!\n");
+		} else {
+			wls_dev->wls_status.switch_quiet_mode = true;
+			if (wls_dev->wls_status.switch_quiet_mode != wls_dev->wls_status.quiet_mode
+				|| wls_dev->wls_status.quiet_mode_init == false) {
+				cancel_delayed_work(&wls_dev->wls_rx_sm_work);
+				queue_delayed_work(wls_dev->wls_wq, &wls_dev->wls_rx_sm_work, 0);
+			}
 			wls_dev->wls_status.quiet_mode_need = WLS_SILENT_MODE;
-		chg_info("set user mode: %d, silent mode, rc: %d\n", pmw_pulse,
-		       rc);
+		}
+
+		chg_info("set user mode: %d, switch_quiet_mode: %d silent mode, rc: %d\n", pmw_pulse,
+		       wls_dev->wls_status.switch_quiet_mode, rc);
 		/*nu1619_set_dock_led_pwm_pulse(3);*/
 	} else if (pmw_pulse == WLS_BATTERY_FULL_MODE) {
 		chg_info("set user mode: %d, battery full mode\n", pmw_pulse);
@@ -11218,6 +11248,26 @@ static int oplus_chg_wls_update_bcc_temp_range(struct oplus_mms *mms, union mms_
 
 	return 0;
 }
+static int oplus_chg_wls_mms_fcc_to_icl(struct oplus_mms *mms, union mms_msg_data *data)
+{
+	struct oplus_chg_wls *wls_dev;
+	int fcc_to_icl;
+
+	if (mms == NULL) {
+		chg_err("mms is NULL");
+		return -EINVAL;
+	}
+	if (data == NULL) {
+		chg_err("data is NULL");
+		return -EINVAL;
+	}
+	wls_dev = oplus_mms_get_drvdata(mms);
+
+	fcc_to_icl = wls_dev->wls_bcc_fcc_to_icl_factor;
+
+	data->intval = fcc_to_icl;
+	return 0;
+}
 
 static void oplus_chg_wls_mms_update(struct oplus_mms *mms, bool publish)
 {
@@ -11364,6 +11414,16 @@ static struct mms_item oplus_chg_wls_mms_item[] = {
 			.down_thr_enable = false,
 			.dead_thr_enable = false,
 			.update = oplus_chg_wls_update_bcc_temp_range,
+		}
+	},
+	{
+		.desc = {
+			.item_id = WLS_ITEM_FCC_TO_ICL,
+			.str_data = false,
+			.up_thr_enable = false,
+			.down_thr_enable = false,
+			.dead_thr_enable = false,
+			.update = oplus_chg_wls_mms_fcc_to_icl,
 		}
 	},
 };

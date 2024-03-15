@@ -44,7 +44,7 @@ static char bright_skip_stages[][64] = {
 
 static int br_start_check_systemid = -1;
 u64 mLastPwkTime = 0;
-u64 FrequencyInterval = 60000;
+u64 FrequencyInterval = 300000;
 
 int bright_screen_timer_restart(void)
 {
@@ -100,8 +100,9 @@ static void send_bright_screen_dcs_msg(void)
 	mLastPwkTime = ts;
 	BRIGHT_DEBUG_PRINTK("send_bright_screen_dcs_msg mLastPwkTime is %lld ms\n", mLastPwkTime);
 	get_brightscreen_check_dcs_logmap(logmap);
-	theia_send_event(THEIA_EVENT_BRIGHT_SCREEN_HANG, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
-		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+	theia_send_event(THEIA_EVENT_PWK_SHUTDOWN_MONITOR, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
+		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG
+		 | THEIA_LOGINFO_DUMPSYS_SF | THEIA_LOGINFO_DUMPSYS_POWER,
 		get_systemserver_pid(), logmap);
 }
 

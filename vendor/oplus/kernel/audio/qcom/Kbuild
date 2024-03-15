@@ -27,6 +27,12 @@ ifeq ($(KERNEL_BUILD), 0)
 		-include $(AUDIO_ROOT)/oplus/config/opluspineappleauto.conf
 		INCS    +=  -include $(AUDIO_ROOT)/oplus/config/opluspineappleautoconf.h
 	endif
+	ifeq ($(CONFIG_ARCH_KHAJE), y)
+		include $(AUDIO_ROOT)/config/bengalauto.conf
+		INCS    +=  -include $(AUDIO_ROOT)/config/bengalautoconf.h
+		-include $(AUDIO_ROOT)/oplus/config/oplusbengalauto.conf
+		INCS    +=  -include $(AUDIO_ROOT)/oplus/config/oplusbengalautoconf.h
+	endif
 endif
 
 # As per target team, build is done as follows:

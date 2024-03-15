@@ -62,6 +62,7 @@
 #define SEC_OVERRIDE_1_REG       "oplus,sec_override1_reg"
 #define OVERRIDE_1_ENABLED_VALUE       "oplus,override1_en_value"
 #define CRYPTOKEY_UNSUPPORT_STATUS       "oplus,cryptokey_unsupport_status"
+#define SEC_COMPATIBLE      "oplus,secureboot_compatible"
 
 static struct proc_dir_entry *oplus_secure_common_dir = NULL;
 static char* oplus_secure_common_dir_name = "oplus_secure_common";
@@ -72,6 +73,7 @@ static uint32_t oem_sec_en_anti_reg = 0;
 static uint32_t oem_sec_override1_reg = 0;
 static uint32_t oem_override1_en_value = 0;
 static uint32_t oem_cryptokey_unsupport = 0;
+static uint32_t oem_sec_compatible = 0;
 #define SEC_VALUE_INVALID   -1
 #ifdef QCOM_PLATFORM
 static int g_rpmb_enabled = SEC_VALUE_INVALID;
@@ -125,6 +127,11 @@ static int secure_common_parse_parent_dts(struct secure_data *secure_data)
     ret2 = of_property_read_u32(np, CRYPTOKEY_UNSUPPORT_STATUS, &oem_cryptokey_unsupport);
     if (ret2) {
         dev_err(secure_data->dev, "the param %s is not found !\n", CRYPTOKEY_UNSUPPORT_STATUS);
+    }
+
+    ret2 = of_property_read_u32(np, SEC_COMPATIBLE, &oem_sec_compatible);
+    if (ret2) {
+        dev_err(secure_data->dev, "the param %s is not found !\n", SEC_COMPATIBLE);
     }
 
     oem_sec_reg_num = secure_data->sec_reg_num;
@@ -266,15 +273,26 @@ secure_type_t get_secureType(void)
             secure_oem_config2 = __raw_readl(oem_config_base);
             iounmap(oem_config_base);
             #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
-            secure_oem_config2 = secure_oem_config2 >> 16;
-            secure_oem_config2 = secure_oem_config2 & 0x0003;
-            pr_err("secure_oem_config2 0x%x\n", secure_oem_config2);
-            if (secure_oem_config1 == 0) {
-                    secureType = SECURE_BOOT_OFF;
-            } else if (secure_oem_config2 == 0x0001) {
-                    secureType = SECURE_BOOT_ON_STAGE_1;
+            if (oem_sec_compatible == 0) {
+                secure_oem_config2 = secure_oem_config2 >> 16;
+                secure_oem_config2 = secure_oem_config2 & 0x0003;
+                pr_err("secure_oem_config2 0x%x\n", secure_oem_config2);
+                if (secure_oem_config1 == 0) {
+                        secureType = SECURE_BOOT_OFF;
+                } else if (secure_oem_config2 == 0x0001) {
+                        secureType = SECURE_BOOT_ON_STAGE_1;
+                } else {
+                        secureType = SECURE_BOOT_ON_STAGE_2;
+                }
             } else {
-                    secureType = SECURE_BOOT_ON_STAGE_2;
+                pr_err("secure_oem_config2 0x%x\n", secure_oem_config2);
+                if (secure_oem_config1 == 0) {
+                        secureType = SECURE_BOOT_OFF;
+                } else if (secure_oem_config2 == 0) {
+                        secureType = SECURE_BOOT_ON_STAGE_1;
+                } else {
+                        secureType = SECURE_BOOT_ON_STAGE_2;
+                }
             }
             #else
             pr_err("secure_oem_config2 0x%x\n", secure_oem_config2);

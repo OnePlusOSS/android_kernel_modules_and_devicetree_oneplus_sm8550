@@ -178,10 +178,12 @@ struct dsi_panel_oplus_privite {
 	bool pwm_switch_support;
 	bool pwm_onepulse_support;
 	bool pwm_onepulse_enabled;
+	bool directional_onepulse_switch;
 	bool dynamic_demua_support;
 	u32 hbm_max_state;
 	bool cmdq_pack_support;
 	bool cmdq_pack_state;
+	u32 pwm_sw_cmd_te_cnt;
 /********************************************
 	fp_type usage:
 	bit(0):lcd capacitive fingerprint(aod/fod are not supported)
@@ -417,18 +419,18 @@ struct dsi_panel {
 	bool pwm_power_on;
 	bool pwm_hbm_state;
 	ktime_t te_timestamp;
-	/* for notify worker */
-	struct kthread_worker *notify_worker;
-	struct kthread_work work;
-	enum panel_event_notifier_tag panel_event;
-	struct panel_event_notification notification;
-	struct completion notify_done;
-	int need_to_wait_notify_done;
 	/*as the judgment of the first light screen */
 	bool post_power_on;
 	/* for pwm disable duty worker*/
 	struct workqueue_struct *oplus_pwm_disable_duty_set_wq;
 	struct work_struct oplus_pwm_disable_duty_set_work;
+	struct workqueue_struct *oplus_pwm_switch_send_next_cmdq_wq;
+	struct work_struct oplus_pwm_switch_send_next_cmdq_work;
+	ktime_t ts_timestamp;
+	u32 last_us_per_frame;
+	u32 last_vsync_width;
+	u32 last_refresh_rate;
+	u32 work_frame;
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 #if defined(CONFIG_PXLW_IRIS)

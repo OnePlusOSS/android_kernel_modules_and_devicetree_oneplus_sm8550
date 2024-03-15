@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
  */
 
@@ -66,15 +66,6 @@ static void sde_core_irq_callback_handler(void *arg, int irq_idx)
 			SDE_EVT32_IRQ(irq_idx, enable_counts, SDE_EVTLOG_ERROR);
 		}
 	}
-
-	/*
-	 * Clear pending interrupt status in HW.
-	 * NOTE: sde_core_irq_callback_handler is protected by top-level
-	 *       spinlock, so it is safe to clear any interrupt status here.
-	 */
-	sde_kms->hw_intr->ops.clear_intr_status_nolock(
-			sde_kms->hw_intr,
-			irq_idx);
 }
 
 int sde_core_irq_idx_lookup(struct sde_kms *sde_kms,

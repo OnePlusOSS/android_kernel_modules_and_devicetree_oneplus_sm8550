@@ -38,7 +38,6 @@ enum {
 	SECURE_GUARD_CMD_GENL_UNSPEC = 0,
 	SECURE_GUARD_CMD_GENL_SENDPID,
 	SECURE_GUARD_CMD_GENL_UPLOAD,
-	SECURE_GUARD_CMD_GENL_TEST_UPLOAD,
 };
 
 
@@ -52,11 +51,6 @@ struct msg_from_kernel{
 	struct nlmsghdr n_hd;
 	struct genlmsghdr g_hd;
 	char buf[OPLUS_SECURE_GUARD_MSG_FROM_KERNEL_BUF_LEN];
-};
-
-struct msg_test_upload{
-	unsigned int pro_pid;
-	unsigned int val;
 };
 
 int oplus_secure_guard_test_netlink(int cmd);

@@ -338,7 +338,7 @@
 		prevention,top_corner_config2 =<3 80 600 1500 0>;
 		prevention,top_middle_config =<12400 1000 1000 0>;
 		prevention,hor_long_top_corner_config =<300 2000 0 0>;
-		prevention,corner_eliminate_point_type =<0 1200 2000 0>;
+		prevention,corner_eliminate_point_type =<0 1200 2000 1>;
 
 		touchpanel,smooth-level = <0 1 2 4 7 9>;
 		touchpanel,smooth-level-charging = <0 2 4 7 8 9>;
@@ -384,6 +384,7 @@
 		temperature_detect_support;
 		palm_to_sleep_support;
 		skip_reinit_device_support;
+		edge_pull_out_support;
 
 		/*
 		 *Virtual Key Config:

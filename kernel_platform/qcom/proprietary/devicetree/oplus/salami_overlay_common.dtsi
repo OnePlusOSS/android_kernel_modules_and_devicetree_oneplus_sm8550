@@ -444,13 +444,11 @@
 		screenoff_fingerprint_info_support;
 		irq_need_dev_resume_ok;
 		enable_point_auto_change;
-		report_rate_white_list_support;
 		kernel_grip_support;
 		//grip_no_driver_support;
 		skip_reinit_device_support;
 		health_monitor_support;
 		black_gesture_indep_support;
-		algorithm_support;
 		snr_read_support;
 		palm_to_sleep_support;
 		exception_upload_support;

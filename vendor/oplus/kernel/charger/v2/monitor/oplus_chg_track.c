@@ -2050,7 +2050,7 @@ static int oplus_chg_track_parse_dt(struct oplus_chg_track *track_dev)
 			chg_err("preversion open SocJump NoCharging FastChgBreak olc config\n");
 			track_dev->track_cfg.exception_data.olc_config[0] = 0x2;
 			track_dev->track_cfg.exception_data.olc_config[2] = 0x1;
-			track_dev->track_cfg.exception_data.olc_config[4] = 0x1;
+			track_dev->track_cfg.exception_data.olc_config[4] = 0x7;
 		}
 #endif
 	} else {
@@ -3548,8 +3548,7 @@ oplus_chg_track_check_chg_abnormal(struct oplus_monitor *monitor,
 			NOTIFY_BAT_FULL_THIRD_BATTERY, track_status);
 	}
 
-	chg_info(
-		"track_notify_code:0x%x, chager_notify_code:0x%x, abnormal_reason[%s]\n",
+	chg_debug("track_notify_code:0x%x, chager_notify_code:0x%x, abnormal_reason[%s]\n",
 		notify_code, monitor->notify_code,
 		track_status->chg_abnormal_reason);
 
@@ -3633,7 +3632,7 @@ oplus_chg_track_cal_chg_common_mesg(struct oplus_monitor *monitor,
 	}
 	pre_slow_chg = monitor->slow_chg_enable;
 
-	chg_info("chg_max_temp:%d, batt_max_temp:%d, batt_max_curr:%d, "
+	chg_debug("chg_max_temp:%d, batt_max_temp:%d, batt_max_curr:%d, "
 		"batt_max_vol:%d, once_mmi_chg:%d, once_chg_cycle_status:%d\n",
 		track_status->chg_max_temp, track_status->batt_max_temp,
 		track_status->batt_max_curr, track_status->batt_max_vol,
@@ -5332,7 +5331,7 @@ static int oplus_chg_track_get_err_comm_info(struct oplus_chg_track *track, char
 static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 {
 	union mms_msg_data data = { 0 };
-	int index;
+	int index, copy_size;
 	int name_index, msg_index;
 	int err_type, sub_err_type;
 	char *msg_buf, *track_buf;
@@ -5344,7 +5343,6 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 		chg_err("get msg data error, rc=%d\n", rc);
 		return rc;
 	}
-	msg_buf = data.strval;
 	track_buf = track->ic_err_msg_load_trigger.crux_info;
 
 	msg_buf = kzalloc(TOPIC_MSG_STR_BUF, GFP_KERNEL);
@@ -5352,7 +5350,8 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 		chg_err("alloc msg buf error");
 		return -ENOMEM;
 	}
-	memcpy(msg_buf, data.strval, TOPIC_MSG_STR_BUF);
+	copy_size = strlen(data.strval) > TOPIC_MSG_STR_BUF ? TOPIC_MSG_STR_BUF : strlen(data.strval);
+	memcpy(msg_buf, data.strval, copy_size);
 
 	rc = oplus_mms_analysis_ic_err_msg(msg_buf, TOPIC_MSG_STR_BUF,
 					   &name_index, &err_type,
@@ -5414,6 +5413,10 @@ static int oplus_chg_track_upload_ic_err_info(struct oplus_chg_track *track)
 			TRACK_NOTIFY_FLAG_UFCS_IC_ABNORMAL;
 		index += oplus_chg_track_obtain_power_info(track_buf + index,
 			OPLUS_CHG_TRIGGER_MSG_LEN - index);
+		break;
+	case OPLUS_IC_ERR_GAN_MOS_ERROR:
+		track->ic_err_msg_load_trigger.flag_reason =
+			TRACK_NOTIFY_FLAG_DCHG_ABNORMAL;
 		break;
 	case OPLUS_IC_ERR_I2C:
 	case OPLUS_IC_ERR_UNKNOWN:

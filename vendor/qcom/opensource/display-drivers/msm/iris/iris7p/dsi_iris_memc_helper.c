@@ -1328,7 +1328,8 @@ enum {
 	CNN_NORMAL_MODEL6,
 	CNN_NORMAL_MODEL7,
 	/* ... */
-	CNN_MODEL_CNT = 16
+	CNN_MODEL_CNT = 16,
+	CNN_LAST_MODEL = 0xFF
 };
 
 enum { /* scl specific type */
@@ -1370,6 +1371,12 @@ enum { /* SCL change type */
 	SCL_CHANGE_TYPE_CNT
 };
 
+enum { /* ping-pong buffer for CNN model */
+	CNN_DMA_BUF_LEFT,
+	CNN_DMA_BUF_RIGHT,
+	CNN_DMA_BUF_CNT
+};
+
 static struct iris_scl_conf {
 	bool ioinc_enable;
 	int32_t ioinc_in_h;
@@ -1386,11 +1393,17 @@ static struct iris_scl_conf {
 static uint32_t iris_expected_ioinc_tap[SCL_DATA_PATH_CNT] = {IOINC_TAG5, IOINC_TAG5};
 static uint32_t iris_expected_strategy[SCL_DATA_PATH_CNT] = {SCL_2D_ONLY, SCL_2D_ONLY};
 static uint32_t iris_cnn_using_model = CNN_NORMAL_MODEL1; /* Default model */
-static uint32_t iris_cnn_loaded_models[2] = {CNN_NORMAL_MODEL2, CNN_NORMAL_MODEL1};
+static uint32_t iris_cnn_loaded_models[CNN_DMA_BUF_CNT] = {CNN_NORMAL_MODEL2, CNN_NORMAL_MODEL1};
 static uint32_t iris_cnn_models[SCL_DATA_PATH_CNT] = {CNN_NORMAL_MODEL1, CNN_NORMAL_MODEL1};
 static uint32_t iris_sr2d_using_level[SCL_2D_PQ_CNT] = {0, 0, 0, 0};
 static uint32_t iris_sr2d_level[SCL_DATA_PATH_CNT][SCL_2D_PQ_CNT] = {{0, 0, 0, 0}, {0, 0, 0, 0}};
+static uint32_t iris_ioinc_filter[FILTER_GROUP_CNT] = {16, 16};
 static bool iris_ptsr_1to1;
+static bool iris_force_memc_strategy;
+static uint8_t *iris_dynamic_model;
+static uint32_t iris_expect_model_size;
+static uint32_t iris_loaded_model_size;
+static uint32_t iris_dynamic_model_index = CNN_NORMAL_MODEL1;
 
 
 static void _iris_scl_parse_info(void)
@@ -1414,6 +1427,8 @@ static void _iris_scl_parse_info(void)
 
 	memcpy(&_iris_scl_conf[SCL_DATA_PATH1], scl_conf,
 			sizeof(struct iris_scl_conf));
+
+	iris_dynamic_model = vzalloc(SZ_8K);
 }
 
 static void _iris_scl_reset_datapath(void)
@@ -1421,7 +1436,7 @@ static void _iris_scl_reset_datapath(void)
 	struct iris_cfg *pcfg = iris_get_cfg();
 	uint32_t *payload = NULL;
 
-	IRIS_LOGI("%s()", __func__);
+	IRIS_LOGD("%s()", __func__);
 
 	payload = iris_get_ipopt_payload_data(IRIS_IP_PWIL, 0x01, 4);
 	if (payload == NULL) {
@@ -1460,11 +1475,64 @@ static void _iris_scl_reset_param(void)
 	memset(iris_sr2d_using_level, 0, sizeof(uint32_t) * SCL_2D_PQ_CNT);
 	memset(iris_sr2d_level, 0, sizeof(uint32_t) * SCL_DATA_PATH_CNT * SCL_2D_PQ_CNT);
 	iris_expected_strategy[SCL_DATA_PATH0] = SCL_2D_ONLY;
+	iris_force_memc_strategy = false;
 	iris_cnn_using_model = CNN_NORMAL_MODEL1;
-	iris_cnn_loaded_models[0] = CNN_NORMAL_MODEL2;
-	iris_cnn_loaded_models[1] = CNN_NORMAL_MODEL1;
+	iris_cnn_loaded_models[CNN_DMA_BUF_LEFT] = CNN_NORMAL_MODEL2;
+	iris_cnn_loaded_models[CNN_DMA_BUF_RIGHT] = CNN_NORMAL_MODEL1;
 	iris_cnn_models[SCL_DATA_PATH0] = CNN_NORMAL_MODEL1;
 	iris_cnn_models[SCL_DATA_PATH1] = CNN_NORMAL_MODEL1;
+}
+
+static void _iris_scl_reset_seq(void)
+{
+	struct iris_ctrl_seq *pseq = NULL;
+	struct iris_ctrl_opt *pctrl_opt = NULL;
+	int32_t i = 0;
+	int32_t idx = 0;
+	uint32_t opt_left = 0;
+	uint32_t opt_right = 0;
+	ktime_t ktime = ktime_get();
+
+	pseq = iris_get_current_seq();
+	if (pseq == NULL) {
+		IRIS_LOGW("%s(), invalid pseq", __func__);
+		return;
+	}
+
+	/* 94  a0  00 // skip */
+	/* 94  10  00 // right buffer */
+	/* ... */
+	/* 94  14  00 */
+	/* 94  20  00 // left buffer */
+	/* ... */
+	/* 94  24  00 */
+	for (i = 0; i < pseq->cnt; i++) {
+		pctrl_opt = pseq->ctrl_opt + i;
+		if (pctrl_opt->ip != SR_LUT)
+			continue;
+		if (pctrl_opt->opt_id == 0xA0)
+			continue;
+
+		/* Replace right buffer opt */
+		if (idx < 5)
+			pctrl_opt->opt_id = BITS_SET(pctrl_opt->opt_id, 4, 4,
+					iris_dynamic_model_index);
+
+		if (IRIS_IF_LOGI()) {
+			if (idx == 0)
+				opt_right = pctrl_opt->opt_id / 0x10;
+			if (idx == 5)
+				opt_left = pctrl_opt->opt_id / 0x10;
+		}
+
+		idx++;
+	}
+
+	iris_cnn_using_model = iris_dynamic_model_index;
+	iris_cnn_loaded_models[CNN_DMA_BUF_RIGHT] = iris_dynamic_model_index;
+
+	IRIS_LOGI("%s(), left opt: %02x, right opt: %02x, time cost %llu us.",
+			__func__, opt_left, opt_right, ktime_to_us(ktime_get() - ktime));
 }
 
 static void _iris_scl_init_param(void)
@@ -1473,11 +1541,14 @@ static void _iris_scl_init_param(void)
 
 	_iris_scl_reset_datapath();
 	_iris_scl_reset_param();
+	_iris_scl_reset_seq();
 }
 
 static void _iris_scl_setting_off(void)
 {
 	IRIS_LOGI("%s()", __func__);
+
+	iris_dynamic_model_index = CNN_NORMAL_MODEL1;
 }
 
 static uint32_t _iris_ioinc_change_type(bool enable,
@@ -2205,6 +2276,7 @@ retry:
 			IRIS_LOGW("%s(), force MEMC uses 2d and retry.", __func__);
 
 			iris_expected_strategy[SCL_DATA_PATH0] = SCL_2D_ONLY;
+			iris_force_memc_strategy = false;
 			goto retry;
 		}
 		SDE_ATRACE_END(__func__);
@@ -2227,6 +2299,16 @@ retry:
 
 static void _iris_scl_mv_strategy(uint32_t strategy)
 {
+	IRIS_LOGI("%s(), set: %u", __func__, strategy);
+
+	if (strategy < 10) {
+		iris_force_memc_strategy = false;
+		return;
+	}
+
+	strategy -= 10;
+	iris_force_memc_strategy = true;
+
 	IRIS_LOGI("%s(), change strategy: %u->%u", __func__,
 			_iris_scl_conf[SCL_DATA_PATH0].sr_strategy, strategy);
 
@@ -2459,12 +2541,18 @@ static void _iris_scl_change_model_proc(uint32_t cnn_model)
 	bool reconfig_ctrl = false;
 	ktime_t ktime;
 
-	if (cnn_model >= _iris_scl_cnn_model_count()) {
-		IRIS_LOGE("%s_count(), invalid model: %u", __func__, cnn_model);
+	if (cnn_model == CNN_LAST_MODEL) {
+		IRIS_LOGI("%s(), use last model, do nothing.", __func__);
 		return;
 	}
 
-	if (cnn_model == iris_cnn_using_model) {
+	if (cnn_model >= _iris_scl_cnn_model_count() && cnn_model != CNN_LAST_MODEL) {
+		IRIS_LOGE("%s(), invalid model: %u", __func__, cnn_model);
+		return;
+	}
+
+	if (cnn_model == iris_cnn_using_model &&
+			cnn_model != _iris_scl_cnn_model_count() - 1) {
 		IRIS_LOGI("%s(), same model %u, do nothing.", __func__, cnn_model);
 		return;
 	}
@@ -2472,7 +2560,10 @@ static void _iris_scl_change_model_proc(uint32_t cnn_model)
 	ktime = ktime_get();
 
 	SDE_ATRACE_BEGIN(__func__);
-	if (cnn_model % 2 == 0) {
+
+	/* Force dynamic model left buffer*/
+	if (cnn_model % 2 == 0 ||
+			cnn_model == _iris_scl_cnn_model_count() - 1) {
 		dma_event_channels = DMA_EVENT_CH11;
 	}
 
@@ -2524,8 +2615,9 @@ static void _iris_scl_change_model_proc(uint32_t cnn_model)
 
 	iris_cnn_using_model = cnn_model;
 
-	if (cnn_model == iris_cnn_loaded_models[0] ||
-			cnn_model == iris_cnn_loaded_models[1]) {
+	if ((cnn_model == iris_cnn_loaded_models[CNN_DMA_BUF_LEFT] ||
+				cnn_model == iris_cnn_loaded_models[CNN_DMA_BUF_RIGHT]) &&
+			cnn_model != _iris_scl_cnn_model_count() - 1) {
 		_iris_scl_triger_dma(dma_event_channels);
 		SDE_ATRACE_END(__func__);
 
@@ -2720,7 +2812,7 @@ static void _iris_scl_cnn_set(uint32_t type, uint32_t model)
 		return;
 	}
 
-	if (model >= _iris_scl_cnn_model_count()) {
+	if (model >= _iris_scl_cnn_model_count() && model != CNN_LAST_MODEL) {
 		IRIS_LOGE("%s(), invalid model: %u", __func__, model);
 		return;
 	}
@@ -2871,7 +2963,7 @@ void iris_scl_ptsr_config(uint32_t count, uint32_t *values)
 		case 2:
 			IRIS_LOGI("%s(), %s, strategy: %s(%u)", __func__,
 					values[0] == 1 ? "on" : "off",
-					values[1], srcnn_case_name[values[1]]);
+					srcnn_case_name[values[1]], values[1]);
 			break;
 		case 4:
 			IRIS_LOGI("%s(), CNN: %s, %u x %u, model: %u", __func__,
@@ -2915,6 +3007,14 @@ void iris_scl_ptsr_config(uint32_t count, uint32_t *values)
 			ktime_to_us(ktime_get() - ktime));
 }
 
+static void _iris_memc_update_strategy(uint32_t val)
+{
+	if (iris_force_memc_strategy)
+		return;
+
+	iris_expected_strategy[SCL_DATA_PATH0] = val;
+}
+
 void iris_memc_set_pq_level(uint32_t count, uint32_t *values)
 {
 	switch (count) {
@@ -2923,7 +3023,7 @@ void iris_memc_set_pq_level(uint32_t count, uint32_t *values)
 		break;
 	case 3:
 		_iris_scl_cnn_set(SCL_DATA_PATH0, values[1]);
-		iris_expected_strategy[SCL_DATA_PATH0] = values[2];
+		_iris_memc_update_strategy(values[2]);
 		break;
 	case 5:
 		_iris_scl_sr2d_set(SCL_DATA_PATH0,
@@ -2932,7 +3032,7 @@ void iris_memc_set_pq_level(uint32_t count, uint32_t *values)
 	case 6:
 		_iris_scl_sr2d_set(SCL_DATA_PATH0,
 				values[1], values[2], values[3], values[4]);
-		iris_expected_strategy[SCL_DATA_PATH0] = values[5];
+		_iris_memc_update_strategy(values[5]);
 		break;
 	case 7:
 		_iris_scl_cnn_set(SCL_DATA_PATH0, values[5]);
@@ -2943,7 +3043,7 @@ void iris_memc_set_pq_level(uint32_t count, uint32_t *values)
 		_iris_scl_cnn_set(SCL_DATA_PATH0, values[5]);
 		_iris_scl_sr2d_set(SCL_DATA_PATH0,
 				values[1], values[2], values[3], values[4]);
-		iris_expected_strategy[SCL_DATA_PATH0] = values[6];
+		_iris_memc_update_strategy(values[6]);
 		break;
 	default:
 		IRIS_LOGE("%s(), invalid parameter, count: %u", __func__, count);
@@ -3007,6 +3107,19 @@ static void _iris_ioinc_group_filter(uint32_t count, uint32_t *values)
 		ip_sharp = IOINC1D_LUT_SHARP_9TAP;
 	}
 
+	if (tap == IOINC_TAG5) {
+		IRIS_LOGI("%s(), current filter: [%u, %u], set: [%u, %u]", __func__,
+				iris_ioinc_filter[FILTER_SOFT], iris_ioinc_filter[FILTER_SHARP],
+				values[1], values[2]);
+
+		if (iris_ioinc_filter[FILTER_SOFT] == values[1] &&
+				iris_ioinc_filter[FILTER_SHARP] == values[2])
+			return;
+
+		iris_ioinc_filter[FILTER_SOFT] = values[1];
+		iris_ioinc_filter[FILTER_SHARP] = values[2];
+	}
+
 	/* soft filter */
 	level = 0x00 + values[1]; /* hs_y */
 	iris_init_update_ipopt_t(ip_soft, level, level, 1);
@@ -3045,14 +3158,15 @@ static void _iris_ioinc_specific_filter(uint32_t count, uint32_t *values)
 	group = values[1];
 	type = values[2];
 
-	if (tap == IOINC_TAG5 && group == FILTER_SOFT)
-		ip = IOINC1D_LUT;
-	else if (tap == IOINC_TAG5 && group == FILTER_SHARP)
-		ip = IOINC1D_LUT_SHARP;
-	else if (tap == IOINC_TAG9 && group == FILTER_SOFT)
+	if (tap == IOINC_TAG9) {
 		ip = IOINC1D_LUT_9TAP;
-	else if (tap == IOINC_TAG9 && group == FILTER_SHARP)
-		ip = IOINC1D_LUT_SHARP_9TAP;
+		if (group == FILTER_SHARP)
+			ip = IOINC1D_LUT_SHARP_9TAP;
+	} else {
+		ip = IOINC1D_LUT;
+		if (group == FILTER_SHARP)
+			ip = IOINC1D_LUT_SHARP;
+	}
 
 	switch (type) {
 	case FILTER_HS_Y_LEVEL:
@@ -3130,14 +3244,15 @@ static void _iris_ioinc_group_all_filter(uint32_t count,
 	tap = values[0];
 	group = values[1];
 
-	if (tap == IOINC_TAG5 && group == FILTER_SOFT)
-		ip = IOINC1D_LUT;
-	else if (tap == IOINC_TAG5 && group == FILTER_SHARP)
-		ip = IOINC1D_LUT_SHARP;
-	else if (tap == IOINC_TAG9 && group == FILTER_SOFT)
+	if (tap == IOINC_TAG9) {
 		ip = IOINC1D_LUT_9TAP;
-	else if (tap == IOINC_TAG9 && group == FILTER_SHARP)
-		ip = IOINC1D_LUT_SHARP_9TAP;
+		if (group == FILTER_SHARP)
+			ip = IOINC1D_LUT_SHARP_9TAP;
+	} else {
+		ip = IOINC1D_LUT;
+		if (group == FILTER_SHARP)
+			ip = IOINC1D_LUT_SHARP;
+	}
 
 	level = 0x00 + values[2]; /* hs_y */
 	iris_init_update_ipopt_t(ip, level, level, 1);
@@ -3461,7 +3576,7 @@ static const char *_iris_sr_status(void)
 	return status;
 }
 
-static int _iris_get_sr_info(char *kbuf, int size)
+static int _iris_get_sr_info(char *kbuf, int size, bool hide_mode)
 {
 	struct iris_cfg *pcfg = iris_get_cfg();
 	uint32_t path_sel = SCL_DATA_PATH1;
@@ -3471,8 +3586,9 @@ static int _iris_get_sr_info(char *kbuf, int size)
 	if (pcfg->pwil_mode == FRC_MODE)
 		path_sel = SCL_DATA_PATH0;
 
-	len += snprintf(kbuf, size,
-			"%-20s:\t%s\n", "SR mode", status == NULL ? "Not set" : status);
+	if (!hide_mode)
+		len += snprintf(kbuf, size,
+				"%-20s:\t%s\n", "SR mode", status == NULL ? "Not set" : status);
 	len += snprintf(kbuf + len, size - len,
 			"%-20s:\t%u x %u\n", "proc size",
 			_iris_scl_conf[path_sel].sr_in_h, _iris_scl_conf[path_sel].sr_in_v);
@@ -3488,12 +3604,21 @@ static int _iris_get_sr_info(char *kbuf, int size)
 	return len;
 }
 
+int iris_get_sr_info(char *kbuf, int size, bool hide_mode)
+{
+	const char *status = _iris_sr_status();
+	if (status == NULL)
+		return 0;
+
+	return _iris_get_sr_info(kbuf, size, hide_mode);
+}
+
 static ssize_t _iris_dbg_show_sr_info(struct file *file, char __user *ubuf,
 		size_t count, loff_t *ppos)
 {
-	const BUF_SIZE = 256;
+	const int BUF_SIZE = 256;
 	char *kbuf = NULL;
-	int size = count < BUF_SIZE ? BUF_SIZE : count;
+	int size = count < BUF_SIZE ? BUF_SIZE : (int)count;
 
 	if (*ppos)
 		return 0;
@@ -3504,7 +3629,7 @@ static ssize_t _iris_dbg_show_sr_info(struct file *file, char __user *ubuf,
 		return -ENOMEM;
 	}
 
-	size = _iris_get_sr_info(kbuf, size);
+	size = _iris_get_sr_info(kbuf, size, 0);
 	if (size >= count)
 		size = count - 1;
 
@@ -3543,4 +3668,122 @@ int iris_dbgfs_scl_init(struct dsi_display *display)
 		IRIS_LOGE("%s(), create file 'sr_info' failed!", __func__);
 
 	return 0;
+}
+
+
+static void srcnn_replace_model(void)
+{
+	struct iris_cfg *pcfg = iris_get_cfg();
+	struct iris_ip_opt *popt = NULL;
+	const int32_t opt_cnt = 5; /* 0x94: 0x00 ~ 0x04 */
+	uint8_t *pdata = iris_dynamic_model;
+	uint32_t model_index = 0;
+	uint32_t opt_index = 0;
+	int32_t i = 0;
+	int32_t j = 0;
+	ktime_t ktime0, ktime1;
+
+	IRIS_LOGD("%s()", __func__);
+
+	if (pdata == NULL) {
+		IRIS_LOGE("%s(), invalid dynamic model.", __func__);
+		return;
+	}
+
+	ktime0 = ktime_get();
+	SDE_ATRACE_BEGIN(__func__);
+
+	/* Use last model, which reserved for dynamic replace. */
+	model_index = _iris_scl_cnn_model_count() - 1;
+	opt_index = model_index * 0x10;
+
+	for (i = 0; i < opt_cnt; i++) {
+		popt = iris_find_ip_opt(SR_LUT, opt_index + i);
+		if (popt == NULL) {
+			IRIS_LOGE("%s(), failed to find: %02x, %02x",
+					__func__, SR_LUT, opt_index + i);
+			return;
+		}
+
+		/* type last wait ip opt len mode addr, 8 * sizeof(uint32_t) */
+		pdata += SZ_32;
+		for (j = 0; j < popt->cmd_cnt; j++) {
+			uint8_t *pbuf = (uint8_t *)popt->cmd[j].msg.tx_buf;
+
+			/* mode addr, 2 * sizeof(uint32_t) */
+			pbuf += SZ_8;
+			memcpy((void *)pbuf, (void *)pdata, popt->cmd[j].msg.tx_len - SZ_8);
+			pdata += popt->cmd[j].msg.tx_len - SZ_8;
+		}
+	}
+
+	ktime1 = ktime_get();
+
+	if (pcfg->abyp_ctrl.abypass_mode == PASS_THROUGH_MODE) {
+		_iris_scl_change_model_proc(model_index);
+
+		IRIS_LOGI("%s(), time cost %llu us, parse %llu us, send %llu us.",
+				__func__,
+				ktime_to_us(ktime_get() - ktime0),
+				ktime_to_us(ktime1 - ktime0),
+				ktime_to_us(ktime_get() - ktime1));
+	} else {
+		iris_dynamic_model_index  = model_index;
+
+		IRIS_LOGI("%s(), time cost %llu us.",
+				__func__, ktime_to_us(ktime_get() - ktime0));
+	}
+}
+
+void iris_scl_update_model(uint32_t count, uint32_t *values)
+{
+	uint8_t *pdata = NULL;
+	uint32_t size = 0;
+	ktime_t ktime;
+
+	if (values == NULL) {
+		IRIS_LOGE("%s(), invalid parameter!", __func__);
+		return;
+	}
+
+	if (iris_dynamic_model == NULL) {
+		IRIS_LOGE("%s(), invalid buffer!", __func__);
+		return;
+	}
+
+	ktime = ktime_get();
+	SDE_ATRACE_BEGIN(__func__);
+
+	if (count == 1) {
+		iris_loaded_model_size = 0;
+		iris_expect_model_size = values[0];
+		SDE_ATRACE_END(__func__);
+
+		IRIS_LOGI("%s(), count: %u, total size: %u, time cost %llu us.",
+				__func__, count, values[0],
+				ktime_to_us(ktime_get() - ktime));
+		return;
+	}
+
+	size = count * sizeof(uint32_t);
+	if (size > SZ_4K)
+		size = SZ_4K;
+
+	if (iris_loaded_model_size + size >= SZ_8K) {
+		IRIS_LOGE("%s(), out of memory range.", __func__);
+		return;
+	}
+
+	pdata = (uint8_t *)values;
+	memcpy((void *)(iris_dynamic_model + iris_loaded_model_size),
+			(void *)pdata, size);
+
+	iris_loaded_model_size += size;
+	if (iris_loaded_model_size >= iris_expect_model_size)
+		srcnn_replace_model();
+
+	SDE_ATRACE_END(__func__);
+
+	IRIS_LOGI("%s(), count: %u, real total size: %u, time cost %llu us.",
+			__func__, count, iris_loaded_model_size, ktime_to_us(ktime_get() - ktime));
 }

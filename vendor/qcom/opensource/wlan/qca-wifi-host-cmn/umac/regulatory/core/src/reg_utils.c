@@ -400,14 +400,103 @@ QDF_STATUS reg_get_domain_from_country_code(v_REGDOMAIN_t *reg_domain_ptr,
 #ifdef CONFIG_REG_CLIENT
 #ifdef CONFIG_BAND_6GHZ
 QDF_STATUS
+reg_get_6ghz_cli_pwr_type_per_ap_pwr_type(
+				struct wlan_objmgr_pdev *pdev,
+				enum reg_6g_ap_type ap_pwr_type,
+				enum supported_6g_pwr_types *cli_pwr_type)
+{
+	enum reg_6g_client_type client_type;
+
+	reg_get_cur_6g_client_type(pdev, &client_type);
+
+	if (client_type == REG_DEFAULT_CLIENT) {
+		if (ap_pwr_type == REG_INDOOR_AP)
+			*cli_pwr_type = REG_CLI_DEF_LPI;
+		else if (ap_pwr_type == REG_VERY_LOW_POWER_AP)
+			*cli_pwr_type = REG_CLI_DEF_VLP;
+		else if (ap_pwr_type == REG_STANDARD_POWER_AP)
+			*cli_pwr_type = REG_CLI_DEF_SP;
+		else
+			return QDF_STATUS_E_FAILURE;
+	} else if (client_type == REG_SUBORDINATE_CLIENT) {
+		if (ap_pwr_type == REG_INDOOR_AP)
+			*cli_pwr_type = REG_CLI_SUB_LPI;
+		else if (ap_pwr_type == REG_VERY_LOW_POWER_AP)
+			*cli_pwr_type = REG_CLI_SUB_VLP;
+		else if (ap_pwr_type == REG_STANDARD_POWER_AP)
+			*cli_pwr_type = REG_CLI_SUB_SP;
+		else
+			return QDF_STATUS_E_FAILURE;
+	} else {
+		return QDF_STATUS_E_FAILURE;
+	}
+
+	return QDF_STATUS_SUCCESS;
+}
+
+/**
+ * reg_check_if_6g_pwr_type_supp_for_chan() - Check if 6 GHz power type is
+ *                                            supported for the channel
+ * @pdev: Pointer to pdev
+ * @pwr_type: 6 GHz power type
+ * @chan_idx: Connection channel index
+ *
+ * Return: Return QDF_STATUS_SUCCESS if 6 GHz power type supported for
+ *         the given channel, else return QDF_STATUS_E_FAILURE.
+ */
+static
+QDF_STATUS reg_check_if_6g_pwr_type_supp_for_chan(
+			struct wlan_objmgr_pdev *pdev,
+			enum reg_6g_ap_type pwr_type,
+			enum channel_enum chan_idx)
+{
+	struct super_chan_info *super_chan_list;
+	enum channel_state *chan_state_arr;
+	uint32_t *chan_flags_arr;
+	enum supported_6g_pwr_types cli_pwr_type;
+	struct wlan_regulatory_pdev_priv_obj *pdev_priv_obj;
+	uint16_t sup_idx;
+
+	pdev_priv_obj = reg_get_pdev_obj(pdev);
+	if (!pdev_priv_obj) {
+		reg_err("pdev priv obj null");
+		return QDF_STATUS_E_FAILURE;
+	}
+
+	sup_idx = reg_convert_enum_to_6g_idx(chan_idx);
+	if (sup_idx >= NUM_6GHZ_CHANNELS) {
+		reg_err("Invalid channel");
+		return QDF_STATUS_E_NOSUPPORT;
+	}
+
+	if (QDF_IS_STATUS_ERROR(reg_get_6ghz_cli_pwr_type_per_ap_pwr_type(
+					pdev, pwr_type, &cli_pwr_type)))
+		goto no_support;
+
+	super_chan_list = pdev_priv_obj->super_chan_list;
+	chan_state_arr = super_chan_list[sup_idx].state_arr;
+	chan_flags_arr = super_chan_list[sup_idx].chan_flags_arr;
+	if (reg_is_state_allowed(chan_state_arr[cli_pwr_type]) &&
+	    !(chan_flags_arr[cli_pwr_type] & REGULATORY_CHAN_DISABLED))
+		return QDF_STATUS_SUCCESS;
+
+no_support:
+	reg_err("6 GHz power type = %d not supported for 6 GHz channel idx = %d",
+		cli_pwr_type, sup_idx);
+	return QDF_STATUS_E_NOSUPPORT;
+}
+
+QDF_STATUS
 reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
 			       struct wlan_objmgr_pdev *pdev,
 			       uint8_t *ap_ctry, uint8_t *sta_ctry,
 			       enum reg_6g_ap_type *pwr_type_6g,
 			       bool *ctry_code_match,
-			       enum reg_6g_ap_type ap_pwr_type)
+			       enum reg_6g_ap_type ap_pwr_type,
+			       uint32_t chan_freq)
 {
 	struct wlan_regulatory_pdev_priv_obj *pdev_priv_obj;
+	enum channel_enum chan_idx = reg_get_chan_enum_for_freq(chan_freq);
 
 	*pwr_type_6g = REG_INDOOR_AP;
 	pdev_priv_obj = reg_get_pdev_obj(pdev);
@@ -422,8 +511,21 @@ reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
 
 	if (!qdf_mem_cmp(ap_ctry, sta_ctry, REG_ALPHA2_LEN)) {
 		*ctry_code_match = true;
-		if (ap_pwr_type == REG_VERY_LOW_POWER_AP) {
-			if (!pdev_priv_obj->reg_rules.num_of_6g_client_reg_rules[ap_pwr_type]) {
+		if (ap_pwr_type == REG_STANDARD_POWER_AP) {
+			if (!pdev_priv_obj->reg_rules.num_of_6g_client_reg_rules[ap_pwr_type] ||
+				!QDF_IS_STATUS_SUCCESS(reg_check_if_6g_pwr_type_supp_for_chan(
+					pdev,
+					REG_STANDARD_POWER_AP,
+					chan_idx))) {
+                                reg_err("SP not supported, can't connect");
+                                return QDF_STATUS_E_NOSUPPORT;
+                        }
+                } else if (ap_pwr_type == REG_VERY_LOW_POWER_AP) {
+			if (!pdev_priv_obj->reg_rules.num_of_6g_client_reg_rules[ap_pwr_type] ||
+				!QDF_IS_STATUS_SUCCESS(reg_check_if_6g_pwr_type_supp_for_chan(
+					pdev,
+					REG_VERY_LOW_POWER_AP,
+					chan_idx))) {
 				reg_err("VLP not supported, can't connect");
 				return QDF_STATUS_E_NOSUPPORT;
 			}
@@ -474,7 +576,8 @@ reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
 			       uint8_t *ap_ctry, uint8_t *sta_ctry,
 			       enum reg_6g_ap_type *pwr_type_6g,
 			       bool *ctry_code_match,
-			       enum reg_6g_ap_type ap_pwr_type)
+			       enum reg_6g_ap_type ap_pwr_type,
+			       uint32_t chan_freq)
 {
 	return QDF_STATUS_SUCCESS;
 }

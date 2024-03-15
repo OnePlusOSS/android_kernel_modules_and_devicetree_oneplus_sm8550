@@ -1,0 +1,68 @@
+				/* DBV backlight 8~1087 */
+				qcom,mdss-dsi-demura-dbv-mode-0-command = [
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 09 D4 00 06 06 06 06 06 00 80
+					39 00 00 40 00 00 08 D1 00 01 01 01 01 01 80
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				/* DBV backlight 1088~1768 */
+				qcom,mdss-dsi-demura-dbv-mode-1-command = [
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 09 D4 00 00 00 00 00 00 00 80
+					39 00 00 40 00 00 08 D1 00 00 00 00 00 00 80
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				/* DBV backlight 1768~2689 */
+				qcom,mdss-dsi-demura-dbv-mode-2-command = [
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 09 D4 00 06 06 06 06 06 00 80
+					39 00 00 40 00 00 08 D1 00 01 01 01 01 01 80
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+				/* DBV backlight 2689<=3515<=DBV */
+				qcom,mdss-dsi-demura-dbv-mode-3-command = [
+					39 00 00 40 00 00 04 FF 08 38 4E
+					39 00 00 40 00 00 09 D4 00 06 06 06 06 06 00 80
+					39 00 00 40 00 00 08 D1 00 01 01 01 01 01 80
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+
+				qcom,mdss-dsi-gamma-pre-read-120hz-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 98
+				];
+				qcom,mdss-dsi-gamma-pre-read-90hz-command = [
+					39 00 00 40 00 00 04 FF 08 38 2F
+					15 00 00 00 00 00 02 99 A4
+				];
+				qcom,mdss-dsi-gamma-pre-read-off-command = [
+					15 00 00 40 00 00 02 99 00
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+
+				qcom,mdss-dsi-gamma-remap-command = [
+					//re-mapping gamma
+					39 00 00 40 00 00 04 FF 08 38 2F
+					//120HZ/60HZ
+					15 00 00 40 00 00 02 99 98
+					39 00 00 40 00 00 06 95 00 00 00 00 00
+					39 00 00 40 00 00 06 96 00 00 00 00 00
+					39 00 00 40 00 00 06 97 00 00 00 00 00
+					//90HZ
+					15 00 00 40 00 00 02 99 A4
+					39 00 00 40 00 00 06 95 00 00 00 00 00
+					39 00 00 40 00 00 06 96 00 00 00 00 00
+					39 00 00 40 00 00 06 97 00 00 00 00 00
+					15 00 00 40 00 00 02 99 00
+					39 00 00 00 00 00 04 FF 08 38 00
+				];
+
+				qcom,mdss-dsi-demura-dbv-mode-0-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-demura-dbv-mode-1-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-demura-dbv-mode-2-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-demura-dbv-mode-3-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-gamma-pre-read-120hz-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-gamma-pre-read-90hz-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-gamma-pre-read-off-command-state = "dsi_hs_mode";
+				qcom,mdss-dsi-gamma-remap-command-state = "dsi_hs_mode";
+

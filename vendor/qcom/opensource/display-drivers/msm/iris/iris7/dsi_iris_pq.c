@@ -1583,12 +1583,22 @@ void iris_sdr2hdr_level_set(u32 level)
 		payload = iris_get_ipopt_payload_data(IRIS_IP_SDR2HDR, 0xc0 + level, 2);
 		if (!payload)
 			return;
-		if (pcfg->pt_sr_enable == false) {
-			payload[0] = iris_de_default[level * 2];
-			payload[9] = iris_de_default[level * 2 + 1];
+		if (pcfg->frc_enabled || pcfg->pwil_mode == FRC_MODE || iris_is_pmu_dscu_on()) {
+			if (pcfg->frcgame_pq_guided_level > 1) {
+				payload[0] = iris_de_disable[0];
+				payload[9] = iris_de_disable[1];
+			} else {
+				payload[0] = iris_de_default[level * 2];
+				payload[9] = iris_de_default[level * 2 + 1];
+			}
 		} else {
-			payload[0] = iris_de_disable[0];
-			payload[9] = iris_de_disable[1];
+			if (pcfg->pt_sr_enable == false) {
+				payload[0] = iris_de_default[level * 2];
+				payload[9] = iris_de_default[level * 2 + 1];
+			} else {
+				payload[0] = iris_de_disable[0];
+				payload[9] = iris_de_disable[1];
+			}
 		}
 		iris_update_ip_opt(IRIS_IP_SDR2HDR, 0x10 + level, 0x01);
 
@@ -2118,7 +2128,7 @@ void iris_sdr2hdr_set_ftc(u32 value)
 	IRIS_LOGI("%s(), value: %u", __func__, value);
 }
 
-void iris_sdr2hdr_set_degain(void)
+void iris_sdr2hdr_set_degain(u32 mode)
 {
 	uint32_t  *payload = NULL;
 	struct iris_setting_info *iris_setting = iris_get_setting();
@@ -2133,12 +2143,23 @@ void iris_sdr2hdr_set_degain(void)
 	payload = iris_get_ipopt_payload_data(IRIS_IP_SDR2HDR, option, 2);
 	if (!payload)
 		return;
-	if (pcfg->pt_sr_enable == false) {
-		payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
-		payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+	if (pcfg->frc_enabled || pcfg->pwil_mode == FRC_MODE || iris_is_pmu_dscu_on()
+		|| mode == FRC_MODE) {
+		if (pcfg->frcgame_pq_guided_level > 1) {
+			payload[0] = iris_de_disable[0];
+			payload[9] = iris_de_disable[1];
+		} else {
+			payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
+			payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+		}
 	} else {
-		payload[0] = iris_de_disable[0];
-		payload[9] = iris_de_disable[1];
+		if (pcfg->pt_sr_enable == false) {
+			payload[0] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2];
+			payload[9] = iris_de_default[pqlt_cur_setting->pq_setting.sdr2hdr * 2 + 1];
+		} else {
+			payload[0] = iris_de_disable[0];
+			payload[9] = iris_de_disable[1];
+		}
 	}
 	iris_init_update_ipopt_t(IRIS_IP_SDR2HDR, option, option, 0x01);
 
@@ -2996,6 +3017,7 @@ void iris_sr_level_set(u32 mode, u32 guided_level, u32 dejaggy_level, u32 peakin
 			pcfg->frc_pq_peaking_level = peaking_level;
 			pcfg->frc_pq_DLTI_level = DLTI_level;
 		}
+		iris_sdr2hdr_set_degain(mode);
 	} else {
 		pcfg->pt_sr_guided_level = guided_level;
 		pcfg->pt_sr_dejaggy_level = dejaggy_level;

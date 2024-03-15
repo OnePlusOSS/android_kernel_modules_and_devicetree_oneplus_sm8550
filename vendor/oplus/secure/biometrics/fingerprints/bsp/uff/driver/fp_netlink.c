@@ -11,6 +11,7 @@
 **  Yuhang.teng   2023/08/24        create the file
 **  Yuhang.teng   2023/10/20        amend the file
 *********************************************************************************************/
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -121,8 +122,10 @@ int fp_netlink_init(void)
     netlink_cfg.input = fp_nl_data_ready;
     netlink_cfg.cb_mutex = NULL;
 
-    nl_sk = netlink_kernel_create(&init_net, NETLINKROUTE,
-            &netlink_cfg);
+    if (!nl_sk) {
+        nl_sk = netlink_kernel_create(&init_net, NETLINKROUTE,
+                &netlink_cfg);
+    }
 
     if (!nl_sk) {
         pr_err("%s, create netlink socket error\n", __func__);

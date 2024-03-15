@@ -8,6 +8,9 @@
 #include <linux/sched.h>
 #include <linux/mutex.h>
 #include <linux/rwsem.h>
+#ifdef CONFIG_OPLUS_SYSTEM_KERNEL_QCOM
+#include <linux/percpu-rwsem.h>
+#endif
 #include <linux/ww_mutex.h>
 #include <linux/sched/signal.h>
 #include <linux/sched/rt.h>
@@ -46,6 +49,9 @@ static DEFINE_PER_CPU(int, prev_locking_depth);
 #define LK_STATE_UNLOCK  (0)
 #define LK_STATE_LOCK    (1)
 #define LK_STATE_INVALID (2)
+#ifdef CONFIG_BLOCKIO_UX_OPT
+#define HOOKS_SET_UX_SIGN (1)
+#endif
 void locking_state_systrace_c(unsigned int cpu, struct task_struct *p)
 {
 	struct oplus_task_struct *ots;
@@ -341,8 +347,29 @@ static void android_vh_rtmutex_wait_start_handler(void *unused, struct rt_mutex_
 static void record_lock_starttime_handler(void *unused,
 			struct task_struct *tsk, unsigned long settime)
 {
+#ifdef CONFIG_BLOCKIO_UX_OPT
+	/* settime = HOOKS_SET_UX_SIGN mean: set tsk to ux type*/
+	if (settime == HOOKS_SET_UX_SIGN) {
+		struct oplus_task_struct *ots = get_oplus_task_struct(tsk);
+
+		if (IS_ERR_OR_NULL(ots))
+			return;
+
+		ots->ux_state = SA_TYPE_LIGHT;
+		return;
+	}
+#endif
 	update_locking_time(settime, true);
 }
+
+#if defined(CONFIG_PCPU_RWSEM_LOCKING_PROTECT) && defined(CONFIG_OPLUS_SYSTEM_KERNEL_QCOM)
+static void percpu_rwsem_wq_add_handler(void *unused,
+			struct percpu_rw_semaphore *sem, bool reader)
+{
+	if(likely(reader))
+		update_locking_time(jiffies, false);
+}
+#endif
 
 void check_preempt_tick_handler_locking(struct task_struct *p,
 			unsigned long *ideal_runtime, bool *skip_preempt,
@@ -402,29 +429,42 @@ static int register_dstate_opt_vendor_hooks(void)
 		pr_err("record_pcpu_rwsem_starttime failed! ret=%d\n", ret);
 		goto out3;
 	}
+#ifdef CONFIG_OPLUS_SYSTEM_KERNEL_QCOM
+	ret = register_trace_android_vh_percpu_rwsem_wq_add(
+					percpu_rwsem_wq_add_handler, NULL);
+	if (ret != 0) {
+		pr_err("percpu_rwsem_wq_add failed! ret=%d\n", ret);
+		goto out4;
+	}
+#endif
 #endif
 
 	ret = register_trace_android_vh_alter_rwsem_list_add(
 			android_vh_alter_rwsem_list_add_handler, NULL);
 	if (ret != 0) {
 		pr_err("register_trace_android_vh_alter_rwsem_list_add failed! ret=%d\n", ret);
-		goto out4;
+		goto out5;
 	}
 
 	ret = register_trace_android_vh_mutex_wait_start(android_vh_mutex_wait_start_handler, NULL);
 	if (ret != 0) {
 		pr_err("register_trace_android_vh_mutex_wait_start failed! ret=%d\n", ret);
-		goto out4;
+		goto out5;
 	}
 	ret = register_trace_android_vh_rtmutex_wait_start(android_vh_rtmutex_wait_start_handler, NULL);
 	if (ret != 0) {
 		pr_err("register_trace_android_vh_rtmutex_wait_start failed! ret=%d\n", ret);
-		goto out4;
+		goto out5;
 	}
 	return ret;
 
-out4:
+out5:
 #ifdef CONFIG_PCPU_RWSEM_LOCKING_PROTECT
+#ifdef CONFIG_OPLUS_SYSTEM_KERNEL_QCOM
+	unregister_trace_android_vh_percpu_rwsem_wq_add(
+					percpu_rwsem_wq_add_handler, NULL);
+out4:
+#endif
 	unregister_trace_android_vh_record_pcpu_rwsem_starttime(
 				record_lock_starttime_handler, NULL);
 out3:
@@ -449,6 +489,10 @@ static void unregister_dstate_opt_vendor_hooks(void)
 	unregister_trace_android_vh_alter_rwsem_list_add(
 			android_vh_alter_rwsem_list_add_handler, NULL);
 #ifdef CONFIG_PCPU_RWSEM_LOCKING_PROTECT
+#ifdef CONFIG_OPLUS_SYSTEM_KERNEL_QCOM
+	unregister_trace_android_vh_percpu_rwsem_wq_add(
+					percpu_rwsem_wq_add_handler, NULL);
+#endif
 	unregister_trace_android_vh_record_pcpu_rwsem_starttime(
 				record_lock_starttime_handler, NULL);
 #endif

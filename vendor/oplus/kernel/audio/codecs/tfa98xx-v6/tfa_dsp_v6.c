@@ -3747,7 +3747,7 @@ enum Tfa98xx_Error tfa_dsp_get_calibration_impedance_v6(struct tfa_device *tfa)
 		}
 
 		nr_bytes = spkr_count * 3;
-		bytes = kmalloc(sizeof(char) * spkr_count, GFP_KERNEL);
+		bytes = kmalloc(sizeof(char) * nr_bytes, GFP_KERNEL);
 		if (bytes == NULL) {
 			return Tfa98xx_Error_Fail;
 		}

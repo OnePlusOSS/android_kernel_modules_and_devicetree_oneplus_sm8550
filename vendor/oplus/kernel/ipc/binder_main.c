@@ -14,6 +14,7 @@ static int __init oplus_binder_strategy_init(void)
 {
 	int ret = 0;
 
+	oplus_binder_sysfs_init();
 	oplus_binder_sched_init();
 
 #ifdef CONFIG_OPLUS_BINDER_TRANS_CTRL

@@ -333,7 +333,7 @@ static int cb_config_store(const char *buf, const struct kernel_param *kp)
 
 	cb = &cb_stuff[v.clus];
 
-	if (v.limit_level < 0 || v.limit_level > cb->max_level)
+	if (v.limit_level < 0 || v.limit_level > cb->min_level)
 		goto out;
 
 	if (v.down_speed < 0 || v.down_speed > cb->freq_levels)

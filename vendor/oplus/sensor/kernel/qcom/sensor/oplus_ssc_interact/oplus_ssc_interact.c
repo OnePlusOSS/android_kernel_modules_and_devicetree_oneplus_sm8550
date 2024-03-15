@@ -73,6 +73,25 @@ static void ssc_interactive_set_dc_mode(uint16_t dc_mode)
 	ssc_interactive_set_fifo(LCM_DC_MODE_TYPE, dc_mode);
 }
 
+static void ssc_interactive_set_blank_mode(uint16_t blank_mode)
+{
+	struct ssc_interactive *ssc_cxt = g_ssc_cxt;
+	uint16_t brigtness = 0;
+
+	spin_lock(&ssc_cxt->rw_lock);
+	if (blank_mode == ssc_cxt->a_info.blank_mode) {
+		/*pr_info("dc_mode=%d is the same\n", dc_mode);*/
+		spin_unlock(&ssc_cxt->rw_lock);
+		return;
+	}
+	ssc_cxt->a_info.blank_mode = blank_mode;
+	brigtness = ssc_cxt->last_primary_bri;
+	spin_unlock(&ssc_cxt->rw_lock);
+	pr_info("set blank_mode=%d, re-send last bri=%d\n", (int)blank_mode, (int)brigtness);
+	ssc_interactive_set_fifo(LCM_BLANK_MODE_TYPE, blank_mode);
+	ssc_interactive_set_fifo(LCM_BRIGHTNESS_TYPE, brigtness);
+}
+
 static void ssc_interactive_set_pwm_turbo_mode(int on)
 {
 	struct ssc_interactive *ssc_cxt = g_ssc_cxt;
@@ -462,18 +481,26 @@ static void lcdinfo_callback(enum panel_event_notifier_tag panel_tag,
 			ssc_interactive_set_hbm_mode(notification->notif_data.data);
 		}
 		break;
-#if IS_ENABLED(CONFIG_OPLUS_SENSOR_FB_QC)
 	case DRM_PANEL_EVENT_UNBLANK:
+#if IS_ENABLED(CONFIG_OPLUS_SENSOR_FB_QC)
 		if (g_ssc_cxt->sup_power_fb) {
 			ssc_fb_set_screen_status(SCREEN_ON);
 		}
+#endif
+		if (g_ssc_cxt->report_blank_mode) {
+			ssc_interactive_set_blank_mode(SCREEN_ON);
+		}
 		break;
 	case DRM_PANEL_EVENT_BLANK:
+#if IS_ENABLED(CONFIG_OPLUS_SENSOR_FB_QC)
 		if (g_ssc_cxt->sup_power_fb) {
 			ssc_fb_set_screen_status(SCREEN_OFF);
 		}
-		break;
 #endif
+		if (g_ssc_cxt->report_blank_mode) {
+			ssc_interactive_set_blank_mode(SCREEN_OFF);
+		}
+		break;
 	default:
 		break;
 	}
@@ -725,6 +752,14 @@ static int __init ssc_interactive_init(void)
 		} else {
 			ssc_cxt->sup_power_fb = false;
 			pr_err("not sup power_fb!");
+		}
+
+		if (of_property_read_bool(node, "report_blank_mode")) {
+			ssc_cxt->report_blank_mode = true;
+			pr_err("sup report_blank_mode!");
+		} else {
+			ssc_cxt->report_blank_mode = false;
+			pr_err("not sup report_blank_mode!");
 		}
 
 		err = of_property_read_u32(node, "sup-hbm-mode", &hbm_mode);

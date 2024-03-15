@@ -28,6 +28,7 @@
 #include "dsi_iris_i2c.h"
 #include "dsi_iris_cmpt.h"
 #include "dsi_iris_dts_fw.h"
+#include "dsi_iris_memc_i7p.h"
 
 
 int iris_dbgfs_status_init(struct dsi_display *display);
@@ -156,6 +157,7 @@ int iris_lightoff_i7p(struct dsi_panel *panel, bool dead,
 		else
 			iris_abyp_send_panel_cmd(panel, off_cmds);
 	}
+	iris_dspp_pq_mode_set_i7p(0);
 	iris_lightoff_memc();
 	iris_quality_setting_off();
 	iris_lp_setting_off();
@@ -164,6 +166,16 @@ int iris_lightoff_i7p(struct dsi_panel *panel, bool dead,
 	iris_clear_aod_state();
 	pcfg->panel_pending = 0;
 	iris_set_pinctrl_state(false);
+
+	if (pcfg->panel->dyn_clk_caps.dyn_clk_support) {
+		if (pcfg->display->cached_clk_rate != 0 &&
+				pcfg->display->cached_clk_rate != pcfg->panel->cur_mode->priv_info->bit_clk_list.rates[0]) {
+			IRIS_LOGI("%s: Need reset cached_clk_rate:%u, dyn_bit_clk:%u, default clk_rate_hz: %u.", __func__,
+				pcfg->display->cached_clk_rate, pcfg->display->dyn_bit_clk, pcfg->panel->cur_mode->priv_info->bit_clk_list.rates[0]);
+			pcfg->display->cached_clk_rate = 0;
+			pcfg->display->dyn_bit_clk = 0;
+		}
+	}
 
 	IRIS_LOGI("%s(%d) ---", __func__, __LINE__);
 

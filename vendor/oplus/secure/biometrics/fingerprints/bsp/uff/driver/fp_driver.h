@@ -153,6 +153,7 @@ struct fp_key {
 #define FP_IOC_IRQ_GPIO_CTL_LOW _IO(FP_IOC_MAGIC, 28)
 #define FP_IOC_NETLINK_INIT _IO(FP_IOC_MAGIC, 29)
 #define FP_IOC_RD_NETLINK_VALUE _IO(FP_IOC_MAGIC, 30)
+#define FP_IOC_LHBM_TEMPERATURE _IO(FP_IOC_MAGIC, 31)
 
 #define FP_IOC_FAULT_INJECT_BLOCK_MSG_CLEAN   _IO(FP_IOC_MAGIC, 401)
 #define FP_IOC_FAULT_INJECT_BLOCK_MSG_UP      _IO(FP_IOC_MAGIC, 402)
@@ -200,6 +201,7 @@ struct fp_dev {
     fp_power_info_t pwr_list[FP_MAX_PWR_LIST_LEN];
     uint32_t        notify_tpinfo_flag;
     uint32_t        ftm_poweroff_flag;
+    uint32_t        optical_irq_disable_flag;
 
 #if defined(MTK_PLATFORM)
     struct pinctrl *pinctrl;

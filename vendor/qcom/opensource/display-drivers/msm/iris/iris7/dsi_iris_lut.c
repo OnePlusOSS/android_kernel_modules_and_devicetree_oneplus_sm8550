@@ -436,12 +436,6 @@ int iris_send_lut_i7(u8 lut_type, u8 lut_table_index)
 	case IOINC1D_PP_LUT_SHARP:
 	case IOINC1D_LUT_9TAP:
 	case IOINC1D_LUT_SHARP_9TAP:
-		if ((lut_table_index & 0x3f) >= SCALER1D_LUT_NUMBER) {
-			IRIS_LOGW("%s(%d), invalid table index %d of type: %#x.",
-					__func__, __LINE__, lut_table_index, lut_type);
-			break;
-		}
-
 		lut_opt_id = lut_table_index & 0xff;
 		iris_fomat_lut_cmds(lut_type, lut_opt_id);
 		IRIS_LOGD("%s(), call SCALER1D, i_p: %#x, index: %d.", __func__,

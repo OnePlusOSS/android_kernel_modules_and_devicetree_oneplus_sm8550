@@ -3697,18 +3697,6 @@ int iris_enable(struct dsi_panel *panel, struct dsi_panel_cmd_set *on_cmds)
 	}
 	SDE_ATRACE_END("iris_enable");
 
-	if (pcfg->iris_chip_type == CHIP_IRIS7P) {
-		if (pcfg->panel->dyn_clk_caps.dyn_clk_support) {
-			if (pcfg->display->cached_clk_rate != 0 &&
-				pcfg->display->cached_clk_rate != pcfg->panel->cur_mode->priv_info->bit_clk_list.rates[0]) {
-				IRIS_LOGI("%s: Need reset cached_clk_rate:%u, expect clk_rate_hz: %u.", __func__,
-					pcfg->display->cached_clk_rate, pcfg->panel->cur_mode->priv_info->bit_clk_list.rates[0]);
-				pcfg->display->dyn_bit_clk = pcfg->panel->cur_mode->priv_info->bit_clk_list.rates[0];
-				pcfg->display->dyn_bit_clk_pending = true;
-			}
-		}
-	}
-
 end:
 #ifdef IRIS_EXT_CLK
 	iris_clk_disable(panel);
@@ -4488,6 +4476,14 @@ int iris_sync_panel_brightness(int32_t step, void *phys_enc)
 	}
 
 	return rc;
+}
+
+struct iris_ctrl_seq *iris_get_current_seq(void)
+{
+	struct iris_cfg *pcfg = iris_get_cfg();
+	struct iris_ctrl_seq *pseq = _iris_get_ctrl_seq(pcfg);
+
+	return pseq;
 }
 
 static ssize_t _iris_chip_id_read(struct file *file, char __user *buff,

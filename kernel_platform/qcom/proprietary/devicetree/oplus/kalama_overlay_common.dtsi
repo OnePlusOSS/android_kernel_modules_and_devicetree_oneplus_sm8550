@@ -82,13 +82,6 @@
         oplus,override1_en_value = <0x1>;
     };
     //#endif /*OPLUS_FEATURE_SECURITY_COMMON*/
-
-	//#ifdef CONFIG_OPLUS_IPA_THERMAL
-	ipa_sensor0: ipa-sensor@0 {
-		compatible = "oplus,ipa-thermal-sensor";
-		#thermal-sensor-cells = <1>;
-	};
-	//#endif
 };
 
 &reserved_memory {
@@ -143,54 +136,3 @@
 	mem-type = <2>;
 };
 /* #endif OPLUS_FEATURE_DUMP_DEVICE_INFO */
-
-//#ifdef CONFIG_OPLUS_IPA_THERMAL
-&thermal_zones {
-	soc_thermal_ipa {
-		thermal-governor = "power_allocator";
-		polling-delay = <2000>;
-		polling-delay-passive = <50>;
-		sustainable-power = <9999>;
-
-		thermal-sensors = <&ipa_sensor0 0>;
-
-		trips {
-			threshold: trip-point@0 {
-				temperature = <30000>;
-				hysteresis = <2000>;
-				type = "passive";
-			};
-			target: trip-point@1 {
-				temperature = <50000>;
-				hysteresis = <2000>;
-				type = "passive";
-			};
-		};
-
-		cooling-maps {
-			map0 {
-				trip = <&target>;
-				contribution = <1024>;
-				cooling-device = <&CPU0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-			};
-			map1 {
-				trip = <&target>;
-				contribution = <1024>;
-				cooling-device = <&CPU4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-			};
-			map2 {
-				trip = <&target>;
-				contribution = <1024>;
-				cooling-device = <&CPU7 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-			};
-			/*
-			map3 {
-				trip = <&target>;
-				contribution = <1024>;
-				cooling-device = <&gpu 0 4>;
-			};
-			*/
-		};
-	};
-};
-//#endif

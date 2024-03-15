@@ -80,7 +80,8 @@
                 "OPLUS_IC_ERR_PARALLEL_UNBALANCE",
                 "OPLUS_IC_ERR_MOS_ERROR",
                 "OPLUS_IC_ERR_OFFLINE",
-                "OPLUS_IC_ERR_UFCS"
+                "OPLUS_IC_ERR_UFCS",
+                "OPLUS_IC_ERR_GAN_MOS_ERROR"
             ]
         },
         {

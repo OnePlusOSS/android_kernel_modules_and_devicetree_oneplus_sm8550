@@ -104,8 +104,10 @@ enum {
 #define COPYCAT_ADAPTER_EFFECTIVE_IBATTHRESHOLD	1500
 #define VOOCPHY_NEED_CHANGE_CUR_MAXCNT		5
 #define COPYCAT_ADAPTER_CUR_JUDGMENT_CNT	10
+#define VOOC_INIT_WAIT_TIME_MS 100
 
 int voocphy_log_level = 3;
+struct completion vooc_init_check_ack;
 #define voocphy_info(fmt, ...)	\
 do {						\
 	if (voocphy_log_level >= 3)	\
@@ -980,6 +982,7 @@ static int oplus_voocphy_reset_variables(struct oplus_voocphy_manager *chip)
 	chip->vbus = 0;
 	chip->fastchg_batt_temp_status = BAT_TEMP_NATURAL;
 	chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_INIT;
+	chip->receive_temp_range = FASTCHG_TEMP_RANGE_INIT;
 	chip->fastchg_commu_stop = false;
 	chip->fastchg_monitor_stop = false;
 	chip->current_pwd = chip->current_expect;
@@ -1166,72 +1169,115 @@ static int oplus_voocphy_set_adc_forcedly_enable(struct oplus_voocphy_manager *c
 
 void oplus_voocphy_get_soc_and_temp_with_enter_fastchg(struct oplus_voocphy_manager *chip)
 {
-        int sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_LOW;
-        int batt_temp = 0;
+	int sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_LOW;
+	int batt_temp = 0;
+	unsigned int batt_temp_range = FASTCHG_TEMP_RANGE_INIT;
 
-        if (!chip) {
-                voocphy_info("%s, chip null\n", __func__);
-                return;
-        }
+	if (!chip) {
+		voocphy_info("%s, chip null\n", __func__);
+		return;
+	}
 
-        batt_temp = chip->plug_in_batt_temp;
-        chip->batt_sys_curv_found = false;
+	batt_temp = chip->plug_in_batt_temp;
+	chip->batt_sys_curv_found = false;
 
-        /* step1: find sys curv by soc */
-        if (chip->batt_soc <= 50) {
-                chip->batt_soc_plugin = BATT_SOC_0_TO_50;
-        } else if (chip->batt_soc <= 75) {
-                chip->batt_soc_plugin = BATT_SOC_50_TO_75;
-        } else if (chip->batt_soc <= 85) {
-                chip->batt_soc_plugin = BATT_SOC_75_TO_85;
-        } else if (chip->batt_soc <= 90) {
-                chip->batt_soc_plugin = BATT_SOC_85_TO_90;
-        } else {
-                chip->batt_soc_plugin = BATT_SOC_90_TO_100;
-        }
+	/* step1: find sys curv by soc */
+	if (chip->batt_soc <= 50) {
+		chip->batt_soc_plugin = BATT_SOC_0_TO_50;
+	} else if (chip->batt_soc <= 75) {
+		chip->batt_soc_plugin = BATT_SOC_50_TO_75;
+	} else if (chip->batt_soc <= 85) {
+		chip->batt_soc_plugin = BATT_SOC_75_TO_85;
+	} else if (chip->batt_soc <= 90) {
+		chip->batt_soc_plugin = BATT_SOC_85_TO_90;
+	} else {
+		chip->batt_soc_plugin = BATT_SOC_90_TO_100;
+	}
 
-        /* step2: find sys curv by temp range */
-        /* update batt_temp_plugin status */
-        if (batt_temp < chip->vooc_little_cold_temp) { /* 0-5C */
-                chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COLD;
-                chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COLD;
-                sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COLD;
-                chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COLD;
-        } else if (batt_temp < chip->vooc_cool_temp) { /* 5-12C */
-                chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_COOL;
-                chip->fastchg_batt_temp_status = BAT_TEMP_COOL;
-                sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_COOL;
-                chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_COOL;
-        } else if (batt_temp < chip->vooc_little_cool_temp) { /* 12-16C */
-                chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COOL;
-                chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COOL;
-                sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COOL;
-                chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COOL;
-        } else if (batt_temp < chip->vooc_normal_low_temp) { /* 16-35C */
-                chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_LOW;
-                chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_LOW;
-                sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_LOW;
-                chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
-        } else {/* 35C-43C */
-                if (chip->vooc_normal_high_temp == -EINVAL || batt_temp < chip->vooc_normal_high_temp) {
-                        chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_HIGH;
-                        chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_HIGH;
-                        sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_HIGH;
-                        chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
-                } else {
-                        chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_WARM;
-                        chip->fastchg_batt_temp_status = BAT_TEMP_WARM;
-                        sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_WARM;
-                        chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_WARM;
-                }
-        }
+	/* step2: find sys curv by temp range */
+	/* update batt_temp_plugin status */
+	batt_temp_range = chip->receive_temp_range;
 
-        chip->sys_curve_temp_idx = sys_curve_temp_idx;
+	switch (batt_temp_range) {
+	case FASTCHG_TEMP_RANGE_LITTLE_COLD:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COLD;
+		chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COLD;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COLD;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COLD;
+		break;
+	case FASTCHG_TEMP_RANGE_COOL:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_COOL;
+		chip->fastchg_batt_temp_status = BAT_TEMP_COOL;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_COOL;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_COOL;
+		break;
+	case FASTCHG_TEMP_RANGE_LITTLE_COOL:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COOL;
+		chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COOL;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COOL;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COOL;
+		break;
+	case FASTCHG_TEMP_RANGE_NORMAL_LOW:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_LOW;
+		chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_LOW;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_LOW;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
+		break;
+	case FASTCHG_TEMP_RANGE_NORMAL_HIGH:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_HIGH;
+		chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_HIGH;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_HIGH;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
+		break;
+	case FASTCHG_TEMP_RANGE_WARM:
+		chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_WARM;
+		chip->fastchg_batt_temp_status = BAT_TEMP_WARM;
+		sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_WARM;
+		chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_WARM;
+		break;
+	case FASTCHG_TEMP_RANGE_INIT:
+	default:
+		if (batt_temp < chip->vooc_little_cold_temp) { /* 0-5C */
+			chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COLD;
+			chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COLD;
+			sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COLD;
+			chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COLD;
+		} else if (batt_temp < chip->vooc_cool_temp) { /* 5-12C */
+			chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_COOL;
+			chip->fastchg_batt_temp_status = BAT_TEMP_COOL;
+			sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_COOL;
+			chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_COOL;
+		} else if (batt_temp < chip->vooc_little_cool_temp) { /* 12-16C */
+			chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_LITTLE_COOL;
+			chip->fastchg_batt_temp_status = BAT_TEMP_LITTLE_COOL;
+			sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_LITTLE_COOL;
+			chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_LITTLE_COOL;
+		} else if (batt_temp < chip->vooc_normal_low_temp) { /* 16-35C */
+			chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_LOW;
+			chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_LOW;
+			sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_LOW;
+			chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
+		} else {/* 35C-43C */
+			if (chip->vooc_normal_high_temp == -EINVAL || batt_temp < chip->vooc_normal_high_temp) {
+				chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_NORMAL_HIGH;
+				chip->fastchg_batt_temp_status = BAT_TEMP_NORMAL_HIGH;
+				sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_NORMAL_HIGH;
+				chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_NORMAL;
+			} else {
+				chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_WARM;
+				chip->fastchg_batt_temp_status = BAT_TEMP_WARM;
+				sys_curve_temp_idx = BATT_SYS_CURVE_TEMP_WARM;
+				chip->batt_temp_plugin = VOOCPHY_BATT_TEMP_WARM;
+			}
+		}
+		break;
+	}
 
-        voocphy_info("current_expect:%d batt_soc_plugin:%d batt_temp_plugin:%d sys_curve_index:%d",
-                     chip->current_expect, chip->batt_soc_plugin,
-                     chip->batt_temp_plugin, sys_curve_temp_idx);
-        return;
+	chip->sys_curve_temp_idx = sys_curve_temp_idx;
+
+	voocphy_info("current_expect:%d batt_soc_plugin:%d batt_temp_plugin:%d sys_curve_index:%d",
+			chip->current_expect, chip->batt_soc_plugin, chip->batt_temp_plugin, sys_curve_temp_idx);
+	return;
 }
 
 static int oplus_voocphy_get_adc_enable(struct oplus_voocphy_manager *chip, u8 *data)
@@ -4088,6 +4134,7 @@ static void oplus_voocphy_check_chg_out_work_func(struct oplus_voocphy_manager *
 	chip->fastchg_commu_ing = false;
 	chg_vol = oplus_chglib_get_charger_voltage();
 	if (chg_vol >= 0 && chg_vol < 2000) {
+		complete_all(&vooc_init_check_ack);
 		if (chip->adapter_type == ADAPTER_VOOC20)
 			cancel_delayed_work(&chip->voocphy_send_ongoing_notify);
 		oplus_voocphy_reset_temp_range(chip);
@@ -5255,6 +5302,7 @@ static void oplus_voocphy_reset_fastchg_after_usbout(struct oplus_voocphy_manage
 	chip->fastchg_commu_ing = false;
 	chip->adapter_check_vooc_head_count = 0;
 	chip->adapter_check_cmd_data_count = 0;
+	chip->receive_temp_range = FASTCHG_TEMP_RANGE_INIT;
 	/*avoid displaying vooc symbles when btb_temp_over and plug out*/
 	if (chip->btb_temp_over) {
 		voocphy_info("btb_temp_over plug out\n");
@@ -6347,6 +6395,7 @@ static int oplus_voocphy_variables_init(struct oplus_voocphy_manager *chip)
 	chip->batt_soc = 50;
 	chip->fastchg_batt_temp_status = BAT_TEMP_NATURAL;
 	chip->vooc_temp_cur_range = FASTCHG_TEMP_RANGE_INIT;
+	chip->receive_temp_range = FASTCHG_TEMP_RANGE_INIT;
 	chip->fastchg_start = false;
 	chip->fastchg_commu_ing = false;
 	chip->fastchg_to_normal = false;
@@ -6472,6 +6521,7 @@ void update_highcap_mask(struct cpumask *cpu_highcap_mask)
 
 static int oplus_voocphy_init(struct oplus_voocphy_manager *chip)
 {
+	init_completion(&vooc_init_check_ack);
 	oplus_voocphy_parse_dt(chip);
 	oplus_voocphy_parse_batt_curves(chip);
 	oplus_voocphy_variables_init(chip);
@@ -6522,8 +6572,17 @@ void oplus_voocphy_slave_init(struct oplus_voocphy_manager *chip)
 static void oplus_apvphy_set_vooc_current(struct device *dev, int data, int curr_ma)
 {
 	struct oplus_voocphy_manager *chip = dev_get_drvdata(dev);
+	int get_data = 0;
 
 	chip->vooc_current = curr_ma;
+
+	if (chip->fastchg_notify_status == FAST_NOTIFY_LOW_TEMP_FULL) {
+		/* send the curve soc_range<<4|temp_range to ap */
+		get_data = data;
+		chip->receive_temp_range = (get_data & 0x0F) + 1;
+		chg_info("set curve num %d to ap\n", chip->receive_temp_range);
+		complete(&vooc_init_check_ack);
+	}
 }
 
 static void oplus_apvphy_set_switch_curr_limit(struct device *dev, int curr)
@@ -6596,6 +6655,7 @@ static void oplus_voocphy_send_handshake(struct oplus_voocphy_manager *chip)
 static void oplus_apvphy_switch_chg_mode(struct device *dev, int mode)
 {
 	struct oplus_voocphy_manager *chip = dev_get_drvdata(dev);
+	int rc = 0;
 
 	if (!chip) {
 		voocphy_info("oplus_voocphy_manager is null\n");
@@ -6632,6 +6692,15 @@ static void oplus_apvphy_switch_chg_mode(struct device *dev, int mode)
 		}
 #endif
 
+		chip->fastchg_notify_status = FAST_NOTIFY_LOW_TEMP_FULL;
+		chip->receive_temp_range = FASTCHG_TEMP_RANGE_INIT;
+		oplus_chglib_notify_ap(chip->dev, FAST_NOTIFY_LOW_TEMP_FULL);
+		reinit_completion(&vooc_init_check_ack);
+		rc = wait_for_completion_interruptible_timeout(
+				&vooc_init_check_ack, msecs_to_jiffies(VOOC_INIT_WAIT_TIME_MS));
+		if (!rc)
+			chg_err("vooc wait for curve_num timeout\n");
+
 		oplus_voocphy_basetimer_monitor_start(chip);
 		voocphy_cpufreq_init(chip);
 		oplus_voocphy_pm_qos_update(400);
@@ -6644,7 +6713,6 @@ static void oplus_apvphy_switch_chg_mode(struct device *dev, int mode)
 		 * Voocphy sends fastchg status 0x54 to notify
 		 * vooc to update the current soc and temp range.
 		 */
-		oplus_chglib_notify_ap(chip->dev, FAST_NOTIFY_LOW_TEMP_FULL);
 	} else if (mode == 0) {
 		if (oplus_chglib_is_switch_temp_range()) {
 			voocphy_info("enter switch temp range processimg");

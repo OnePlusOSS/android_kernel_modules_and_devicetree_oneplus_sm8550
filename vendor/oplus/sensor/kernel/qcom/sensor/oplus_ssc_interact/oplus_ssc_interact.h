@@ -41,6 +41,7 @@ enum {
 	LCM_ADFR_MIN_FPS,
 	LCM_HBM_LONG_INTE_TYPE,
 	LCM_HBM_SHORT_INTE_TYPE,
+	LCM_BLANK_MODE_TYPE,
 	MAX_INFO_TYPE,
 };
 
@@ -59,6 +60,7 @@ enum {
 struct als_info{
 	uint16_t brightness;
 	uint16_t dc_mode;
+	uint16_t blank_mode;
 };
 
 struct fifo_frame{
@@ -98,6 +100,7 @@ struct ssc_interactive{
 	uint16_t last_freq;
 #endif
 	bool sup_power_fb;
+	bool report_blank_mode;
 	uint8_t sup_hbm_mode;
 	bool notify_work_regiseted;
 	bool notify_work_regiseted_second;

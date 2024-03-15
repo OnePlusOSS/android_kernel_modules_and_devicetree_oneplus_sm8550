@@ -549,13 +549,11 @@ static bool ufcs_check_handshake(struct ufcs_class *class)
 	return true;
 }
 
-static bool ufcs_check_error_info(struct ufcs_class *class)
+static int ufcs_check_error_info(struct ufcs_class *class, unsigned int dev_err_flag)
 {
-	unsigned int dev_err_flag = class->ufcs->dev_err_flag;
 	struct ufcs_msg_sender *sender;
 
 	sender = &class->sender;
-	ufcs_send_state(UFCS_NOTIFY_ERR_FLAG, &class->ufcs->dev_err_flag);
 
 	if (dev_err_flag & BIT(UFCS_HW_ERR_HARD_RESET)) {
 		if (class->start_cable_detect) {
@@ -627,10 +625,19 @@ static void ufcs_recv_work(struct kthread_work *work)
 	struct ufcs_msg *msg;
 	u8 buf[UFCS_MSG_SIZE_MAX];
 	int rc;
+	static unsigned int dev_err_flag = 0;
+
+recv:
+	rc = ufcs_get_error_flag(ufcs, &dev_err_flag);
+	if (rc < 0) {
+		ufcs_err("can't get error flag, rc=%d\n", rc);
+		return;
+	}
 
 	if (ufcs_check_handshake(class))
 		return;
-	rc = ufcs_check_error_info(class);
+	ufcs_send_state(UFCS_NOTIFY_ERR_FLAG, &dev_err_flag);
+	rc = ufcs_check_error_info(class, dev_err_flag);
 	if (rc != 0)
 		return;
 
@@ -681,6 +688,18 @@ static void ufcs_recv_work(struct kthread_work *work)
 	usleep_range(T_ACK_TRANSMIT_US, T_ACK_TRANSMIT_US + 1);
 	class->recv_msg = msg;
 	kthread_queue_work(class->worker, &class->event_work);
+
+	spin_lock(&class->err_flag_lock);
+	if (!kfifo_is_empty(&ufcs->err_flag_fifo)) {
+		spin_unlock(&class->err_flag_lock);
+		goto recv;
+	}
+	spin_unlock(&class->err_flag_lock);
+}
+
+static void ufcs_fifo_overflow_work(struct work_struct *work)
+{
+	ufcs_send_state(UFCS_NOTIFY_FIFO_OVERFLOW, NULL);
 }
 
 static int ufcs_process_ctrl_msg_event(struct ufcs_class *class, struct ufcs_event *event)
@@ -1043,6 +1062,7 @@ int ufcs_event_init(struct ufcs_class *class)
 	kthread_init_work(&class->event_work, ufcs_event_work);
 	kthread_init_work(&class->msg_send_work, ufcs_msg_send_work);
 	kthread_init_work(&class->recv_work, ufcs_recv_work);
+	INIT_WORK(&class->fifo_overflow_work, ufcs_fifo_overflow_work);
 	class->recv_msg = NULL;
 
 	spin_lock_init(&class->event.event_list_lock);

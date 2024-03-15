@@ -253,7 +253,7 @@ static const struct reg_field sc6607_reg_fields[] = {
 	[F_BOOST_EN] = REG_FIELD(SC6607_REG_CHG_CTRL1, 1, 1),
 	[F_CHG_EN] = REG_FIELD(SC6607_REG_CHG_CTRL1, 0, 0),
 	[F_VBAT_TRACK] = REG_FIELD(SC6607_REG_CHG_CTRL2, 5, 5),
-	[F_IBATOCP] = REG_FIELD(SC6607_REG_CHG_CTRL2, 3, 4),
+	[F_IBATOCP] = REG_FIELD(SC6607_REG_CHG_CTRL2, 4, 4),
 	[F_VSYSOVP_DIS] = REG_FIELD(SC6607_REG_CHG_CTRL2, 2, 2),
 	[F_VSYSOVP_TH] = REG_FIELD(SC6607_REG_CHG_CTRL2, 0, 1),
 	[F_JEITA_ISET_COOL] = REG_FIELD(SC6607_REG_CHG_CTRL3, 1, 1),
@@ -5489,7 +5489,7 @@ static int sc6607_voocphy_dump_registers(struct oplus_voocphy_manager *chip)
 	}
 
 	for (addr = SC6607_REG_VBATSNS_OVP; addr <= SC6607_REG_CP_PMID2OUT_FLG; addr++) {
-		rc = sc6607_voocphy_read_byte(chip->client, addr, &val_buf[addr]);
+		rc = sc6607_voocphy_read_byte(chip->client, addr, &val_buf[addr - SC6607_REG_VBATSNS_OVP]);
 		if (rc < 0) {
 			pr_err("Couldn't read 0x%02x, rc = %d\n", addr, rc);
 			break;

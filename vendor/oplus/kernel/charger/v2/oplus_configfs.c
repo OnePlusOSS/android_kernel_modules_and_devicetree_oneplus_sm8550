@@ -66,6 +66,7 @@ struct oplus_configfs_device {
 	struct votable *pd_svooc_votable;
 	struct votable *ufcs_curr_votable;
 	struct votable *pps_curr_votable;
+	struct votable *wls_fcc_curr_votable;
 
 	bool batt_exist;
 	int vbat_mv;
@@ -159,6 +160,14 @@ is_pps_curr_votable_available(struct oplus_configfs_device *chip)
 	if (!chip->pps_curr_votable)
 		chip->pps_curr_votable = find_votable("PPS_CURR");
 	return !!chip->pps_curr_votable;
+}
+
+__maybe_unused static bool
+is_wls_curr_votable_available(struct oplus_configfs_device *chip)
+{
+	if (!chip->wls_fcc_curr_votable)
+		chip->wls_fcc_curr_votable = find_votable("WLS_FCC");
+	return !!chip->wls_fcc_curr_votable;
 }
 
 static bool is_parallel_topic_available(struct oplus_configfs_device *chip)
@@ -1073,7 +1082,10 @@ static ssize_t bcc_current_store(struct device *dev, struct device_attribute *at
 		const char *buf, size_t count)
 {
 	int val = 0;
+	int val_ma = 0;
 	struct oplus_configfs_device *chip = dev->driver_data;
+	union mms_msg_data data = { 0 };
+
 	if (!chip) {
 		chg_err("chip is NULL\n");
 		return -EINVAL;
@@ -1084,23 +1096,32 @@ static ssize_t bcc_current_store(struct device *dev, struct device_attribute *at
 		return -EINVAL;
 	}
 
+	val_ma = val * 100; /* 0.1A to mA */
 	if (is_vooc_curr_votable_available(chip)) {
-		chg_err("bcc current = %d\n", val);
+		chg_err("bcc current = %d, %d\n", val, val_ma);
 		/* turn current to mA, hidl will send as 73, it means 7300mA */
-		val = val * 100;
-		vote(chip->vooc_curr_votable, BCC_VOTER, (val == 0) ? false : true, val, false);
+		vote(chip->vooc_curr_votable, BCC_VOTER, (val_ma == 0) ? false : true, val_ma, false);
 	}
 
 	if (chip->ufcs_online && is_ufcs_curr_votable_available(chip)) {
-		chg_info("ufcs bcc current = %d\n", val);
-		val = val * 100; /* 0.1A to mA */
-		vote(chip->ufcs_curr_votable, BCC_VOTER, (val == 0) ? false : true, val, false);
+		chg_info("ufcs bcc current = %d, %d\n", val, val_ma);
+		vote(chip->ufcs_curr_votable, BCC_VOTER, (val_ma == 0) ? false : true, val_ma, false);
 	}
 
 	if (chip->pps_online && is_pps_curr_votable_available(chip)) {
-		chg_info("pps bcc current = %d\n", val);
-		val = val * 100; /* 0.1A to mA */
-		vote(chip->pps_curr_votable, BCC_VOTER, (val == 0) ? false : true, val, false);
+		chg_info("pps bcc current = %d, %d\n", val, val_ma);
+		vote(chip->pps_curr_votable, BCC_VOTER, (val_ma == 0) ? false : true, val_ma, false);
+	}
+
+	if (chip->wls_topic) {
+		oplus_mms_get_item_data(chip->wls_topic, WLS_ITEM_FASTCHG_STATUS, &data, true);
+
+		if ((!!data.intval) && is_wls_curr_votable_available(chip)) {
+			oplus_mms_get_item_data(chip->wls_topic, WLS_ITEM_FCC_TO_ICL, &data, true);
+			chg_info("wls bcc current = %d, %d; fcc_to_icl:%d.\n", val, val_ma, data.intval);
+			vote(chip->wls_fcc_curr_votable, BCC_CURRENT_VOTER, (val_ma == 0) ? false : true,
+				(data.intval != 0) ? (val_ma / data.intval) : (val_ma / 2), false);
+		}
 	}
 
 	oplus_wired_set_bcc_curr_request(chip->wired_topic);
@@ -1141,7 +1162,6 @@ static ssize_t normal_cool_down_store(struct device *dev, struct device_attribut
 		chg_err("buf error\n");
 		return -EINVAL;
 	}
-	chg_info("val:%d\n", val);
 	rc = oplus_smart_chg_set_normal_cool_down(val);
 	if (rc < 0)
 		return rc;
@@ -1620,6 +1640,7 @@ static ssize_t status_keep_store(struct device *dev, struct device_attribute *at
 	int val = 0;
 	struct oplus_configfs_device *chip = NULL;
 	union mms_msg_data data = { 0 };
+	struct power_supply *batt_psy;
 	int rc;
 
 	if (!dev || !buf) {
@@ -1651,6 +1672,11 @@ static ssize_t status_keep_store(struct device *dev, struct device_attribute *at
 		}
 	}
 	(void)oplus_chg_wls_set_status_keep(chip->wls_topic, val);
+	if (val == 0) {
+		batt_psy = power_supply_get_by_name("battery");
+		if (batt_psy)
+			power_supply_changed(batt_psy);
+	}
 
 	return count;
 }

@@ -5454,6 +5454,7 @@ static int oplus_vooc_remove(struct platform_device *pdev)
 
 static void oplus_vooc_shutdown(struct platform_device *pdev)
 {
+	int rc = 0;
 	struct oplus_chg_vooc *chip = platform_get_drvdata(pdev);
 
 	if (chip == NULL || chip->vooc_ic == NULL) {
@@ -5461,9 +5462,13 @@ static void oplus_vooc_shutdown(struct platform_device *pdev)
 		return;
 	}
 
-	oplus_vooc_set_shutdown_mode(chip->vooc_ic);
-	if (is_wired_charge_suspend_votable_available(chip) && chip->config.voocphy_support != ADSP_VOOCPHY) {
+	if (is_wired_charge_suspend_votable_available(chip) &&
+	    chip->config.voocphy_support != ADSP_VOOCPHY &&
+	    chip->wired_online) {
+		oplus_vooc_set_shutdown_mode(chip->vooc_ic);
 		vote(chip->wired_charge_suspend_votable, SHUTDOWN_VOTER, true, 1, false);
+		rc = set_chg_auto_mode(chip->vooc_ic, false);
+		chg_err("%s to quit auto mode rc= %d\n", rc == 0 ? "success" :"fail", rc);
 		msleep(1000);
 		vote(chip->wired_charge_suspend_votable, SHUTDOWN_VOTER, false, 0, false);
 	}
@@ -6318,7 +6323,6 @@ static bool oplus_check_afi_update_condition(struct oplus_chg_vooc *chip)
 				}
 				return false;
 			} else {
-				chg_err(" true 3: normal charger or others unkown\n");
 				return true;
 			}
 		}

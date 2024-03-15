@@ -2441,6 +2441,33 @@ static void reg_accumulate_pwr_type(
 	super_chan_list[chn_idx].power_types |= BIT(supp_pwr_mode);
 }
 
+#ifdef CONFIG_REG_CLIENT
+/**
+ * reg_is_ap_sp_supp_pwr_mode() - Check if the input supported power mode is
+ * a AP SP power mode
+ * @supp_pwr_mode: 6G supported power mode
+ *
+ * Return: bool
+ */
+static bool
+reg_is_ap_sp_supp_pwr_mode(enum supported_6g_pwr_types supp_pwr_mode)
+{
+	return (supp_pwr_mode == REG_AP_SP);
+}
+
+/**
+ * reg_is_sp_pwr_mode_allowed_in_supchan() - Check if the input supported power
+ * mode is SP power mode
+ * @supp_pwr_mode: 6G supported power mode
+ *
+ * Return: bool
+ */
+static bool
+reg_is_sp_pwr_mode_allowed_in_supchan(enum supported_6g_pwr_types supp_pwr_mode)
+{
+	return reg_is_ap_sp_supp_pwr_mode(supp_pwr_mode);
+}
+#else
 /**
  * reg_is_sp_supp_pwr_mode() - Check if the input supported power mode is a
  * SP power mode
@@ -2455,6 +2482,13 @@ reg_is_sp_supp_pwr_mode(enum supported_6g_pwr_types supp_pwr_mode)
 		(supp_pwr_mode == REG_CLI_DEF_SP) ||
 		(supp_pwr_mode == REG_CLI_SUB_SP));
 }
+
+static bool
+reg_is_sp_pwr_mode_allowed_in_supchan(enum supported_6g_pwr_types supp_pwr_mode)
+{
+	return reg_is_sp_supp_pwr_mode(supp_pwr_mode);
+}
+#endif
 
 /**
  * reg_fill_best_pwr_mode() - Fill the best power mode
@@ -2485,7 +2519,7 @@ reg_fill_best_pwr_mode(struct wlan_regulatory_pdev_priv_obj *pdev_priv_obj,
 	if (client_type != curr_6g_client_type)
 		return;
 
-	if (reg_is_sp_supp_pwr_mode(supp_pwr_mode) &&
+	if (reg_is_sp_pwr_mode_allowed_in_supchan(supp_pwr_mode) &&
 	    !wlan_reg_is_afc_power_event_received(pdev_priv_obj->pdev_ptr))
 		return;
 
@@ -2608,7 +2642,7 @@ static void reg_update_sup_ch_entry_for_mode(
 	 * If AFC is invalid, copy from Regulatory SP channel list.
 	 * If AFC is valid, copy from AFC response channel list.
 	 */
-	if (reg_is_sp_supp_pwr_mode(supp_pwr_mode)) {
+	if (reg_is_sp_pwr_mode_allowed_in_supchan(supp_pwr_mode)) {
 		if (wlan_reg_is_afc_power_event_received(pdev))
 			reg_assign_afc_chan_entry_to_mas_chan(pdev_priv_obj,
 							      &mas_chan,

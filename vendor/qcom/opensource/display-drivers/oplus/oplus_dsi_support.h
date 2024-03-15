@@ -27,6 +27,7 @@ extern unsigned int oplus_dsi_log_type;
 extern unsigned int oplus_bl_print_window;
 /* dual display id */
 extern unsigned int oplus_ofp_display_id;
+extern unsigned int oplus_display_trace_enable;
 
 static inline int str_equal(const char *a, const char *b)
 {

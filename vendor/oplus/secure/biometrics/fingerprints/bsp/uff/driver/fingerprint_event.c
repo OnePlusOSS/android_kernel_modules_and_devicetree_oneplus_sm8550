@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include "include/fingerprint_event.h"
 #include <linux/init.h>
 #include <linux/module.h>

@@ -660,7 +660,8 @@ static void __sch_beacon_process_for_session(struct mac_context *mac_ctx,
 				mac_ctx->psoc, mac_ctx->pdev,
 				bcn->countryInfoParam.countryString,
 				programmed_country, &pwr_type_6g,
-				&ctry_code_match, REG_MAX_AP_TYPE);
+				&ctry_code_match, REG_MAX_AP_TYPE,
+				bcn->chan_freq);
 		if (QDF_IS_STATUS_ERROR(status))
 			return;
 	}

@@ -101,8 +101,9 @@ void send_black_screen_dcs_msg(void)
 	mLastPwkTime = ts;
 	BLACK_DEBUG_PRINTK("send_black_screen_dcs_msg mLastPwkTime is %lld ms\n", mLastPwkTime);
 	get_blackscreen_check_dcs_logmap(logmap);
-	theia_send_event(THEIA_EVENT_BLACK_SCREEN_HANG, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
-		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG,
+	theia_send_event(THEIA_EVENT_PWK_LIGHT_UP_MONITOR, THEIA_LOGINFO_SYSTEM_SERVER_TRACES
+		 | THEIA_LOGINFO_EVENTS_LOG | THEIA_LOGINFO_KERNEL_LOG | THEIA_LOGINFO_ANDROID_LOG
+		 | THEIA_LOGINFO_DUMPSYS_SF | THEIA_LOGINFO_DUMPSYS_POWER,
 		get_systemserver_pid(), logmap);
 }
 

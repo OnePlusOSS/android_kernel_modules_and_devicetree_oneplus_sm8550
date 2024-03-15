@@ -44,6 +44,10 @@
 #include "../oplus/oplus_display_temp_compensation.h"
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
 
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+#include "../oplus/oplus_onscreenfingerprint.h"
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
+
 #if defined(CONFIG_PXLW_IRIS) || defined(CONFIG_PXLW_SOFT_IRIS)
 #include "dsi_iris_api.h"
 #endif
@@ -8172,6 +8176,9 @@ int dsi_display_set_mode(struct dsi_display *display,
 			goto error;
 		}
 	}
+#ifdef OPLUS_FEATURE_DISPLAY
+	oplus_save_last_mode(display);
+#endif /* OPLUS_FEATURE_DISPLAY */
 
 	rc = dsi_display_restore_bit_clk(display, &adj_mode);
 	if (rc) {
@@ -9160,6 +9167,10 @@ int dsi_display_enable(struct dsi_display *display)
 		oplus_adfr_fakeframe_status_update(display->panel, true);
 		oplus_adfr_timing_mux_vsync_switch(display);
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+
+#ifdef OPLUS_FEATURE_DISPLAY
+		display->panel->ts_timestamp = ktime_get();
+#endif /* OPLUS_FEATURE_DISPLAY */
 		rc = dsi_panel_switch(display->panel);
 		if (rc)
 			DSI_ERR("[%s] failed to switch DSI panel mode, rc=%d\n",
@@ -9207,6 +9218,12 @@ error:
 	}
 #endif /* OPLUS_FEATURE_DISPLAY_TEMP_COMPENSATION */
 
+#ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
+	if (display && oplus_ofp_is_supported()) {
+		oplus_ofp_lhbm_pressed_icon_gamma_update(display);
+	}
+#endif /* OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT */
+
 	SDE_EVT32(SDE_EVTLOG_FUNC_EXIT);
 	return rc;
 }
@@ -9225,26 +9242,9 @@ int dsi_display_post_enable(struct dsi_display *display)
 	if (display->panel->cur_mode->dsi_mode_flags &
 			DSI_MODE_FLAG_POMS_TO_CMD) {
 		dsi_panel_switch_cmd_mode_in(display->panel);
-#if defined(CONFIG_PXLW_IRIS)
-		if ((display->config.panel_mode == DSI_OP_CMD_MODE)
-				&& iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			iris_dsi_rx_mode_switch(display->config.panel_mode);
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
-
 	} else if (display->panel->cur_mode->dsi_mode_flags &
 			DSI_MODE_FLAG_POMS_TO_VID) {
 		dsi_panel_switch_video_mode_in(display->panel);
-#if defined(CONFIG_PXLW_IRIS)
-		if ((display->config.panel_mode == DSI_OP_CMD_MODE)
-			       && iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			iris_dsi_rx_mode_switch(display->config.panel_mode);
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
 	} else {
 		rc = dsi_panel_post_enable(display->panel);
 		if (rc)
@@ -9282,22 +9282,6 @@ int dsi_display_pre_disable(struct dsi_display *display)
 
 		if (display->config.panel_mode == DSI_OP_VIDEO_MODE)
 			dsi_panel_switch_video_mode_out(display->panel);
-
-#if defined(CONFIG_PXLW_IRIS)
-		if (iris_is_chip_supported()) {
-			mutex_lock(&display->panel->panel_lock);
-			// switch to video mode
-			if (display->config.panel_mode == DSI_OP_CMD_MODE)
-				iris_dsi_rx_mode_switch(DSI_OP_VIDEO_MODE);
-
-			// switch to command mode
-			if (display->config.panel_mode == DSI_OP_VIDEO_MODE) {
-				iris_sw_te_enable();
-				//iris_dsi_rx_mode_switch(DSI_OP_CMD_MODE);
-			}
-			mutex_unlock(&display->panel->panel_lock);
-		}
-#endif
 	} else {
 		rc = dsi_panel_pre_disable(display->panel);
 		if (rc)

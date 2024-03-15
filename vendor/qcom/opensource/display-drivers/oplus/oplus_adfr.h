@@ -72,6 +72,29 @@ enum oplus_adfr_idle_mode {
 	OPLUS_ADFR_IDLE_ON = 1,							/* enter mipi idle */
 };
 
+/* high precision params */
+enum oplus_adfr_high_precision_target_fps_value {
+	OPLUS_ADFR_HIGH_PRECISION_FPS_60 = 60,				/* high precision 60HZ */
+	OPLUS_ADFR_HIGH_PRECISION_FPS_72 = 72,				/* high precision 72HZ */
+	OPLUS_ADFR_HIGH_PRECISION_FPS_90 = 90,				/* high precision 90HZ */
+	OPLUS_ADFR_HIGH_PRECISION_FPS_120 = 120,			/* high precision 120HZ */
+};
+
+enum oplus_adfr_high_precision_stabilize_frame_type {
+	OPLUS_ADFR_HW_STABILIZE_FRAME = 1,				/* hw stabilize frame type */
+	OPLUS_ADFR_SW_STABILIZE_FRAME = 2,				/* sw stabilize frame type */
+};
+
+enum oplus_adfr_high_precision_te_shift_status {
+	OPLUS_ADFR_TE_SHIFT_OFF = 1,					/* turn off te shift */
+	OPLUS_ADFR_TE_SHIFT_ON = 2,						/* turn on te shift */
+};
+
+enum oplus_adfr_high_precision_rscc_state {
+	OPLUS_ADFR_RSCC_CLK_STATE = 1,						/* change rscc state from cmd to clk */
+	OPLUS_ADFR_RSCC_CMD_STATE = 2,						/* change rscc state from clk to cmd */
+};
+
 enum oplus_adfr_test_te_config {
 	OPLUS_ADFR_TEST_TE_DISABLE = 0,					/* disable test te irq detection */
 	OPLUS_ADFR_TEST_TE_ENABLE = 1,					/* enable test te irq detection */
@@ -149,6 +172,18 @@ struct oplus_adfr_params {
 	bool need_restore_osync_mode;					/* indicates whether osync mode needs to be restored or not */
 	bool need_force_off_osync_mode;					/* indicates whether osync mode needs to be forced off or not */
 	bool need_resend_osync_cmd;						/* indicates whether osync cmds needs to be resent or not */
+	/* high precision params */
+	unsigned int high_precision_state;              /* a value used to indicates panel high precision state */
+	unsigned int panel_high_precision_state;        /* indicates whether high precision cmds are taking effect in panel module or not */
+	unsigned int high_precision_te_shift_status;	/* a value used to indicates high precision te shift status */
+	unsigned int high_precision_rscc_state;			/* a value used to indicates high precision rscc state */
+	unsigned int sa_high_precision_fps;				/* the high precision fps when no image would be sent to ddic in sa mode */
+	unsigned int oa_high_precision_fps;				/* the high precision fps when no image would be sent to ddic in oa mode */
+	bool sa_high_precision_fps_updated;				/* indicates whether sa high precision fps is updated or not */
+	bool oa_high_precision_fps_updated;				/* indicates whether oa high precision fps is updated or not */
+	unsigned int stabilize_frame_type;				/* a value used to indicates stabilize frame type */
+	unsigned long current_wr_rd_irq_interval;		/* a value used to indicates current wr rd ptr interval */
+	unsigned long last_wr_rd_irq_interval;			/* a value used to indicates last wr rd ptr interval */
 };
 
 /* log level config */
@@ -221,6 +256,11 @@ int oplus_adfr_sa_mode_restore(void *dsi_display);
 int oplus_adfr_sa_handle(void *sde_encoder_virt);
 int oplus_adfr_status_reset(void *dsi_panel);
 
+/* -------------------- high precision standard adfr -------------------- */
+int oplus_adfr_high_precision_handle(void *sde_enc_v);
+int oplus_adfr_high_precision_switch_state(void *dsi_panel);
+int oplus_adfr_get_panel_high_precision_state(void *dsi_display);
+
 /* -------------------- fakeframe -------------------- */
 int oplus_adfr_fakeframe_check(void *sde_encoder_virt);
 int oplus_adfr_fakeframe_handle(void *sde_encoder_virt);
@@ -288,6 +328,15 @@ int oplus_adfr_get_test_te(void *buf);
 ssize_t oplus_adfr_set_test_te_attr(struct kobject *obj,
 	struct kobj_attribute *attr, const char *buf, size_t count);
 ssize_t oplus_adfr_get_test_te_attr(struct kobject *obj,
+	struct kobj_attribute *attr, char *buf);
+/* high precision test */
+ssize_t oplus_display_set_high_precision_rscc(struct kobject *obj,
+	struct kobj_attribute *attr, const char *buf, size_t count);
+ssize_t oplus_display_get_high_precision_rscc(struct kobject *obj,
+	struct kobj_attribute *attr, char *buf);
+ssize_t oplus_display_set_high_precision_fps(struct kobject *obj,
+	struct kobj_attribute *attr, const char *buf, size_t count);
+ssize_t oplus_display_get_high_precision_fps(struct kobject *obj,
 	struct kobj_attribute *attr, char *buf);
 
 #endif /* _OPLUS_ADFR_H_ */

@@ -1057,14 +1057,8 @@ static void _sde_kms_drm_check_dpms(struct drm_atomic_state *old_state,
 			notification.notif_data.old_fps = old_fps;
 			notification.notif_data.new_fps = new_fps;
 			notification.notif_data.early_trigger = is_pre_commit;
-
-#ifndef OPLUS_FEATURE_DISPLAY
 			panel_event_notification_trigger(panel_type,
 					&notification);
-#else
-			oplus_panel_event_notification_trigger(panel_type, &notification);
-#endif /* OPLUS_FEATURE_DISPLAY */
-
 		}
 	}
 

@@ -656,6 +656,7 @@ struct oplus_chg_track_status {
 	int wls_max_power;
 	struct oplus_chg_track_app_status app_status;
 	int once_chg_cycle_status;
+	int once_vbatt_ovp_status;
 	int allow_reading_err;
 	int fastchg_break_val;
 };
@@ -3073,7 +3074,7 @@ static int oplus_chg_track_parse_dt(struct oplus_chg_track *track_dev)
 			chg_err("preversion open SocJump NoCharging FastChgBreak olc config\n");
 			track_dev->track_cfg.exception_data.olc_config[0] = 0x2;
 			track_dev->track_cfg.exception_data.olc_config[2] = 0x1;
-			track_dev->track_cfg.exception_data.olc_config[4] = 0x1;
+			track_dev->track_cfg.exception_data.olc_config[4] = 0x7;
 		}
 #endif
 	} else {
@@ -3452,6 +3453,9 @@ static void oplus_chg_track_record_charger_info(struct oplus_chg_chip *chip, opl
 	index += snprintf(&(p_trigger_data->crux_info[index]),
 			  OPLUS_CHG_TRACK_CURX_INFO_LEN - index,
 			  "$$chg_cycle_status@@%d", track_status->once_chg_cycle_status);
+	index += snprintf(&(p_trigger_data->crux_info[index]),
+			  OPLUS_CHG_TRACK_CURX_INFO_LEN - index, "$$vbatt_ovp@@%d",
+			  track_status->once_vbatt_ovp_status);
 
 	oplus_chg_track_record_general_info(chip, track_status, p_trigger_data, index);
 }
@@ -3916,7 +3920,10 @@ int oplus_chg_track_upload_trigger_data(oplus_chg_track_trigger data)
 	pr_debug("type_reason:%d, flag_reason:%d, crux_info[%s]\n", chip->trigger_data.type_reason,
 		chip->trigger_data.flag_reason, chip->trigger_data.crux_info);
 	chip->trigger_data_ok = true;
+#if defined(CONFIG_OPLUS_FEATURE_FEEDBACK) || defined(CONFIG_OPLUS_FEATURE_FEEDBACK_MODULE) ||                         \
+        defined(CONFIG_OPLUS_KEVENT_UPLOAD)
 	oplus_chg_track_get_flag_tag(chip->trigger_data.flag_reason, flag_reason_tag);
+#endif
 	chg_exception_report(&chip->track_cfg.exception_data, chip->trigger_data.type_reason,
 				chip->trigger_data.flag_reason, flag_reason_tag, sizeof(flag_reason_tag));
 	mutex_unlock(&chip->trigger_data_lock);
@@ -4118,7 +4125,7 @@ static int oplus_chg_track_get_current_time_s(struct rtc_time *tm)
 	return ts.tv_sec;
 }
 
-static int oplus_chg_track_get_current_time(struct rtc_time *tm)
+__maybe_unused static int oplus_chg_track_get_current_time(struct rtc_time *tm)
 {
 	struct timespec ts;
 	struct oplus_chg_chip *chip = oplus_chg_get_chg_struct();
@@ -4500,6 +4507,9 @@ static int oplus_chg_track_cal_chg_common_mesg(struct oplus_chg_chip *chip, stru
 
 	if (!track_status->once_chg_cycle_status && chip->chg_cycle_status)
 		track_status->once_chg_cycle_status = chip->chg_cycle_status;
+
+	if (!track_status->once_vbatt_ovp_status && oplus_voocphy_get_vbatt_ovp_status())
+		track_status->once_vbatt_ovp_status = true;
 
 	mutex_lock(&chip->slow_chg_mutex);
 	if (!pre_slow_chg && chip->slow_chg_enable) {
@@ -6231,6 +6241,7 @@ static int oplus_chg_track_status_reset_when_plugin(struct oplus_chg_chip *chip,
 	track_status->prop_status = chip->prop_status;
 	track_status->once_mmi_chg = false;
 	track_status->once_chg_cycle_status = CHG_CYCLE_VOTER__NONE;
+	track_status->once_vbatt_ovp_status = false;
 	track_status->fastchg_to_normal = false;
 	track_status->mmi_chg_open_t = 0;
 	track_status->mmi_chg_close_t = 0;

@@ -4744,6 +4744,24 @@ static int get_current_vsync_width(struct drm_connector *connector)
 	return dsi_display->panel->cur_mode->priv_info->vsync_width;
 }
 
+static int get_current_refresh_rate(struct drm_connector *connector)
+{
+	struct sde_connector *c_conn = to_sde_connector(connector);
+	struct dsi_display *dsi_display = NULL;
+
+	dsi_display = c_conn->display;
+
+	if (!dsi_display || !dsi_display->panel || !dsi_display->panel->cur_mode
+		|| !dsi_display->panel->cur_mode->priv_info) {
+		SDE_ERROR("Invalid params(s) dsi_display %pK, panel %pK\n",
+			dsi_display,
+			((dsi_display) ? dsi_display->panel : NULL));
+		return -EINVAL;
+	}
+
+	return dsi_display->panel->cur_mode->priv_info->refresh_rate;
+}
+
 static int get_current_display_brightness(struct drm_connector *connector)
 {
 	struct sde_connector *c_conn = to_sde_connector(connector);
@@ -5003,11 +5021,13 @@ int oplus_sync_panel_brightness_v2(struct drm_encoder *drm_enc)
 	struct sde_encoder_phys_cmd_te_timestamp *te_timestamp;
 	s64 us_per_frame;
 	u32 vsync_width;
+	u32 refresh_rate;
 	ktime_t last_te_timestamp;
 	s64 delay;
 	bool sync_backlight;
 	u32 brightness;
 	char tag_name[64];
+	char vsync_width_name[64];
 
 	sde_enc = to_sde_encoder_virt(drm_enc);
 	phys_encoder = sde_enc->phys_encs[0];
@@ -5037,32 +5057,64 @@ int oplus_sync_panel_brightness_v2(struct drm_encoder *drm_enc)
 
 	us_per_frame = get_current_vsync_period(sde_enc->cur_master->connector);
 	vsync_width = get_current_vsync_width(sde_enc->cur_master->connector);
+	refresh_rate = get_current_refresh_rate(sde_enc->cur_master->connector);
+
 	te_timestamp = list_last_entry(&cmd_enc->te_timestamp_list, struct sde_encoder_phys_cmd_te_timestamp, list);
+	if (display->panel->last_us_per_frame == 0 || display->panel->last_vsync_width == 0) {
+		display->panel->last_us_per_frame = us_per_frame;
+		display->panel->last_vsync_width = vsync_width;
+	}
+
+	if (display->panel->last_refresh_rate != refresh_rate) {
+		if ((display->panel->last_refresh_rate == 120 && refresh_rate == 90)
+			|| (display->panel->last_refresh_rate == 60 && refresh_rate == 120)
+			|| (display->panel->last_refresh_rate == 120 && refresh_rate == 60)) {
+			display->panel->work_frame = 1;	// two frame work
+		} else {
+			display->panel->work_frame = 0;	// one frame work
+		}
+	}
+
 	if (te_timestamp == NULL) {
 		return rc;
 	}
-	last_te_timestamp = te_timestamp->timestamp;
 
+	last_te_timestamp = te_timestamp->timestamp;
 	sync_backlight = c_conn->bl_need_sync;
 	display->panel->oplus_priv.need_sync = sync_backlight;
 	c_conn->bl_need_sync = false;
 
+	//in debounce time, update last_vsync_width from next frame
+	if (((last_te_timestamp > display->panel->ts_timestamp && display->panel->work_frame == 1) || display->panel->work_frame == 0) &&
+		(ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % display->panel->last_us_per_frame) > (display->panel->last_us_per_frame - DEBOUNCE_TIME)) {
+		display->panel->last_vsync_width = vsync_width;
+	}
+	//updates the last_us_per_frame & last_vsync_width after timing switch
+	if ((last_te_timestamp - display->panel->ts_timestamp) >= display->panel->work_frame * display->panel->last_us_per_frame * 1000) {
+		display->panel->last_us_per_frame = us_per_frame;
+		display->panel->last_vsync_width = vsync_width;
+		display->panel->last_refresh_rate = refresh_rate;
+	}
+
 	if (sync_backlight) {
+		snprintf(vsync_width_name, sizeof(vsync_width_name), "%d:%d", display->panel->last_vsync_width, display->panel->last_us_per_frame);
 		SDE_ATRACE_BEGIN("sync_panel_brightness");
+		SDE_ATRACE_BEGIN(vsync_width_name);
 		brightness = sde_connector_get_property(c_conn->base.state, CONNECTOR_PROP_SYNC_BACKLIGHT_LEVEL);
-		delay = vsync_width - (ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % us_per_frame);
+		delay = display->panel->last_vsync_width - (ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % display->panel->last_us_per_frame);
 		if (delay > 0) {
-			SDE_EVT32(us_per_frame, last_te_timestamp, delay);
+			SDE_EVT32(display->panel->last_us_per_frame, last_te_timestamp, delay);
 			usleep_range(delay, delay + 100);
 		}
-		if ((ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % us_per_frame) > (us_per_frame - DEBOUNCE_TIME)) {
-			SDE_EVT32(us_per_frame, last_te_timestamp);
-			usleep_range(DEBOUNCE_TIME + vsync_width, DEBOUNCE_TIME + 100 + vsync_width);
+		if ((ktime_to_us(ktime_sub(ktime_get(), last_te_timestamp)) % display->panel->last_us_per_frame) > (display->panel->last_us_per_frame - DEBOUNCE_TIME)) {
+			SDE_EVT32(display->panel->last_us_per_frame, last_te_timestamp);
+			usleep_range(DEBOUNCE_TIME + display->panel->last_vsync_width, DEBOUNCE_TIME + 100 + display->panel->last_vsync_width);
 		}
 		snprintf(tag_name, sizeof(tag_name), "%s: %d", display->display_type, brightness);
 		SDE_ATRACE_BEGIN(tag_name);
 		rc = oplus_set_brightness(c_conn->bl_device, brightness);
 		SDE_ATRACE_END(tag_name);
+		SDE_ATRACE_END(vsync_width_name);
 		SDE_ATRACE_END("sync_panel_brightness");
 	}
 
@@ -5274,12 +5326,9 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool config_changed)
 	if (sde_enc->cur_master)
 		_sde_encoder_update_retire_txq(sde_enc->cur_master, sde_kms);
 
-#ifdef OPLUS_FEATURE_DISPLAY
-	oplus_panel_cmdq_pack_status_reset(c_conn);
-#endif
-
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 	if (oplus_ofp_is_supported()) {
+		oplus_ofp_lhbm_backlight_update(sde_enc, NULL, NULL);
 		oplus_ofp_hbm_handle(sde_enc);
 		oplus_ofp_aod_off_backlight_recovery(sde_enc);
 		oplus_ofp_ultra_low_power_aod_update(sde_enc);
@@ -5291,6 +5340,10 @@ void sde_encoder_kickoff(struct drm_encoder *drm_enc, bool config_changed)
 	oplus_adfr_idle_mode_handle(sde_enc, false);
 	oplus_adfr_fakeframe_handle(sde_enc);
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	oplus_adfr_high_precision_handle(sde_enc);
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 
 	/* All phys encs are ready to go, trigger the kickoff */
 	_sde_encoder_kickoff_phys(sde_enc, config_changed);

@@ -290,6 +290,22 @@ cm_populate_connect_ies(struct roam_offload_synch_ind *roam_synch_data,
 			     connect_ies->bcn_probe_rsp.len);
 	}
 
+	/* Beacon/Probe Rsp frame */
+	if (roam_synch_data->link_beacon_probe_resp_length) {
+		connect_ies->link_bcn_probe_rsp.len =
+			roam_synch_data->link_beacon_probe_resp_length;
+		bcn_probe_rsp_ptr = (uint8_t *)roam_synch_data +
+				roam_synch_data->link_beacon_probe_resp_offset;
+
+		connect_ies->link_bcn_probe_rsp.ptr =
+			qdf_mem_malloc(connect_ies->link_bcn_probe_rsp.len);
+		if (!connect_ies->link_bcn_probe_rsp.ptr)
+			return QDF_STATUS_E_NOMEM;
+		qdf_mem_copy(connect_ies->link_bcn_probe_rsp.ptr,
+			     bcn_probe_rsp_ptr,
+			     connect_ies->link_bcn_probe_rsp.len);
+	}
+
 	/* ReAssoc Rsp IE data */
 	if (roam_synch_data->reassocRespLength >
 	    sizeof(struct wlan_frame_hdr)) {
@@ -784,21 +800,49 @@ end:
 static void
 cm_update_scan_db_on_roam_success(struct wlan_objmgr_vdev *vdev,
 				  struct wlan_cm_connect_resp *resp,
-				  struct roam_offload_synch_ind *roam_synch_data,
+				  struct roam_offload_synch_ind *roam_synch_ind,
 				  wlan_cm_id cm_id)
 {
 	struct cnx_mgr *cm_ctx;
+	qdf_freq_t link_freq;
+	struct wlan_connect_rsp_ies *ies = &resp->connect_ies;
 
 	cm_ctx = cm_get_cm_ctx(vdev);
 	if (!cm_ctx)
 		return;
 
-	cm_inform_bcn_probe(cm_ctx,
-			    resp->connect_ies.bcn_probe_rsp.ptr,
-			    resp->connect_ies.bcn_probe_rsp.len,
-			    resp->freq,
-			    roam_synch_data->rssi,
-			    cm_id);
+	link_freq = mlo_roam_get_chan_freq(wlan_vdev_get_id(vdev),
+					   roam_synch_ind);
+	if (roam_synch_ind->auth_status == ROAM_AUTH_STATUS_CONNECTED) {
+		if (ies->link_bcn_probe_rsp.len)
+			cm_inform_bcn_probe(cm_ctx,
+					    ies->link_bcn_probe_rsp.ptr,
+					    ies->link_bcn_probe_rsp.len,
+					    link_freq,
+					    roam_synch_ind->rssi,
+					    cm_id);
+		cm_inform_bcn_probe(cm_ctx,
+				    ies->bcn_probe_rsp.ptr,
+				    ies->bcn_probe_rsp.len,
+				    resp->freq,
+				    roam_synch_ind->rssi,
+				    cm_id);
+	} else if (wlan_vdev_mlme_is_mlo_link_vdev(vdev)) {
+		if (ies->link_bcn_probe_rsp.len)
+			cm_inform_bcn_probe(cm_ctx,
+					    ies->link_bcn_probe_rsp.ptr,
+					    ies->link_bcn_probe_rsp.len,
+					    link_freq,
+					    roam_synch_ind->rssi,
+					    cm_id);
+	} else {
+		cm_inform_bcn_probe(cm_ctx,
+				    ies->bcn_probe_rsp.ptr,
+				    ies->bcn_probe_rsp.len,
+				    resp->freq,
+				    roam_synch_ind->rssi,
+				    cm_id);
+	}
 
 	cm_update_scan_mlme_on_roam(vdev, &resp->bssid,
 				    SCAN_ENTRY_CON_STATE_ASSOC);
@@ -1293,6 +1337,11 @@ QDF_STATUS wlan_cm_free_roam_synch_frame_ind(struct rso_config *rso_cfg)
 		qdf_mem_free(frame_ind->bcn_probe_rsp);
 		frame_ind->bcn_probe_rsp_len = 0;
 		frame_ind->bcn_probe_rsp = NULL;
+	}
+	if (frame_ind->link_bcn_probe_rsp) {
+		qdf_mem_free(frame_ind->link_bcn_probe_rsp);
+		frame_ind->link_bcn_probe_rsp_len = 0;
+		frame_ind->link_bcn_probe_rsp = NULL;
 	}
 	if (frame_ind->reassoc_req) {
 		qdf_mem_free(frame_ind->reassoc_req);

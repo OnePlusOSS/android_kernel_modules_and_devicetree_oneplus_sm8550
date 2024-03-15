@@ -17,6 +17,24 @@
 #if defined(CONFIG_OPLUS_FEATURE_FEEDBACK) || defined(CONFIG_OPLUS_FEATURE_FEEDBACK_MODULE)
 #include <soc/oplus/system/kernel_fb.h>
 #endif
+
+#if IS_ENABLED(CONFIG_FB)
+#include <linux/fb.h>
+#include <linux/notifier.h>
+#endif
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY)
+#include <linux/msm_drm_notify.h>
+#elif IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+#include <linux/soc/qcom/panel_event_notifier.h>
+#include <linux/msm_drm_notify.h>
+#include <drm/drm_panel.h>
+#elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY)
+#include <linux/msm_drm_notify.h>
+#elif IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
+#include <linux/mtk_panel_ext.h>
+#include <linux/mtk_disp_notify.h>
+#endif
+
 #define THREEAXIS_DATA_NUM 9
 #define HALL_CALIB_NUM 128
 #define HALL_DATA_NUM 50
@@ -171,6 +189,7 @@ struct extcon_dev_data {
 	struct dhall_data_xyz	pre_hall_value;
 	const char *d_name;
 	const char *m_name;
+	int 	tolen[3];
 	int		position;
 	int		last_position;
 	int		project_info;
@@ -192,6 +211,8 @@ struct extcon_dev_data {
 	int         threeaxis_calib_data[9];
 	bool        threeaxis_hall_support;
 	bool        enable_esd_check;
+	bool        new_threshold_support; /*add for vip mode for new threshold*/
+	bool        updown_to_mid_support; /*add up to (mid of down and mid) support*/
 	int         trigger_id;
 	int         interf_stable_xlimit;
 	int         interf_stable_ylimit;
@@ -207,6 +228,23 @@ struct extcon_dev_data {
 	int         position_tolen[2];
 	int         default_up_xdata;
 	int         default_down_xdata;
+	bool        bus_ready;              /*spi or i2c resume status*/
+	bool        is_suspended;
+	/* framebuffer callbacks notifier */
+#if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY)
+	struct drm_panel *active_panel;
+	struct notifier_block fb_notif; /*register to control suspend/resume*/
+#elif IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
+	struct drm_panel *active_panel;
+	void *notifier_cookie;
+#elif IS_ENABLED(CONFIG_OPLUS_MTK_DRM_GKI_NOTIFY)
+	struct notifier_block disp_notifier;
+#elif IS_ENABLED(CONFIG_DRM_MSM) || IS_ENABLED(CONFIG_DRM_OPLUS_NOTIFY) \
+|| IS_ENABLED(CONFIG_FB)
+	struct notifier_block fb_notif;	/*register to control suspend/resume*/
+#endif
+	struct work_struct     speed_up_work;               /*using for speedup resume*/
+	struct workqueue_struct *speedup_resume_wq;
 };
 
 extern int oplus_register_hall(const char *name,
@@ -224,5 +262,9 @@ extern int oplus_hall_update_threshold(unsigned int id,
 				int position, short lowthd, short highthd);
 extern bool oplus_hall_is_power_on(void);
 extern int aw8697_op_haptic_stop(void);
+
+extern int oplus_hall_register_notifier(void);
+extern int oplus_hall_unregister_notifier(void);
+extern struct drm_panel *trikey_dev_get_panel(struct device_node *of_node);
 
 #endif /* __TRIKEY_H__ */

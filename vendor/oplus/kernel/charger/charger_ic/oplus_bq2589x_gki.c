@@ -2311,6 +2311,40 @@ static int bq2589x_set_hz_mode(bool en)
 	return ret;
 }
 
+void oplus_bq2589x_vooc_timeout_callback(bool vbus_rising)
+{
+	struct bq2589x *bq = g_bq;
+
+	if (!bq)
+		return;
+	bq->power_good = vbus_rising;
+	if (!vbus_rising) {
+		bq->is_force_aicl = false;
+		bq->pre_current_ma = -1;
+		bq->usb_connect_start = false;
+		bq->hvdcp_can_enabled = false;
+		bq->hvdcp_checked = false;
+		bq->sdp_retry = false;
+		bq->cdp_retry = false;
+		bq->is_force_dpdm = false;
+		bq->retry_hvdcp_algo = false;
+		bq->chg_type = CHARGER_UNKNOWN;
+		bq->oplus_chg_type = POWER_SUPPLY_TYPE_UNKNOWN;
+		bq->nonstand_retry_bc = false;
+
+		bq2589x_enable_enlim(bq);
+		bq2589x_disable_hvdcp(bq);
+		bq2589x_cfg_dpdm2hiz_mode(bq);
+
+		Charger_Detect_Release();
+		cancel_delayed_work_sync(&bq->bq2589x_retry_adapter_detection);
+		cancel_delayed_work_sync(&bq->bq2589x_aicr_setting_work);
+		cancel_delayed_work_sync(&bq->bq2589x_hvdcp_bc12_work);
+		oplus_chg_wakelock(bq, false);
+		chg_debug("pg not good");
+	}
+}
+
 static bool oplus_usbtemp_condition(void) {
 	if ((g_bq && g_bq->power_good)
 		||(g_oplus_chip && g_oplus_chip->charger_exist)) {
@@ -3552,6 +3586,7 @@ struct oplus_chg_operations  oplus_chg_bq2589x_ops = {
 	.get_platform_gauge_curve = oplus_chg_choose_gauge_curve,
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
 	.get_subboard_temp = oplus_force_get_subboard_temp,
+	.vooc_timeout_callback = oplus_bq2589x_vooc_timeout_callback,
 };
 
 static void retry_detection_work_callback(struct work_struct *work)

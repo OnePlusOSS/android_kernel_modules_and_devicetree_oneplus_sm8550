@@ -745,4 +745,5 @@ int oplus_pps_track_upload_err_info(struct oplus_pps_chip *chip, int err_type, i
 bool oplus_pps_get_btb_temp_over(void);
 int oplus_pps_check_3rd_support(void);
 void oplus_pps_stop_flash_led(bool on);
+int oplus_pps_support_max_power(void);
 #endif /*_OPLUS_PPS_H_*/

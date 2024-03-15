@@ -28,8 +28,9 @@ enum GLOBAL_HBM_ENUM{
 };
 
 enum PWM_SWITCH_STATE{
-	PWM_SWITCH_LOW_STATE = 0,
-	PWM_SWITCH_HIGH_STATE,
+	PWM_SWITCH_DC_STATE = 0,
+	PWM_SWITCH_HPWM_STATE,
+	PWM_SWITCH_ONEPULSE_STATE,
 };
 
 static int backlight_buf[] = {
@@ -300,11 +301,13 @@ int oplus_panel_global_hbm_mapping(struct dsi_panel *panel, u32 *backlight_level
 int oplus_display_panel_get_global_hbm_status(void);
 void oplus_display_panel_set_global_hbm_status(int global_hbm_status);
 void oplus_pwm_disable_duty_set_work_handler(struct work_struct *work);
-int oplus_panel_pwm_switch_backlight(struct dsi_panel *panel, u32 bl_lvl);
+int oplus_panel_pwm_switch_backlight(struct dsi_panel *panel, u32 bl_lvl, int *pack_51);
 int oplus_panel_pwm_switch_timing_switch(struct dsi_panel *panel);
 int oplus_panel_pwm_switch_wait_te_tx_cmd(struct dsi_panel *panel, u32 pwm_switch_cmd, u32 pwm_switch_state_last);
 int oplus_hbm_pwm_state(struct dsi_panel *panel, bool hbm_state);
 void oplus_panel_backlight_demura_dbv_switch(struct dsi_panel *panel, u32 bl_lvl);
-
+void oplus_panel_set_aod_off_te_timestamp(struct dsi_panel *panel);
+void oplus_panel_set_pwm_switch_next_cmdq(u32 next_cmdq);
+void oplus_pwm_switch_send_next_cmdq_work_handler(struct work_struct *work);
 #endif /* __OPLUS_BL_H__ */
 

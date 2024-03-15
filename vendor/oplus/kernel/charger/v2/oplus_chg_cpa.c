@@ -50,6 +50,7 @@ struct oplus_cpa {
 	struct work_struct fast_chg_type_change_work;
 	struct work_struct wired_offline_work;
 	struct work_struct wired_online_work;
+	struct work_struct switch_end_work;
 	struct delayed_work protocol_switch_timeout_work;
 	struct delayed_work protocol_ready_timeout_work;
 
@@ -386,15 +387,52 @@ static void oplus_cpa_protocol_switch_work(struct work_struct *work)
 		return;
 	} else {
 		mutex_lock(&cpa->start_lock);
-		if (!READ_ONCE(cpa->started))
+		if (!READ_ONCE(cpa->started)) {
 			schedule_delayed_work(&cpa->protocol_switch_timeout_work,
 				msecs_to_jiffies(PROTOCAL_SWITCH_REPLY_TIMEOUT_MS));
+			chg_info("switch %s schedule protocol_switch_timeout_work\n", get_protocol_name_str(type));
+		}
 		mutex_unlock(&cpa->start_lock);
 		protocol = READ_ONCE(cpa->protocol_to_be_switched);
 		protocol &= ~BIT(type);
 		WRITE_ONCE(cpa->protocol_to_be_switched, protocol);
 	}
 	chg_info("switch to %s protocol\n", get_protocol_name_str(type));
+}
+
+static void oplus_cpa_switch_end_work(struct work_struct *work)
+{
+	struct oplus_cpa *cpa =
+		container_of(work, struct oplus_cpa, switch_end_work);
+	struct mms_msg *msg;
+	enum oplus_chg_protocol_type type;
+	int rc;
+
+	if (cpa == NULL) {
+		chg_err("cpa is NULL\n");
+		return;
+	}
+
+	type = cpa->current_protocol_type;
+	WRITE_ONCE(cpa->started, false);
+	oplus_cpa_set_current_protocol_type(cpa, CHG_PROTOCOL_INVALID);
+
+	msg = oplus_mms_alloc_msg(MSG_TYPE_ITEM, MSG_PRIO_HIGH, CPA_ITEM_CHG_TYPE);
+	if (msg == NULL) {
+		chg_err("alloc msg error\n");
+	} else {
+		rc = oplus_mms_publish_msg(cpa->cpa_topic, msg);
+		if (rc < 0) {
+			chg_err("publish cpa charger type msg error, rc=%d\n", rc);
+			kfree(msg);
+		}
+	}
+
+	chg_info("%s protocol identify end, to_be_switched=0x%x\n",
+		 get_protocol_name_str(type), cpa->protocol_to_be_switched);
+	mutex_lock(&cpa->cpa_request_lock);
+	protocol_identify_request(cpa, READ_ONCE(cpa->protocol_to_be_switched));
+	mutex_unlock(&cpa->cpa_request_lock);
 }
 
 static void oplus_cpa_chg_type_change_work(struct work_struct *work)
@@ -953,6 +991,7 @@ static int oplus_cpa_probe(struct platform_device *pdev)
 	INIT_WORK(&cpa->fast_chg_type_change_work, oplus_cpa_fast_chg_type_change_work);
 	INIT_WORK(&cpa->wired_offline_work, oplus_cpa_wired_offline_work);
 	INIT_WORK(&cpa->wired_online_work, oplus_cpa_wired_online_work);
+	INIT_WORK(&cpa->switch_end_work, oplus_cpa_switch_end_work);
 	INIT_DELAYED_WORK(&cpa->protocol_switch_timeout_work, oplus_cpa_protocol_switch_timeout_work);
 	INIT_DELAYED_WORK(&cpa->protocol_ready_timeout_work, oplus_cpa_protocol_ready_timeout_work);
 
@@ -1060,6 +1099,12 @@ int oplus_cpa_request(struct oplus_mms *topic, enum oplus_chg_protocol_type type
 		chg_err("wired is offline\n");
 		return -EFAULT;
 	}
+
+	if (type == CHG_PROTOCOL_PPS && !(oplus_cpa_is_supported_protocol(cpa, type))) {
+		chg_info("no support pps forced conversion to pd\n");
+		type = CHG_PROTOCOL_PD;
+	}
+
 	chg_info("%s protocol identify request\n", get_protocol_name_str(type));
 
 	mutex_lock(&cpa->cpa_request_lock);
@@ -1128,8 +1173,6 @@ int oplus_cpa_switch_start(struct oplus_mms *topic, enum oplus_chg_protocol_type
 int oplus_cpa_switch_end(struct oplus_mms *topic, enum oplus_chg_protocol_type type)
 {
 	struct oplus_cpa *cpa;
-	struct mms_msg *msg;
-	int rc;
 
 	if (topic == NULL) {
 		chg_err("topic is NULL\n");
@@ -1139,23 +1182,8 @@ int oplus_cpa_switch_end(struct oplus_mms *topic, enum oplus_chg_protocol_type t
 	if (type != cpa->current_protocol_type)
 		return -EINVAL;
 
-	oplus_cpa_set_current_protocol_type(cpa, CHG_PROTOCOL_INVALID);
-	cpa->started = false;
+	return schedule_work(&cpa->switch_end_work);
 
-	msg = oplus_mms_alloc_msg(MSG_TYPE_ITEM, MSG_PRIO_HIGH, CPA_ITEM_CHG_TYPE);
-	if (msg == NULL) {
-		chg_err("alloc msg error\n");
-	} else {
-		rc = oplus_mms_publish_msg(cpa->cpa_topic, msg);
-		if (rc < 0) {
-			chg_err("publish cpa charger type msg error, rc=%d\n", rc);
-			kfree(msg);
-		}
-	}
-
-	chg_info("%s protocol identify end, to_be_switched=0x%x\n",
-		 get_protocol_name_str(type), cpa->protocol_to_be_switched);
-	return protocol_identify_request(cpa, READ_ONCE(cpa->protocol_to_be_switched));
 }
 
 int oplus_cpa_get_high_prio_wired_type(struct oplus_mms *topic, struct protocol_map *map)

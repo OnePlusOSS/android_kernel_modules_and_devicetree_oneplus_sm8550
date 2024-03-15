@@ -27,7 +27,7 @@
 //#define DEBUG_FPGA_LIMIT 1
 #define IRIS_PATH_BW10	10
 
-extern u32 iris_pq_disable;
+u32 iris_pq_disable = 0;
 static int iris_extmv_frc_mode;
 static int iris_emv_meta_en;
 static int iris_emv_skip_duplicate;
@@ -2264,7 +2264,7 @@ void iris_emv_enter_i7(void)
 
 void irisSetDisableDsppPq_i7(bool enable)
 {
-	iris_pq_disable = enable ? 0x7 : 0;
+	iris_pq_disable = enable ? 0x5 : 0;
 	IRIS_LOGI("external MV frc meta: disable dspp pq: %d", iris_pq_disable);
 }
 

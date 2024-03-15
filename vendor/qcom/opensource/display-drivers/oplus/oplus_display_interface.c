@@ -12,6 +12,7 @@
 #include <linux/msm_drm_notify.h>
 #include <linux/module.h>
 
+#include "oplus_bl.h"
 #include "oplus_display_interface.h"
 #include "oplus_display_panel_common.h"
 #include "sde_color_processing.h"
@@ -29,16 +30,18 @@ extern const char *cmd_set_prop_map[];
 extern int oplus_debug_max_brightness;
 bool is_evt_panel = false;
 bool is_dvt_0_panel = false;
+bool is_pvt_panel = false;
+bool is_gamma_panel = false;
+bool is_demura_panel = false;
 
 int oplus_panel_cmd_print(struct dsi_panel *panel, enum dsi_cmd_set_type type)
 {
 	switch (type) {
-	case DSI_CMD_READ_SAMSUNG_PANEL_REGISTER_ON:
 	case DSI_CMD_SET_ROI:
-	case DSI_CMD_READ_SAMSUNG_PANEL_REGISTER_OFF:
 	case DSI_CMD_ESD_SWITCH_PAGE:
 	case DSI_CMD_SKIPFRAME_DBV:
-#ifdef OPLUS_FEATURE_DISPLAY_ADFR
+	case DSI_CMD_DEFAULT_SWITCH_PAGE:
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR_IGNORE
 	case DSI_CMD_ADFR_MIN_FPS_0:
 	case DSI_CMD_ADFR_MIN_FPS_1:
 	case DSI_CMD_ADFR_MIN_FPS_2:
@@ -117,6 +120,17 @@ int oplus_panel_get_id(struct dsi_display *display, char *boot_str)
 				is_dvt_0_panel = true;
 				LCD_INFO("is_dvt_panel true\n");
 			}
+			if((0x3F == display->panel_id_da) && (0x07 <= display->panel_id_db)) {
+				is_pvt_panel = true;
+			}
+			if((0x07 == display->panel_id_db) && (0x00 == display->panel_id_dc)) {
+				is_gamma_panel = true;
+				LCD_INFO("is_gamma_panel true\n");
+			}
+			if((0x07 == display->panel_id_db) && (0x01 == display->panel_id_dc)) {
+				is_demura_panel = true;
+				LCD_INFO("is_demura_panel true\n");
+			}
 		} else {
 			LCD_INFO("fail to parse panel id\n");
 		}
@@ -152,7 +166,8 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 	}
 
 	/* switch the command when pwm onepulse is enabled */
-	if (oplus_panel_pwm_onepulse_is_enabled(panel)) {
+	if (oplus_panel_pwm_onepulse_is_enabled(panel) &&
+		!panel->oplus_priv.directional_onepulse_switch) {
 		switch (*type) {
 		case DSI_CMD_PWM_SWITCH_HIGH:
 			*type = DSI_CMD_PWM_SWITCH_ONEPULSE;
@@ -186,6 +201,34 @@ int oplus_panel_cmd_switch(struct dsi_panel *panel, enum dsi_cmd_set_type *type)
 			switch (*type) {
 			case DSI_CMD_SET_ON:
 				*type = DSI_CMD_SET_ON_DVT;
+				break;
+			default:
+				break;
+			}
+		}
+		if(oplus_panel_pwm_onepulse_is_used(panel)) {
+			switch (*type) {
+			case DSI_CMD_SET_TIMING_SWITCH: {
+				*type = DSI_CMD_TIMMING_PWM_SWITCH_ONEPULSE;
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		if (is_gamma_panel) {
+			switch (*type) {
+			case DSI_CMD_SET_ON:
+				*type = DSI_CMD_SET_ON_GAMMA;
+				break;
+			default:
+				break;
+			}
+		}
+		if (is_demura_panel) {
+			switch (*type) {
+			case DSI_CMD_SET_ON:
+				*type = DSI_CMD_SET_ON_DEMURA;
 				break;
 			default:
 				break;
@@ -458,7 +501,9 @@ int oplus_panel_parse_vsync_config(
 		}
 	}
 
-	LCD_INFO("vsync width = %d, vsync period = %d\n", priv_info->vsync_width, priv_info->vsync_period);
+	priv_info->refresh_rate = mode->timing.refresh_rate;
+
+	LCD_INFO("vsync width = %d, vsync period = %d, refresh rate = %d\n", priv_info->vsync_width, priv_info->vsync_period, priv_info->refresh_rate);
 
 	return 0;
 }
@@ -617,8 +662,9 @@ int oplus_panel_set_pinctrl_state(struct dsi_panel *panel, bool enable)
 			LCD_ERR("[%s] failed to set oplus pin state, rc=%d\n",
 					panel->oplus_priv.vendor_name, rc);
 	}
-
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR
 error:
+#endif
 	return rc;
 }
 
@@ -735,60 +781,6 @@ int oplus_panel_vddr_off(struct dsi_display *display, const char *vreg_name)
 	}
 
 	return rc;
-}
-
-
-void notify_work_handler(struct kthread_work *work)
-{
-	struct dsi_panel *panel = container_of(work, struct dsi_panel, work);
-
-	SDE_ATRACE_BEGIN("notify_work_handler");
-	panel->notify_done.done = 0;
-	panel->need_to_wait_notify_done = 1;
-	panel_event_notification_trigger(panel->panel_event,
-					&panel->notification);
-	panel->need_to_wait_notify_done = 0;
-	complete(&panel->notify_done);
-	SDE_ATRACE_END("notify_work_handler");
-}
-
-void oplus_panel_event_notification_trigger(enum panel_event_notifier_tag panel_event,
-	struct panel_event_notification *notification)
-{
-	struct dsi_panel *panel = container_of(notification->panel, struct dsi_panel, drm_panel);
-
-	if (IS_ERR_OR_NULL(panel->notify_worker)) {
-		panel->notify_worker = kthread_create_worker(0, "notify_worker");
-		kthread_init_work(&panel->work, notify_work_handler);
-		init_completion(&panel->notify_done);
-	}
-
-	if (!IS_ERR_OR_NULL(panel->notify_worker)) {
-		/* only power off use kthread */
-		if (notification->notif_type == DRM_PANEL_EVENT_BLANK) {
-			panel->panel_event = panel_event;
-			panel->notification = *notification;
-			kthread_queue_work(panel->notify_worker, &panel->work);
-		} else {
-			panel_event_notification_trigger(panel_event, notification);
-		}
-	} else {
-		panel_event_notification_trigger(panel_event, notification);
-	}
-}
-
-void oplus_wait_for_notify_done(struct dsi_display *display)
-{
-	char tag_name[32];
-
-	if (!display || !display->panel)
-		return;
-
-	snprintf(tag_name, sizeof(tag_name), "need_to_wait_notify_done %d", display->panel->need_to_wait_notify_done);
-	SDE_ATRACE_BEGIN(tag_name);
-	if (1 == display->panel->need_to_wait_notify_done)
-		wait_for_completion(&display->panel->notify_done);
-	SDE_ATRACE_END(tag_name);
 }
 
 void oplus_sde_cp_crtc_apply_properties(struct drm_crtc *crtc, struct drm_encoder *encoder)
@@ -945,11 +937,61 @@ int oplus_display_send_dcs_lock(struct dsi_display *display,
 	return rc;
 }
 
+int oplus_panel_pwm_switch_cmdq_delay_handle(void *dsi_panel, enum dsi_cmd_set_type type)
+{
+	struct dsi_panel *panel = dsi_panel;
+	struct dsi_display_mode *mode;
+	int i;
+	LCD_DEBUG("start\n");
+
+	if (!panel || !panel->cur_mode) {
+		LCD_ERR("invalid panel param\n");
+		return -EINVAL;
+	}
+	mode = panel->cur_mode;
+
+	if(!panel->oplus_priv.cmdq_pack_support || !mode->priv_info->cmd_sets[type].pack) {
+		return 0;
+	}
+
+	OPLUS_LCD_TRACE_BEGIN("oplus_panel_pwm_switch_cmdq_delay_handle");
+
+	if (panel->oplus_priv.pwm_sw_cmd_te_cnt > 0 && panel->oplus_priv.pwm_sw_cmd_te_cnt <= 2) {
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR
+		if ((type >= DSI_CMD_ADFR_MIN_FPS_0 && type <= DSI_CMD_HPWM_ADFR_MIN_FPS_14)
+			|| type == DSI_CMD_ADFR_HIGH_PRECISION_FPS_0
+			|| type == DSI_CMD_HPWM_ADFR_HIGH_PRECISION_FPS_0) {
+			oplus_panel_set_pwm_switch_next_cmdq(type);
+			queue_work(panel->oplus_pwm_switch_send_next_cmdq_wq, &panel->oplus_pwm_switch_send_next_cmdq_work);
+			LCD_INFO("[%s] dsi_cmd: cmd %s turn to oplus_pwm_switch_send_next_cmdq_work to send\n",
+				panel->oplus_priv.vendor_name,
+				cmd_set_prop_map[type]);
+			OPLUS_LCD_TRACE_END("oplus_panel_pwm_switch_cmdq_delay_handle");
+			return 1;
+		}
+#endif
+		LCD_INFO("[%s] dsi_cmd: %s block to the next 2 frames due to 2 frames cmdq\n",
+					panel->oplus_priv.vendor_name,
+					cmd_set_prop_map[type]);
+		for (i = panel->oplus_priv.pwm_sw_cmd_te_cnt; i > 0; i--) {
+			oplus_sde_early_wakeup(panel);
+			oplus_wait_for_vsync(panel);
+		}
+		if (panel->cur_mode->timing.refresh_rate == 60) {
+			oplus_need_to_sync_te(panel);
+		}
+	}
+
+	OPLUS_LCD_TRACE_END("oplus_panel_pwm_switch_cmdq_delay_handle");
+	LCD_DEBUG("end\n");
+
+	return 0;
+}
+
 int oplus_panel_cmdq_pack_handle(void *dsi_panel, enum dsi_cmd_set_type type, bool before_cmd)
 {
 	struct dsi_panel *panel = dsi_panel;
 	struct dsi_display_mode *mode;
-
 	LCD_DEBUG("start\n");
 
 	if (!panel || !panel->cur_mode) {
@@ -999,6 +1041,11 @@ int oplus_panel_cmdq_pack_status_reset(void *sde_connector)
 		return -EINVAL;
 	}
 
+	if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
+		LCD_WARN("not in dsi mode, should not reset cmdq pack status\n");
+		return 0;
+	}
+
 	display = c_conn->display;
 	if (!display || !display->panel) {
 		LCD_DEBUG("invalid display params\n");
@@ -1006,11 +1053,6 @@ int oplus_panel_cmdq_pack_status_reset(void *sde_connector)
 	}
 
 	if(!display->panel->oplus_priv.cmdq_pack_support) {
-		return 0;
-	}
-
-	if (c_conn->connector_type != DRM_MODE_CONNECTOR_DSI) {
-		LCD_WARN("not in dsi mode, should not reset cmdq pack status\n");
 		return 0;
 	}
 

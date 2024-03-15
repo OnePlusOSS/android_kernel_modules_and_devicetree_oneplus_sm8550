@@ -3236,7 +3236,8 @@ lim_fill_pe_session(struct mac_context *mac_ctx, struct pe_session *session,
 				mac_ctx->psoc, mac_ctx->pdev,
 				ie_struct->Country.country,
 				programmed_country, &power_type_6g,
-				&ctry_code_match, session->ap_power_type);
+				&ctry_code_match, session->ap_power_type,
+				bss_desc->chan_freq);
 		if (QDF_IS_STATUS_ERROR(status)) {
 			status = QDF_STATUS_E_NOSUPPORT;
 			goto send;

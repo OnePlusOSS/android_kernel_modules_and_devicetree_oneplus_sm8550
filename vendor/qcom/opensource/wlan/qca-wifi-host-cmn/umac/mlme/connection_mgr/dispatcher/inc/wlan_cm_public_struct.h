@@ -425,12 +425,14 @@ struct fils_connect_rsp_params {
 /**
  * struct connect_rsp_ies - connect rsp ies stored in vdev filled during connect
  * @bcn_probe_rsp: Raw beacon or probe rsp of connected AP
+ * @link_bcn_probe_rsp: Raw beacon or probe rsp of connected non-assoc link
  * @assoc_req: assoc req IE pointer send during connect
  * @assoc_rsq: assoc rsp IE received during connection
  * @fills_ie: fills connection ie received during connection
  */
 struct wlan_connect_rsp_ies {
 	struct element_info bcn_probe_rsp;
+	struct element_info link_bcn_probe_rsp;
 	struct element_info assoc_req;
 	struct element_info assoc_rsp;
 #ifdef WLAN_FEATURE_FILS_SK

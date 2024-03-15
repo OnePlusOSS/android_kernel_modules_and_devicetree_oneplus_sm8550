@@ -201,6 +201,10 @@
         };
 };
 
+&sdhc_2 {
+	status = "disabled";
+};
+
 &soc {
 	oplus_wsa: oplus,wlan-wsa {
 		compatible = "oplus,wlan-wsa";

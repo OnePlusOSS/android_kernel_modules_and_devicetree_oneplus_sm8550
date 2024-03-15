@@ -1021,6 +1021,7 @@ int oplus_smart_chg_get_battery_bcc_parameters(char *buf)
 		voocphy_get_fastchg_ing, g_smart_chg->ufcs_charging, oplus_ufcs_check_bcc_temp_range(g_smart_chg),
 		wls_fastchg_charging, oplus_wls_check_bcc_temp_range(g_smart_chg));
 
+	memset(buf, 0, BCC_PAGE_SIZE);
 	for (i = 0; i < BCC_PARMS_COUNT - 1; i++) {
 		len = snprintf(tmpbuf, BCC_PAGE_SIZE - idx, "%d,", buffer[i]);
 		memcpy(&buf[idx], tmpbuf, len);

@@ -19,6 +19,7 @@ endif
 obj-$(CONFIG_OPLUS_FEATURE_CAMERA_PROTECT)      +=	camera_protecthub/
 obj-$(CONFIG_OPLUS_FEATURE_FREE_FALL)		+=	free_fallhub/
 obj-$(CONFIG_OPLUS_FEATURE_PICKUP_DETECT)	+=	pickup_detecthub/
+obj-$(CONFIG_OPLUS_FEATURE_LAY_DETECT)          +=     lay_detecthub/
 obj-$(CONFIG_OPLUS_FEATURE_FP_DISPLAY)		+=	fp_displayhub/
 obj-$(CONFIG_OPLUS_FEATURE_LUX_AOD)	        +=	lux_aodhub/
 obj-$(CONFIG_OPLUS_FEATURE_PEDO_MINUTE)	    +=	pedo_minutehub/

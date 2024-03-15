@@ -186,6 +186,7 @@ int ufcs_handshake(struct ufcs_dev *ufcs)
 	mutex_lock(&class->handshake_lock);
 	ufcs_event_reset(class);
 	ufcs->ops->enable(ufcs);
+	ufcs_clr_error_flag(ufcs);
 	class->sm_task_wakeup = true;
 	wake_up(&class->sm_wq);
 	mutex_lock(&class->pe_lock);
@@ -434,9 +435,74 @@ void ufcs_clr_error_flag(struct ufcs_dev *ufcs)
 		return;
 	}
 
-	ufcs->dev_err_flag = 0;
+	ufcs->err_flag_save = 0;
+	kfifo_reset(&ufcs->err_flag_fifo);
 }
 EXPORT_SYMBOL(ufcs_clr_error_flag);
+
+int ufcs_set_error_flag(struct ufcs_dev *ufcs, unsigned int err_flag)
+{
+	struct ufcs_class *class;
+	int rc;
+
+	if (ufcs == NULL) {
+		ufcs_err("ufcs is NULL\n");
+		return -EINVAL;
+	}
+	class = ufcs->class;
+
+	spin_lock(&class->err_flag_lock);
+	rc = kfifo_in(&ufcs->err_flag_fifo, &err_flag, sizeof(err_flag));
+	spin_unlock(&class->err_flag_lock);
+	if (rc != sizeof(err_flag)) {
+		ufcs_err("write err_flag_fifo error, rc=%d\n", rc);
+		schedule_work(&class->fifo_overflow_work);
+		return -EFAULT;
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(ufcs_set_error_flag);
+
+int ufcs_get_error_flag(struct ufcs_dev *ufcs, unsigned int *err_flag)
+{
+	int rc;
+
+	if (ufcs == NULL) {
+		ufcs_err("ufcs is NULL\n");
+		return -EINVAL;
+	}
+
+	rc = kfifo_out(&ufcs->err_flag_fifo, err_flag, sizeof(*err_flag));
+	if (rc != sizeof(*err_flag)) {
+		ufcs_err("read err_flag_fifo error, rc=%d\n", rc);
+		return -EFAULT;
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(ufcs_get_error_flag);
+
+int ufcs_check_error_flag_all(struct ufcs_dev *ufcs, unsigned int *err_flag)
+{
+	unsigned int flag_buf[UFCS_ERR_FLAG_BUF_LEN];
+	unsigned int size;
+	int i;
+
+	if (ufcs == NULL) {
+		ufcs_err("ufcs is NULL\n");
+		return -EINVAL;
+	}
+
+	size = kfifo_out_peek(&ufcs->err_flag_fifo, &flag_buf, UFCS_ERR_FLAG_BUF_SIZE);
+	*err_flag = 0;
+	for (i = 0; i < size / sizeof(unsigned int); i++)
+		*err_flag |= flag_buf[i];
+	*err_flag |= ufcs->err_flag_save;
+
+	return 0;
+}
+EXPORT_SYMBOL(ufcs_check_error_flag_all);
 
 int ufcs_get_device_info(struct ufcs_class *class, u64 *dev_info)
 {
@@ -1167,3 +1233,17 @@ bool ufcs_is_vol_acc_test_mode(struct ufcs_dev *ufcs)
 	return class->vol_acc_test;
 }
 EXPORT_SYMBOL(ufcs_is_vol_acc_test_mode);
+
+bool ufcs_handshake_success(struct ufcs_dev *ufcs)
+{
+	struct ufcs_class *class;
+
+	if (ufcs == NULL) {
+		ufcs_err("ufcs is NULL\n");
+		return false;
+	}
+	class = ufcs->class;
+
+	return class->handshake_success;
+}
+EXPORT_SYMBOL(ufcs_handshake_success);

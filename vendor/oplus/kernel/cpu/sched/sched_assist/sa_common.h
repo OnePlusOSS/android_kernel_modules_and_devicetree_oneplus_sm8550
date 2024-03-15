@@ -300,6 +300,11 @@ struct oplus_task_struct {
 	u64 pipeline_switch_out_ts;
 	int pipeline_cpu;
 #endif
+	/* for binder ux */
+	int binder_async_ux_enable;
+	bool binder_async_ux_sts;
+	int binder_thread_mode;
+	struct binder_node *binder_thread_node;
 } ____cacheline_aligned;
 
 #if IS_ENABLED(CONFIG_OPLUS_FEATURE_LOADBALANCE)
@@ -558,7 +563,9 @@ static inline void init_task_ux_info(struct task_struct *t)
 #if IS_ENABLED(CONFIG_OPLUS_LOCKING_STRATEGY)
 	memset(&ots->lkinfo, 0, sizeof(struct locking_info));
 #endif
+#if IS_ENABLED(CONFIG_OPLUS_FEATURE_CPU_JANKINFO)
 	ots->block_start_time = 0;
+#endif
 #ifdef CONFIG_LOCKING_PROTECT
 	INIT_LIST_HEAD(&ots->locking_entry);
 	ots->locking_start_time = 0;
@@ -709,5 +716,5 @@ void android_vh_exit_signal_handler(void *unused, struct task_struct *p);
 #if IS_ENABLED(CONFIG_OPLUS_FEATURE_BAN_APP_SET_AFFINITY)
 void android_vh_sched_setaffinity_early_handler(void *unused, struct task_struct *task, const struct cpumask *new_mask, int *skip);
 #endif
-
+extern struct notifier_block process_exit_notifier_block;
 #endif /* _OPLUS_SA_COMMON_H_ */

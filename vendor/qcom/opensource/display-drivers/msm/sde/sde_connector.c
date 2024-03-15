@@ -2029,6 +2029,12 @@ static int sde_connector_atomic_set_property(struct drm_connector *connector,
 		oplus_adfr_property_update(c_conn, c_state, idx, val);
 		break;
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+	case CONNECTOR_PROP_HIGH_PRECISION_FPS:
+		msm_property_set_dirty(&c_conn->property_info, &c_state->property_state, idx);
+		break;
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 	case CONNECTOR_PROP_LP:
 		/* suspend case: clear stale MISR */
 		if (val == SDE_MODE_DPMS_OFF)
@@ -3508,6 +3514,10 @@ static int _sde_connector_install_properties(struct drm_device *dev,
 					0x0, 0, ~0, 0, CONNECTOR_PROP_ADFR_MIN_FPS);
 		}
 #endif /* OPLUS_FEATURE_DISPLAY_ADFR */
+
+#ifdef OPLUS_FEATURE_DISPLAY_HIGH_PRECISION
+		msm_property_install_range(&c_conn->property_info, "high_precision_fps", 0x0, 0, ~0, 0, CONNECTOR_PROP_HIGH_PRECISION_FPS);
+#endif /* OPLUS_FEATURE_DISPLAY_HIGH_PRECISION */
 
 #ifdef OPLUS_FEATURE_DISPLAY_ONSCREENFINGERPRINT
 		if (oplus_ofp_is_supported()) {

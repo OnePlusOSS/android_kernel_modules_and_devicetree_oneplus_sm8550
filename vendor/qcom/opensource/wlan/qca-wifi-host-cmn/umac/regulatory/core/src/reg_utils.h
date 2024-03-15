@@ -266,6 +266,7 @@ QDF_STATUS reg_get_domain_from_country_code(v_REGDOMAIN_t *reg_domain_ptr,
  * @pwr_type_6g: ptr to 6G power type
  * @ctry_code_match: Check for country IE and sta country code match
  * @ap_pwr_type: AP's power type as advertised in HE ops IE
+ * @chan_freq: Connection channel frequency
  * Return: QDF_STATUS
  */
 QDF_STATUS
@@ -274,7 +275,8 @@ reg_get_6g_power_type_for_ctry(struct wlan_objmgr_psoc *psoc,
 			       uint8_t *ap_ctry, uint8_t *sta_ctry,
 			       enum reg_6g_ap_type *pwr_type_6g,
 			       bool *ctry_code_match,
-			       enum reg_6g_ap_type ap_pwr_type);
+			       enum reg_6g_ap_type ap_pwr_type,
+			       uint32_t chan_freq);
 #endif
 
 /**
@@ -557,5 +559,20 @@ reg_is_etsi13_srd_chan_allowed_master_mode(struct wlan_objmgr_pdev *pdev)
 }
 
 #endif
-
+#if defined(CONFIG_REG_CLIENT) && defined(CONFIG_BAND_6GHZ)
+/**
+ * reg_get_6ghz_cli_pwr_type_per_ap_pwr_type() - Find client power type
+ *                                               corresponding to AP power type
+ * @pdev: Pointer to pdev
+ * @ap_pwr_type: 6 GHz AP power type
+ * @cli_pwr_type: To be filled 6 GHz client power type pointer
+ *
+ * Return: QDF_STATUS
+ */
+QDF_STATUS
+reg_get_6ghz_cli_pwr_type_per_ap_pwr_type(
+				struct wlan_objmgr_pdev *pdev,
+				enum reg_6g_ap_type ap_pwr_type,
+				enum supported_6g_pwr_types *cli_pwr_type);
+#endif
 #endif

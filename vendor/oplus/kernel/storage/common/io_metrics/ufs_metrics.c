@@ -13,6 +13,12 @@
 #include <trace/hooks/oplus_ufs.h>
 #endif
 
+#define UFS_METRICS_LAT(op)   \
+    atomic64_t ufs_metrics_lat_##op[LAT_500M_TO_MAX + 1] = {0};
+
+UFS_METRICS_LAT(write);
+UFS_METRICS_LAT(read);
+
 bool ufs_compl_command_enabled = false;
 module_param(ufs_compl_command_enabled, bool, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(ufs_compl_command_enabled, " Debug android_vh_ufs_compl_command");
@@ -34,6 +40,7 @@ void cb_android_vh_ufs_compl_command(void *ignore, struct ufs_hba *hba,
 {
     ktime_t elapsed_in_ufs;
     int transfer_len = 0;
+    u64 ufs_lat_range = 0;
 
     if (unlikely(!io_metrics_enabled)) {
         return ;
@@ -60,10 +67,15 @@ void cb_android_vh_ufs_compl_command(void *ignore, struct ufs_hba *hba,
                     atomic64_set(&ufs_metrics[i].read_size, transfer_len);
                     atomic64_set(&ufs_metrics[i].read_elapse, elapsed_in_ufs);
                     elapse = 0;
+                    lat_range_check(elapsed_in_ufs, ufs_lat_range);
+                    memset(&ufs_metrics_lat_read, 0, sizeof(ufs_metrics_lat_read));
+                    atomic64_set(&ufs_metrics_lat_read[ufs_lat_range], 1);
                 } else {
                     atomic64_inc(&ufs_metrics[i].read_cnt);
                     atomic64_add(transfer_len, &ufs_metrics[i].read_size);
                     atomic64_add(elapsed_in_ufs, &ufs_metrics[i].read_elapse);
+                    lat_range_check(elapsed_in_ufs, ufs_lat_range);
+                    atomic64_inc(&ufs_metrics_lat_read[ufs_lat_range]);
                 }
                 if (unlikely(elapse >= sample_cycle_config[i].cycle_value)) {
                     /* 过期复位 */
@@ -92,10 +104,15 @@ void cb_android_vh_ufs_compl_command(void *ignore, struct ufs_hba *hba,
                     atomic64_set(&ufs_metrics[i].write_size, transfer_len);
                     atomic64_set(&ufs_metrics[i].write_elapse, elapsed_in_ufs);
                     elapse = 0;
+                    lat_range_check(elapsed_in_ufs, ufs_lat_range);
+                    memset(&ufs_metrics_lat_write, 0, sizeof(ufs_metrics_lat_write));
+                    atomic64_set(&ufs_metrics_lat_write[ufs_lat_range], 1);
                 } else {
                     atomic64_inc(&ufs_metrics[i].write_cnt);
                     atomic64_add(transfer_len, &ufs_metrics[i].write_size);
                     atomic64_add(elapsed_in_ufs, &ufs_metrics[i].write_elapse);
+                    lat_range_check(elapsed_in_ufs, ufs_lat_range);
+                    atomic64_inc(&ufs_metrics_lat_write[ufs_lat_range]);
                 }
                 if (unlikely(elapse >= sample_cycle_config[i].cycle_value)) {
                     /* 过期复位 */
@@ -178,10 +195,22 @@ static int ufs_metrics_proc_show(struct seq_file *seq_filp, void *data)
     } else if (!strcmp(file->f_path.dentry->d_iname, "ufs_total_read_time_ms")) {
         /*1ns=1/(1000*1000)ms≈1/(1024*1024)ms=1>>20ms,Precision=95.1%*/
         value = atomic64_read(&ufs_metrics[cycle].read_elapse) >> 20;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "ufs_read_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&ufs_metrics_lat_read[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     } else if (!strcmp(file->f_path.dentry->d_iname, "ufs_total_write_size_mb")) {
         value = atomic64_read(&ufs_metrics[cycle].write_size) >> 20;;
     } else if (!strcmp(file->f_path.dentry->d_iname, "ufs_total_write_time_ms")) {
         value = atomic64_read(&ufs_metrics[cycle].write_elapse) >> 20;
+    } else if (!strcmp(file->f_path.dentry->d_iname, "ufs_write_lat_dist")) {
+        for (i = 0; i <= LAT_500M_TO_MAX; i++) {
+            seq_printf(seq_filp, "%llu,", atomic64_read(&ufs_metrics_lat_write[i]));
+        }
+        seq_printf(seq_filp, "\n");
+        return 0;
     }
 #else
     value = 0;
@@ -218,6 +247,8 @@ void ufs_metrics_reset(void)
         atomic64_set(&ufs_metrics[i].write_cnt, 0);
         atomic64_set(&ufs_metrics[i].write_elapse, 0);
     }
+    memset(&ufs_metrics_lat_write, 0, sizeof(ufs_metrics_lat_write));
+    memset(&ufs_metrics_lat_read, 0, sizeof(ufs_metrics_lat_read));
 #else
     return;
 #endif

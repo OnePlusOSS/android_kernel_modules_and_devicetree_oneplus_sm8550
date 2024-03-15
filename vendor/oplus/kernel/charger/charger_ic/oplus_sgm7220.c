@@ -32,7 +32,11 @@
 
 #include <linux/usb/typec.h>
 #include <linux/power_supply.h>
+#ifdef OPLUS_CHG_SEPARATE_MUSE
+#include "oplus_battery_sm6115R.h"
+#else
 #include "oplus_battery_sm6375.h"
+#endif
 #include "../oplus_chg_module.h"
 #include "../oplus_chg_ops_manager.h"
 

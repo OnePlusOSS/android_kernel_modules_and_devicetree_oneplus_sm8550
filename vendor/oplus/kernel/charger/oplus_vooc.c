@@ -2180,7 +2180,7 @@ void oplus_vooc_shedule_fastchg_work(void)
 	}
 }
 
-static int vooc_dump_log_data(char *buffer, int size, void *dev_data)
+static int voocphy_dump_log_data(char *buffer, int size, void *dev_data)
 {
 	struct oplus_vooc_chip *chip = dev_data;
 
@@ -2194,7 +2194,7 @@ static int vooc_dump_log_data(char *buffer, int size, void *dev_data)
 	return 0;
 }
 
-static int vooc_get_log_head(char *buffer, int size, void *dev_data)
+static int voocphy_get_log_head(char *buffer, int size, void *dev_data)
 {
 	struct oplus_vooc_chip *chip = dev_data;
 
@@ -2202,15 +2202,15 @@ static int vooc_get_log_head(char *buffer, int size, void *dev_data)
 		return -ENOMEM;
 
 	snprintf(buffer, size,
-		",fastchg_start,dummy_start,vooc_online_keep");
+		",[voocphy]:fastchg_start,dummy_start,vooc_online_keep");
 
 	return 0;
 }
 
-static struct battery_log_ops battlog_vooc_ops = {
-	.dev_name = "vooc",
-	.dump_log_head = vooc_get_log_head,
-	.dump_log_content = vooc_dump_log_data,
+static struct battery_log_ops battlog_voocphy_ops = {
+	.dev_name = "voocphy",
+	.dump_log_head = voocphy_get_log_head,
+	.dump_log_content = voocphy_dump_log_data,
 };
 
 static ssize_t proc_fastchg_fw_update_write(struct file *file, const char __user *buff, size_t len, loff_t *data)
@@ -2368,8 +2368,8 @@ void oplus_vooc_init(struct oplus_vooc_chip *chip)
 	INIT_DELAYED_WORK(&chip->bcc_get_max_min_curr, oplus_vooc_bcc_get_curr_func);
 	g_vooc_chip = chip;
 	chip->vops->eint_regist(chip);
-	battlog_vooc_ops.dev_data = (void *)chip;
-	battery_log_ops_register(&battlog_vooc_ops);
+	battlog_voocphy_ops.dev_data = (void *)chip;
+	battery_log_ops_register(&battlog_voocphy_ops);
 	if (chip->vooc_fw_update_newmethod) {
 		if (oplus_is_rf_ftm_mode()) {
 			return;

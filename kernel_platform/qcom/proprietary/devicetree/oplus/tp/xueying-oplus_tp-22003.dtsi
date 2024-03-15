@@ -532,12 +532,12 @@
 
 		prevention,curved_screen_V2;
 		prevention,grip_disable_level = <6>;
-		prevention,updelay_time_ms = <45>;
+		prevention,updelay_time_ms = <30>;
 		prevention,makeup_cnt_weight = <5 1 2 2 2>;
 		prevention,large_corner_range = <1200 3000>;
-		prevention,large_corner_judge_condition = <850 100 1000 7 7>;
+		prevention,large_corner_judge_condition = <500 100 1000 7 7>;
 		prevention,trx_reject_condition = <9 7 5>;
-		prevention,trx_strict_reject_condition = <3 1 1>;
+		prevention,trx_strict_reject_condition = <8 5 5>;
 		prevention,large_judge_time_ms = <500 50 100>;
 		prevention,large_exit_condition = <8 8 2>;
 		prevention,single_channel_width = <320 320>;
@@ -552,13 +552,13 @@
 		prevention,edge_swipe_config = <300 1000>;
 
 		prevention,curved_screen_V4;
-		prevention,long_eliminate_point_type = <2 14400 10560 300 31680 300 1>;
+		prevention,long_eliminate_point_type = <2 22680 8400 300 24400 300 1>;
 		prevention,long_fingerhold_condition2 = <650 2000 0 0>;
 		prevention,top_corner_config2 = <3 80 600 1500 0>;
 		prevention,hor_long_top_corner_config = <350 2270 0 0>;
-		prevention,top_middle_config = <14400 1000 1000 0>;
+		prevention,top_middle_config = <22680 1000 1000 0>;
 		prevention,corner_eliminate_point_type = <0 1380 2280 1>;
-		prevention,finger_hold_differ_size = <1 0 400 300>;
+		prevention,finger_hold_differ_size = <1 0 300 300>;
 		prevention,finger_hold_max_rx_exit_distance = <5 350 2300>;
 		prevention,max_rx_exit_distance = <1 5 150 350 2000>;
 		prevention,dynamic_finger_hold_exit_distance = <1 350 2300 450>;
@@ -695,12 +695,12 @@
 
 		prevention,curved_screen_V2;
 		prevention,grip_disable_level = <6>;
-		prevention,updelay_time_ms = <45>;
+		prevention,updelay_time_ms = <30>;
 		prevention,makeup_cnt_weight = <5 1 2 2 2>;
 		prevention,large_corner_range = <1200 3000>;
-		prevention,large_corner_judge_condition = <850 100 1000 7 7>;
+		prevention,large_corner_judge_condition = <500 100 1000 7 7>;
 		prevention,trx_reject_condition = <9 7 7>;
-		prevention,trx_strict_reject_condition = <3 3 3>;
+		prevention,trx_strict_reject_condition = <8 5 5>;
 		prevention,large_judge_time_ms = <500 50 100>;
 		prevention,large_exit_condition = <8 8 2>;
 		prevention,single_channel_width = <320 320>;
@@ -715,16 +715,17 @@
 		prevention,edge_swipe_config = <300 1000>;
 
 		prevention,curved_screen_V4;
-		prevention,long_eliminate_point_type = <2 14400 10560 300 31680 300 1>;
+		prevention,long_eliminate_point_type = <2 11160 8280 300 24840 300 1>;
 		prevention,long_fingerhold_condition2 = <650 2000 0 0>;
 		prevention,top_corner_config2 = <3 80 600 1500 0>;
 		prevention,hor_long_top_corner_config = <350 2270 0 0>;
-		prevention,top_middle_config = <14400 1000 1000 0>;
+		prevention,top_middle_config = <11160 1000 1000 0>;
 		prevention,corner_eliminate_point_type = <0 1380 2280 1>;
-		prevention,finger_hold_differ_size = <1 0 400 300>;
+		prevention,finger_hold_differ_size = <1 0 300 300>;
 		prevention,finger_hold_max_rx_exit_distance = <5 350 2300>;
 		prevention,max_rx_exit_distance = <1 5 150 350 2000>;
 		prevention,dynamic_finger_hold_exit_distance = <1 350 2300 450>;
+		prevention,large_corner_judge_condition_ime = <300 0 0 0 0>;
 
 		black_gesture_support;
 		pressure_report_support;

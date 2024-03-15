@@ -42,7 +42,7 @@
 		qcom,mdss-dsi-panel-blackness-level = <2000>;
 
 		qcom,mdss-dsi-display-timings {
-			timing@fhd_sdc_120 {
+			timing@fhd_sa_120 {
 				cell-index = <0>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -451,7 +451,7 @@
 				qcom,mdss-dsc-slice-width = <540>;
 			};
 
-			timing@fhd_sdc_90 {
+			timing@fhd_sa_90 {
 				cell-index = <1>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-90fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -687,7 +687,7 @@
 				qcom,mdss-dsc-slice-width = <540>;
 			};
 
-			timing@fhd_sdc_60 {
+			timing@fhd_sa_60 {
 				cell-index = <2>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-60fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -981,7 +981,7 @@
 				qcom,mdss-dsc-slice-width = <540>;
 			};
 
-			timing@fhd_oplus_120 {
+			timing@fhd_oa_120 {
 				cell-index = <3>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -1309,7 +1309,7 @@
 				qcom,mdss-dsc-slice-width = <540>;
 			};
 
-			timing@wqhd_sdc_120 {
+			timing@wqhd_sa_120 {
 				cell-index = <4>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -1702,7 +1702,7 @@
 				qcom,mdss-dsc-slice-width = <720>;
 			};
 
-			timing@wqhd_sdc_90 {
+			timing@wqhd_sa_90 {
 				cell-index = <5>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-90fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -1922,7 +1922,7 @@
 				qcom,mdss-dsc-slice-width = <720>;
 			};
 
-			timing@wqhd_sdc_60 {
+			timing@wqhd_sa_60 {
 				cell-index = <6>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-60fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"
@@ -2200,7 +2200,7 @@
 				qcom,mdss-dsc-slice-width = <720>;
 			};
 
-			timing@wqhd_oplus_120 {
+			timing@wqhd_oa_120 {
 				cell-index = <7>;
 				#include "dsi-panel-samsung-amb682cg01-common-old-120fps.dtsi"
 				#include "dsi-panel-samsung-amb682cg01-common-effect-t0.dtsi"

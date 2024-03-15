@@ -92,8 +92,10 @@ static const struct panel_ioctl_desc panel_ioctls[] = {
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_CABC_STATUS, oplus_display_panel_get_cabc_status),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_SET_DRE_STATUS, oplus_display_panel_set_dre_status),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_DRE_STATUS, oplus_display_panel_get_dre_status),
+#ifdef OPLUS_FEATURE_DISPLAY_ADFR
 	PANEL_IOCTL_DEF(PANEL_IOCTL_SET_DYNAMIC_TE, oplus_adfr_set_test_te),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_DYNAMIC_TE, oplus_adfr_get_test_te),
+#endif
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_PANEL_NAME, oplus_display_panel_get_panel_name),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_PANEL_BPP, oplus_display_panel_get_panel_bpp),
 	PANEL_IOCTL_DEF(PANEL_IOCTL_GET_IRIS_LOOP_STATUS, oplus_display_panel_get_iris_loopback_status),
@@ -207,6 +209,7 @@ static int oplus_export_dmabuf(int buf_size)
 	unsigned long vaddr;
 	char *bl_addr = NULL;
 	int page_order = 0;
+	int order = get_order(buf_size);
 
 	if (buf_size%PAGE_SIZE != 0) {
 		page_order = buf_size/PAGE_SIZE + 1;
@@ -221,7 +224,7 @@ static int oplus_export_dmabuf(int buf_size)
 		goto err_backlightbuf;
 	}
 
-	vaddr = __get_free_pages(GFP_KERNEL, page_order);
+	vaddr = __get_free_pages(GFP_KERNEL, order);
 	if (!vaddr) {
 		retcode = -ENOMEM;
 		LCD_ERR("alloc_pages fail\n");
@@ -460,7 +463,6 @@ int oplus_display_panel_init(void)
 	rc = oplus_export_dmabuf(APOLLO_BACKLIGHT_LENS);
 	if (rc < 0) {
 		LCD_ERR("dmabuf alloc fail\n");
-		goto err_device_create;
 	}
 
 	return 0;

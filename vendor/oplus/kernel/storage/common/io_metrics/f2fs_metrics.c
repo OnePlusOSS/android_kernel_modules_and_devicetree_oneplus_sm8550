@@ -83,9 +83,10 @@ struct {
 struct {
     /* discard次数 */
     u64 discard_cnt;
+    u64 discard_len;
     u64 ipu_cnt;
     u64 fsync_cnt;
-    char padding[40];
+    char padding[32];
 } f2fs_metrics[CYCLE_MAX] = {0};
 
 static void cb_f2fs_issue_discard(void *ignore, struct block_device *dev,
@@ -105,9 +106,11 @@ static void cb_f2fs_issue_discard(void *ignore, struct block_device *dev,
         if (unlikely(elapse >= current_time_ns)) {
             atomic64_set(&f2fs_metrics_timestamp[i], current_time_ns);
             f2fs_metrics[i].discard_cnt = 1;
+            f2fs_metrics[i].discard_len = blklen;
             elapse = 0;
         } else {
             f2fs_metrics[i].discard_cnt += 1;
+            f2fs_metrics[i].discard_len += blklen;
         }
         if (unlikely(elapse >= sample_cycle_config[i].cycle_value)) {
             atomic64_set(&f2fs_metrics_timestamp[i], 0);
@@ -370,6 +373,8 @@ static int f2fs_metrics_proc_show(struct seq_file *seq_filp, void *data)
     }
     if(!strcmp(file->f_path.dentry->d_iname, "f2fs_discard_cnt")) {
         value = f2fs_metrics[cycle].discard_cnt;
+    } else if(!strcmp(file->f_path.dentry->d_iname, "f2fs_discard_len")) {
+        value = f2fs_metrics[cycle].discard_len;
     } else if (!strcmp(file->f_path.dentry->d_iname, "f2fs_fg_gc_cnt")) {
         value = f2fs_gc_metrics[cycle][GC_FG].cnt;
     } else if (!strcmp(file->f_path.dentry->d_iname, "f2fs_fg_gc_avg_time")) {
