@@ -31,17 +31,6 @@ obj-$(CONFIG_OPLUS_FEATURE_DUMP_REASON)	+=  qcom/dump_reason/
 obj-$(CONFIG_OPLUS_FEATURE_FULLDUMP_BACK) += qcom/oplus_ordump/
 #endif /* OPLUS_FEATURE_FULLDUMP_BACK */
 
-
-# MTK platform feature
-
-#ifdef OPLUS_FEATURE_MTK_FORCE_SHUTDOWN
-obj-$(CONFIG_OPLUS_FEATURE_MTK_FORCE_SHUTDOWN)	+=  mtk/mtk_shutdown_reboot/
-#endif /* OPLUS_FEATURE_MTK_FORCE_SHUTDOWN */
-
-#ifdef OPLUS_FEATURE_PMIC_MONITOR_MTK
-obj-$(CONFIG_OPLUS_FEATURE_PMIC_MONITOR_MTK)	+=  mtk/oplus_pmic_monitor_mtk/
-#endif /* OPLUS_FEATURE_PMIC_MONITOR_MTK */
-
 # common feature
 #ifdef OPLUS_FEATURE_SHUTDOWN_DETECT
 obj-$(CONFIG_OPLUS_FEATURE_SHUTDOWN_DETECT) += common/shutdown_detect/
