@@ -1,6 +1,9 @@
 LINUXINCLUDE += -I$(SSG_MODULE_ROOT)/ \
                 -I$(SSG_MODULE_ROOT)/linux/ 
 
+LINUXINCLUDE += -include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig.h
+include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig.conf
+
 ifneq ($(CONFIG_ARCH_QTI_VM), y)
     LINUXINCLUDE += -include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig.h
     include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig.conf
