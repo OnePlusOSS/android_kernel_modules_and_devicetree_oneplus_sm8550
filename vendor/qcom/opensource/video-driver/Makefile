@@ -8,6 +8,15 @@ VIDEO_COMPILE_BY = $(shell whoami | sed 's/\\/\\\\/')
 VIDEO_COMPILE_HOST = $(shell uname -n)
 VIDEO_GEN_PATH = $(VIDEO_ROOT)/driver/vidc/inc/video_generated_h
 
+EXTRA_SYMVERS := \
+    $(KERNEL_SRC)/../vendor/qcom/opensource/mm-drivers/sync_fence/Module.symvers \
+    $(KERNEL_SRC)/../vendor/qcom/opensource/securemsm-kernel/Module.symvers \
+    $(KERNEL_SRC)/../vendor/qcom/opensource/mm-drivers/msm_ext_display/Module.symvers \
+    $(KERNEL_SRC)/../vendor/qcom/opensource/mm-drivers/hw_fence/Module.symvers \
+    $(KERNEL_SRC)/../vendor/qcom/opensource/mmrm-driver/Module.symvers
+
+KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS="$(EXTRA_SYMVERS)"
+
 all: modules
 
 $(VIDEO_GEN_PATH): $(shell find . -type f \( -iname \*.c -o -iname \*.h -o -iname \*.mk \))
