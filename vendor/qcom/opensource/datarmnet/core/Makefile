@@ -43,6 +43,9 @@ KBUILD_OPTIONS += MODNAME?=rmnet_core
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
 
+modules:
+	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
+	
 modules_install:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules_install
 
