@@ -5,9 +5,11 @@ KBUILD_OPTIONS += RMNET_SHS_PATH=$(KERNEL_SRC)/$(M)/../shs
 KBUILD_OPTIONS += RMNET_CORE_INC_DIR=$(KERNEL_SRC)/$(M)/../../datarmnet/core/
 KBUILD_OPTIONS += $(RMNET_PERF_SELECT)
 KBUILD_OPTIONS += $(KBUILD_EXTRA) # Extra config if any
-KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS= \
+EXTRA_SYMVERS := \
     $(KERNEL_SRC)/../vendor/qcom/opensource/datarmnet/core/Module.symvers \
     $(KERNEL_SRC)/$(M)/../shs/Module.symvers
+
+KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS="$(EXTRA_SYMVERS)"
 
 M ?= $(shell pwd)
 
