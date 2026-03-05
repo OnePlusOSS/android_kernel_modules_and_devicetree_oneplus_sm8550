@@ -5,6 +5,10 @@ M=$(PWD)
 BT_ROOT=$(KERNEL_SRC)/$(M)
 
 KBUILD_OPTIONS+=  BT_ROOT=$(BT_ROOT)
+KBUILD_OPTIONS += CONFIG_MSM_BT_POWER=m
+KBUILD_OPTIONS += CONFIG_BTFM_SLIM=m
+KBUILD_OPTIONS += CONFIG_I2C_RTC6226_QCA=m
+KBUILD_OPTIONS += CONFIG_SLIM_BTFM_CODEC=m
 KBUILD_EXTRA_SYMBOLS=$(call intermediates-dir-for,DLKM,wlan-platform-module-symvers)/Module.symvers
 KBUILD_EXTRA_SYMBOLS=$(KERNEL_SRC)/../vendor/qcom/opensource/wlan/platform/Module.symvers
 ccflags-y += -I$(BT_ROOT)/../wlan/platform/inc
