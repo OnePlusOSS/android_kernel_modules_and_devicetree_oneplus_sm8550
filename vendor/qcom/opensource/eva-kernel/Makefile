@@ -1,4 +1,5 @@
 KBUILD_OPTIONS+= EVA_ROOT=$(KERNEL_SRC)/$(M)
+KBUILD_OPTIONS+= KBUILD_EXTRA_SYMBOLS+=$(KERNEL_SRC)/../vendor/qcom/opensource/mmrm-driver/Module.symvers
 
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
