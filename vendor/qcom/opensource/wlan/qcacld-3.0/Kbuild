@@ -3301,6 +3301,7 @@ INCS +=		$(COAP_WMI_INC)
 ccflags-y += $(INCS)
 
 cppflags-y +=	-DANI_OS_TYPE_ANDROID=6 \
+        -D__ANDROID_COMMON_KERNEL__ \
 		-Wall\
 		-Werror\
 		-D__linux__

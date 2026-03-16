@@ -12,24 +12,35 @@ KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
 M ?= $(shell pwd)
 
 ifeq ($(WLAN_ROOT),)
-# WLAN_ROOT must contain an absolute path (i.e. not a relative path)
-KBUILD_OPTIONS := WLAN_ROOT=$(shell cd $(KERNEL_SRC); readlink -e $(M))
 
-# MODNAME should be qca_cld3_wlan for helium based wear target
-ifeq (qca_cld3, $(WLAN_WEAR_CHIPSET))
-KBUILD_OPTIONS += MODNAME?=$(WLAN_WEAR_CHIPSET)_wlan
-else
-KBUILD_OPTIONS += MODNAME?=wlan
+KBUILD_OPTIONS += \
+    WLAN_ROOT=$(KERNEL_SRC)/$(M) \
+    WLAN_PLATFORM_ROOT=$(KERNEL_SRC)/$(M)/../platform \
+    WLAN_COMMON_ROOT=cmn \
+    WLAN_COMMON_INC=$(KERNEL_SRC)/$(M)/cmn \
+    WLAN_FW_API=$(KERNEL_SRC)/$(M)/../fw-api \
+    CONFIG_QCA_CLD_WLAN=m \
+    CONFIG_CNSS_KIWI_V2=y \
+    CONFIG_CNSS_OUT_OF_TREE=y \
+    CONFIG_CNSS2=m \
+    CONFIG_CNSS2_QMI=y \
+    CONFIG_CNSS_QMI_SVC=m \
+    CONFIG_CNSS_PLAT_IPC_QMI_SVC=m \
+    CONFIG_CNSS_GENL=m \
+    CONFIG_WCNSS_MEM_PRE_ALLOC=m \
+    CONFIG_CNSS_UTILS=m \
+    CONFIG_CNSS_HW_SECURE_DISABLE=y \
+    CONFIG_BUS_AUTO_SUSPEND=y \
+    WLAN_PROFILE=kiwi_v2 \
+    DYNAMIC_SINGLE_CHIP=kiwi_v2 \
+    MODNAME=qca_cld3_kiwi_v2 \
+    DEVNAME=kiwi_v2 \
+    BOARD_PLATFORM=kalama \
+    WLAN_CTRL_NAME=wlan
 endif
 
-#By default build for CLD
-WLAN_SELECT := CONFIG_QCA_CLD_WLAN=m
-KBUILD_OPTIONS += CONFIG_QCA_WIFI_ISOC=0
-KBUILD_OPTIONS += CONFIG_QCA_WIFI_2_0=1
-KBUILD_OPTIONS += CONFIG_CNSS_KIWI_V2=y CONFIG_CNSS_OUT_OF_TREE=y CONFIG_CNSS2=m CONFIG_CNSS2_QMI=y CONFIG_CNSS_QMI_SVC=m CONFIG_CNSS_PLAT_IPC_QMI_SVC=m CONFIG_CNSS_GENL=m CONFIG_WCNSS_MEM_PRE_ALLOC=m CONFIG_CNSS_UTILS=m WLAN_PROFILE=kiwi_v2 MODNAME=kiwi_v2 DEVNAME=kiwi_v2 BOARD_PLATFORM=kalama WLAN_CTRL_NAME=wlan CFG80211_RU_PUNCT_NOTIFY=y SUPPORT_WDEV_CFG80211_VENDOR_EVENT_ALLOC=y KCFLAGS="-DCFG80211_SINGLE_NETDEV_MULTI_LINK_SUPPORT"
 KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS=$(KERNEL_SRC)/../vendor/qcom/opensource/wlan/platform/Module.symvers
-KBUILD_OPTIONS += WLAN_ROOT=$(KERNEL_SRC)/../../vendor/qcom/opensource/wlan/qcacld-3.0/.kiwi_v2 WLAN_COMMON_INC=$(KERNEL_SRC)/../../vendor/qcom/opensource/wlan/qca-wifi-host-cmn WLAN_FW_API=$(KERNEL_SRC)/../../vendor/qcom/opensource/wlan/fw-api
-KBUILD_OPTIONS += $(WLAN_SELECT)
+
 KBUILD_OPTIONS += $(KBUILD_EXTRA) # Extra config if any
 endif
 
