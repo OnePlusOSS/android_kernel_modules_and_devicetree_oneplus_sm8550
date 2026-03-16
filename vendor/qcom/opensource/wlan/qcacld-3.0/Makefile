@@ -42,7 +42,6 @@ endif
 KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS=$(KERNEL_SRC)/../vendor/qcom/opensource/wlan/platform/Module.symvers
 
 KBUILD_OPTIONS += $(KBUILD_EXTRA) # Extra config if any
-endif
 
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
