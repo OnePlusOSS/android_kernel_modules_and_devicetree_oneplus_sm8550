@@ -13,19 +13,19 @@ ifeq ($(KERNEL_BUILD), y)
 	WLAN_ROOT := drivers/staging/qcacld-3.0
 	WLAN_COMMON_ROOT := cmn
 	WLAN_COMMON_INC := $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
-	WLAN_FW_API := $(WLAN_ROOT)/../fw-api/
+	WLAN_FW_API := $(WLAN_ROOT)/../fw-api
 	WLAN_PROFILE := default
 endif
 
 WLAN_COMMON_ROOT ?= cmn
 WLAN_COMMON_INC ?= $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
-WLAN_FW_API ?= $(WLAN_ROOT)/../fw-api/
+WLAN_FW_API ?= $(WLAN_ROOT)/../../fw-api
 WLAN_PROFILE ?= default
 CONFIG_QCA_CLD_WLAN_PROFILE ?= $(WLAN_PROFILE)
 DEVNAME ?= wlan
-WLAN_PLATFORM_INC ?= $(WLAN_ROOT)/../platform/inc
+WLAN_PLATFORM_INC ?= $(WLAN_ROOT)/../../platform/inc
 
-ifeq ($(KERNEL_BUILD), n)
+ifeq ($(KERNEL_BUILD), y)
 ifneq ($(ANDROID_BUILD_TOP),)
       ANDROID_BUILD_TOP_REL := $(shell python -c "import os.path; print(os.path.relpath('$(ANDROID_BUILD_TOP)'))")
       override WLAN_ROOT := $(ANDROID_BUILD_TOP_REL)/$(WLAN_ROOT)
@@ -3301,6 +3301,7 @@ INCS +=		$(COAP_WMI_INC)
 ccflags-y += $(INCS)
 
 cppflags-y +=	-DANI_OS_TYPE_ANDROID=6 \
+		-D__ANDROID_COMMON_KERNEL__ \
 		-Wall\
 		-Werror\
 		-D__linux__
