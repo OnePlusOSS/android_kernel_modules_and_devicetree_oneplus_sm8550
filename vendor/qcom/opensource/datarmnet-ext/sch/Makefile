@@ -1,5 +1,7 @@
 #By default build for CLD
 RMNET_SCH_SELECT := CONFIG_RMNET_SCH=m
+KBUILD_OPTIONS += RMNET_CORE_ROOT=$(KERNEL_SRC)/$(M)/../../datarmnet/core
+KBUILD_OPTIONS += RMNET_CORE_INC_DIR=$(KERNEL_SRC)/$(M)/../../datarmnet/core/
 KBUILD_OPTIONS += $(RMNET_SCH_SELECT)
 KBUILD_OPTIONS += $(KBUILD_EXTRA) # Extra config if any
 
