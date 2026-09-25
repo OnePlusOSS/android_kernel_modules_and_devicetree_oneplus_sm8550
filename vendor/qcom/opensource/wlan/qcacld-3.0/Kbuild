@@ -13,13 +13,13 @@ ifeq ($(KERNEL_BUILD), y)
 	WLAN_ROOT := drivers/staging/qcacld-3.0
 	WLAN_COMMON_ROOT := cmn
 	WLAN_COMMON_INC := $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
-	WLAN_FW_API := $(WLAN_ROOT)/../fw-api/
+	WLAN_FW_API := $(WLAN_ROOT)/../fw-api
 	WLAN_PROFILE := default
 endif
 
 WLAN_COMMON_ROOT ?= cmn
 WLAN_COMMON_INC ?= $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
-WLAN_FW_API ?= $(WLAN_ROOT)/../fw-api/
+WLAN_FW_API ?= $(WLAN_ROOT)/../fw-api
 WLAN_PROFILE ?= default
 CONFIG_QCA_CLD_WLAN_PROFILE ?= $(WLAN_PROFILE)
 DEVNAME ?= wlan
@@ -28,9 +28,11 @@ WLAN_PLATFORM_INC ?= $(WLAN_ROOT)/../platform/inc
 ifeq ($(KERNEL_BUILD), n)
 ifneq ($(ANDROID_BUILD_TOP),)
       ANDROID_BUILD_TOP_REL := $(shell python -c "import os.path; print(os.path.relpath('$(ANDROID_BUILD_TOP)'))")
-      override WLAN_ROOT := $(ANDROID_BUILD_TOP_REL)/$(WLAN_ROOT)
-      override WLAN_COMMON_INC := $(ANDROID_BUILD_TOP_REL)/$(WLAN_COMMON_INC)
-      override WLAN_FW_API := $(ANDROID_BUILD_TOP_REL)/$(WLAN_FW_API)
+	  ifneq ($(wildcard $(ANDROID_BUILD_TOP_REL)/$(WLAN_ROOT)),)
+      	override WLAN_ROOT := $(ANDROID_BUILD_TOP_REL)/$(WLAN_ROOT)
+      	override WLAN_COMMON_INC := $(ANDROID_BUILD_TOP_REL)/$(WLAN_COMMON_INC)
+      	override WLAN_FW_API := $(ANDROID_BUILD_TOP_REL)/$(WLAN_FW_API)
+	  endif
 endif
 endif
 
@@ -86,7 +88,7 @@ $(foreach cfg, $(WLAN_CFG_OVERRIDE), \
 # set in the kernel sources.  When a GKI kernel is used, there isn't a
 # flag set in the sources, so set the flag here if we are building
 # with GKI kernel where the feature is present
-KERNEL_VERSION = $(shell echo $$(( ( $1 << 16 ) + ( $2 << 8 ) + $3 )))
+KERNEL_VERSION = $(shell echo $$(( ( $(or $(1),0) << 16 ) + ( $(or $(2),0) << 8 ) + $(or $(3),0) )))
 LINUX_CODE := $(call KERNEL_VERSION,$(VERSION),$(PATCHLEVEL),$(SUBLEVEL))
 
 # Comosite feature was added to GKI 5.10.20
@@ -3301,6 +3303,7 @@ INCS +=		$(COAP_WMI_INC)
 ccflags-y += $(INCS)
 
 cppflags-y +=	-DANI_OS_TYPE_ANDROID=6 \
+		-D__ANDROID_COMMON_KERNEL__ \
 		-Wall\
 		-Werror\
 		-D__linux__
