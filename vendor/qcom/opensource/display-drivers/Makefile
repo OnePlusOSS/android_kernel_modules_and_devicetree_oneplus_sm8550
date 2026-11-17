@@ -2,6 +2,15 @@
 
 KBUILD_OPTIONS+= DISPLAY_ROOT=$(KERNEL_SRC)/$(M)
 
+KBUILD_EXTRA_SYMBOLS := $(M)/../mm-drivers/hw_fence/Module.symvers \
+						$(M)/../mm-drivers/msm_ext_display/Module.symvers \
+						$(M)/../mm-drivers/sync_fence/Module.symvers \
+						$(M)/../mmrm-driver/Module.symvers \
+						$(M)/../securemsm-kernel/Module.symvers
+
+KBUILD_OPTIONS+=CONFIG_DRM_MSM=y
+KBUILD_OPTIONS+= KBUILD_EXTRA_SYMBOLS="$(KBUILD_EXTRA_SYMBOLS)"
+
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
 

@@ -6,6 +6,7 @@ M=$(PWD)
 EXPLORER_ROOT=$(KERNEL_SRC)/$(M)
 
 KBUILD_OPTIONS := EXPLORER_ROOT=$(EXPLORER_ROOT)
+KBUILD_OPTIONS+= KBUILD_EXTRA_SYMBOLS=$(M)/../../../qcom/opensource/camera-kernel/Module.symvers
 
 all: modules
 
